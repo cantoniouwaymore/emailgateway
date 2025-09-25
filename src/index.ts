@@ -8,7 +8,6 @@ import { logger } from './utils/logger';
 import { setupMetricsEndpoint } from './utils/metrics';
 import { emailRoutes } from './api/routes/email';
 import { healthRoutes } from './api/routes/health';
-import { senderRoutes } from './api/routes/senders';
 import { webhookRoutes } from './api/routes/webhook';
 import { adminRoutes } from './api/routes/admin';
 import { generateTestToken } from './utils/auth';
@@ -69,7 +68,6 @@ async function buildServer() {
   await fastify.register(webhookRoutes);
   await fastify.register(adminRoutes);
   await fastify.register(emailRoutes, { prefix: '/api' });
-  await fastify.register(senderRoutes, { prefix: '/api' });
 
   // Add a test endpoint to generate JWT tokens (development only)
   if (NODE_ENV === 'development') {

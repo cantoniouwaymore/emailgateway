@@ -61,12 +61,6 @@ interface RouteeErrorResponse {
   explanation: string;
 }
 
-interface RouteeSender {
-  email: string;
-  name?: string;
-  verified: boolean;
-  domain: string;
-}
 
 export class RouteeEmailProvider implements EmailProvider {
   public readonly name = 'routee';
@@ -75,14 +69,11 @@ export class RouteeEmailProvider implements EmailProvider {
   private baseUrl: string;
   private accessToken: string | null = null;
   private tokenExpiry: number = 0;
-  private verifiedSenders: Set<string> = new Set();
-  private defaultSender: string;
 
   constructor(clientId?: string, clientSecret?: string) {
     this.clientId = clientId || process.env.ROUTEE_CLIENT_ID || '';
     this.clientSecret = clientSecret || process.env.ROUTEE_CLIENT_SECRET || '';
     this.baseUrl = process.env.ROUTEE_BASE_URL || 'https://connect.routee.net';
-    this.defaultSender = process.env.ROUTEE_DEFAULT_SENDER || '';
   }
 
   private async getAccessToken(): Promise<string> {
@@ -132,73 +123,12 @@ export class RouteeEmailProvider implements EmailProvider {
     }
   }
 
-  private async validateSender(email: string): Promise<void> {
-    if (!this.verifiedSenders.has(email)) {
-      // Check if sender is verified in Routee
-      const isVerified = await this.checkSenderVerification(email);
-      if (!isVerified) {
-        throw new Error(`Sender ${email} is not verified in Routee. Please verify the sender first.`);
-      }
-      this.verifiedSenders.add(email);
-    }
-  }
-
-  private async checkSenderVerification(email: string): Promise<boolean> {
-    try {
-      const accessToken = await this.getAccessToken();
-      
-      const response = await fetch(`${this.baseUrl}/senders`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        logger.warn({ 
-          provider: this.name, 
-          sender: email,
-          status: response.status 
-        }, 'Failed to check sender verification status');
-        return false;
-      }
-
-      const senders = await response.json() as RouteeSender[];
-      const sender = senders.find(s => s.email === email);
-      
-      if (sender) {
-        logger.info({ 
-          provider: this.name, 
-          sender: email,
-          verified: sender.verified 
-        }, 'Sender verification status checked');
-        return sender.verified;
-      }
-
-      logger.warn({ 
-        provider: this.name, 
-        sender: email 
-      }, 'Sender not found in Routee account');
-      return false;
-    } catch (error) {
-      logger.error({ 
-        provider: this.name, 
-        sender: email,
-        error: error instanceof Error ? error.message : 'Unknown error' 
-      }, 'Error checking sender verification');
-      return false;
-    }
-  }
 
   async send(request: SendProviderRequest): Promise<SendProviderResult> {
     const startTime = Date.now();
     
     try {
       const accessToken = await this.getAccessToken();
-
-      // Validate sender before sending (temporarily disabled for testing)
-      // await this.validateSender(request.from.email);
 
       logger.info({
         provider: this.name,
@@ -402,82 +332,6 @@ export class RouteeEmailProvider implements EmailProvider {
     return eventTypeMap[routeeEventType] || 'delivered';
   }
 
-  async addSender(email: string, name?: string): Promise<boolean> {
-    try {
-      const accessToken = await this.getAccessToken();
-      
-      const response = await fetch(`${this.baseUrl}/senders`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email,
-          name: name || email.split('@')[0]
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        logger.error({ 
-          provider: this.name, 
-          sender: email,
-          status: response.status,
-          error: errorData 
-        }, 'Failed to add sender to Routee');
-        return false;
-      }
-
-      logger.info({ 
-        provider: this.name, 
-        sender: email 
-      }, 'Sender added to Routee (verification email sent)');
-      return true;
-    } catch (error) {
-      logger.error({ 
-        provider: this.name, 
-        sender: email,
-        error: error instanceof Error ? error.message : 'Unknown error' 
-      }, 'Error adding sender to Routee');
-      return false;
-    }
-  }
-
-  async getVerifiedSenders(): Promise<RouteeSender[]> {
-    try {
-      const accessToken = await this.getAccessToken();
-      
-      const response = await fetch(`${this.baseUrl}/senders`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to get senders: ${response.status}`);
-      }
-
-      const senders = await response.json() as RouteeSender[];
-      
-      // Update our cache
-      senders.forEach(sender => {
-        if (sender.verified) {
-          this.verifiedSenders.add(sender.email);
-        }
-      });
-
-      return senders.filter(sender => sender.verified);
-    } catch (error) {
-      logger.error({ 
-        provider: this.name,
-        error: error instanceof Error ? error.message : 'Unknown error' 
-      }, 'Error getting verified senders');
-      return [];
-    }
-  }
 
   async health(): Promise<HealthStatus> {
     const startTime = Date.now();
@@ -488,26 +342,11 @@ export class RouteeEmailProvider implements EmailProvider {
       // Test authentication
       await this.getAccessToken();
       
-      // Check if we have verified senders
-      const verifiedSenders = await this.getVerifiedSenders();
-      
       const latency = Date.now() - startTime;
-      
-      if (verifiedSenders.length === 0) {
-        return {
-          healthy: false,
-          latency,
-          error: 'No verified senders found. Please add and verify at least one sender.'
-        };
-      }
 
       return {
         healthy: true,
-        latency,
-        details: {
-          verifiedSendersCount: verifiedSenders.length,
-          verifiedSenders: verifiedSenders.map(s => s.email)
-        }
+        latency
       };
     } catch (error) {
       const latency = Date.now() - startTime;
