@@ -1,7 +1,7 @@
 import 'dotenv/config';
 
 // Check if we should run in worker mode
-const isWorkerMode = 
+let isWorkerMode = 
   process.env.RAILWAY_SERVICE_NAME === 'email-gateway-worker' ||
   process.env.SERVICE_MODE === 'worker' ||
   process.env.RAILWAY_START_COMMAND === 'npm run worker';
@@ -10,6 +10,12 @@ console.log('🔍 Debug: RAILWAY_SERVICE_NAME=' + process.env.RAILWAY_SERVICE_NA
 console.log('🔍 Debug: SERVICE_MODE=' + process.env.SERVICE_MODE);
 console.log('🔍 Debug: RAILWAY_START_COMMAND=' + process.env.RAILWAY_START_COMMAND);
 console.log('🔍 Debug: isWorkerMode=' + isWorkerMode);
+
+// Force worker mode for email-gateway-worker service
+if (process.env.RAILWAY_SERVICE_NAME === 'email-gateway-worker') {
+  console.log('🚀 FORCING WORKER MODE for email-gateway-worker service');
+  isWorkerMode = true;
+}
 
 if (isWorkerMode) {
   console.log('🚀 Starting Email Gateway Worker...');
