@@ -185,7 +185,10 @@ export class EmailWorker {
           lastError,
           attempts,
           updatedAt: new Date(),
-          ...(metadata && { provider: metadata.provider as string })
+          ...(metadata && { 
+            provider: metadata.provider as string,
+            providerMessageId: metadata.providerMessageId as string
+          })
         }
       });
 

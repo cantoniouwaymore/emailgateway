@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
@@ -8,6 +9,7 @@ import { setupMetricsEndpoint } from './utils/metrics';
 import { emailRoutes } from './api/routes/email';
 import { healthRoutes } from './api/routes/health';
 import { senderRoutes } from './api/routes/senders';
+import { webhookRoutes } from './api/routes/webhook';
 import { generateTestToken } from './utils/auth';
 
 const PORT = parseInt(process.env['PORT'] || '3000');
@@ -63,6 +65,7 @@ async function buildServer() {
 
   // Register routes
   await fastify.register(healthRoutes);
+  await fastify.register(webhookRoutes);
   await fastify.register(emailRoutes, { prefix: '/api' });
   await fastify.register(senderRoutes, { prefix: '/api' });
 
@@ -85,6 +88,7 @@ async function buildServer() {
         endpoints: {
           'POST /api/v1/emails': 'Send email',
           'GET /api/v1/messages/:id': 'Get message status',
+          'POST /webhooks/routee': 'Routee webhook endpoint',
           'GET /healthz': 'Liveness probe',
           'GET /readyz': 'Readiness probe',
           'GET /health': 'Health check',

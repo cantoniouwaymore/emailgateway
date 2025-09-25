@@ -23,25 +23,28 @@ model IdempotencyKey {
 }
 
 model Message {
-  messageId     String   @id @map("message_id")
-  tenantId      String?  @map("tenant_id")
-  toJson        Json     @map("to_json")
-  subject       String
-  templateKey   String   @map("template_key")
-  locale        String?
-  variablesJson Json     @map("variables_json")
-  provider      String?
-  status        MessageStatus @default(QUEUED)
-  attempts      Int      @default(0)
-  lastError     String?  @map("last_error")
-  webhookUrl    String?  @map("webhook_url")
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
+  messageId         String   @id @map("message_id")
+  tenantId          String?  @map("tenant_id")
+  toJson            Json     @map("to_json")
+  subject           String
+  templateKey       String   @map("template_key")
+  locale            String?
+  variablesJson     Json     @map("variables_json")
+  provider          String?
+  providerMessageId String?  @map("provider_message_id")
+  status            MessageStatus @default(QUEUED)
+  attempts          Int      @default(0)
+  lastError         String?  @map("last_error")
+  webhookUrl        String?  @map("webhook_url")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
 
   @@map("messages")
   @@index([tenantId])
   @@index([status])
   @@index([createdAt])
+  @@index([provider])
+  @@index([providerMessageId])
 }
 
 model ProviderEvent {

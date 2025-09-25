@@ -492,31 +492,81 @@ curl -X POST /api/v1/emails \
 
 ## Webhooks
 
-The service can send webhook notifications for email events.
+The service supports both sending webhook notifications to clients and receiving webhook events from email providers.
 
-### Webhook Payload
+### Client Webhooks (Outgoing)
+
+The service can send webhook notifications for email events to client-specified URLs.
+
+#### Webhook Payload
 
 ```json
 {
-  "event": "email.sent",
   "messageId": "msg_abc123def456",
+  "status": "delivered",
+  "eventType": "delivered",
   "timestamp": "2024-01-01T10:00:05Z",
-  "data": {
-    "status": "sent",
-    "provider": "routee",
-    "providerMessageId": "routee_12345",
+  "provider": "routee",
+  "trackingId": "routee_12345",
+  "details": {
     "recipient": "user@example.com",
-    "attempts": 1
+    "deliveryTime": "2024-01-01T10:00:05Z"
   }
 }
 ```
 
-### Event Types
+#### Event Types
 
 | Event | Description |
 |-------|-------------|
-| `email.sent` | Email successfully sent to provider |
-| `email.delivered` | Email delivered to recipient |
+| `delivered` | Email delivered to recipient |
+| `bounce` | Email bounced back |
+| `open` | Email was opened |
+| `click` | Link was clicked |
+| `spam` | Email marked as spam |
+
+### Provider Webhooks (Incoming)
+
+The service receives webhook events from email providers to update message status.
+
+#### Routee Webhook Endpoint
+
+```
+POST /webhooks/routee
+```
+
+**Request Headers:**
+```
+Content-Type: application/json
+X-Routee-Signature: sha256=abc123... (optional)
+X-Routee-Timestamp: 1640995200000 (optional)
+```
+
+**Request Body:**
+```json
+{
+  "events": [
+    {
+      "trackingId": "routee_tracking_123456",
+      "eventType": "delivered",
+      "timestamp": "2024-01-01T10:00:05Z",
+      "details": {
+        "recipient": "user@example.com",
+        "deliveryTime": "2024-01-01T10:00:05Z"
+      }
+    }
+  ]
+}
+```
+
+**Response:**
+```json
+{
+  "processed": 1,
+  "failed": 0,
+  "total": 1
+}
+```
 | `email.bounced` | Email bounced back |
 | `email.failed` | Email failed to send |
 

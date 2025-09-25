@@ -208,7 +208,7 @@ export class RouteeEmailProvider implements EmailProvider {
       }, 'Sending email via Routee');
 
       // Transform our request to Routee Email API v.2 format
-      const routeeRequest = {
+      const routeeRequest: any = {
         from: {
           name: request.from.name,
           address: request.from.email  // Routee uses 'address' not 'email'
@@ -257,12 +257,18 @@ export class RouteeEmailProvider implements EmailProvider {
         }));
       }
 
-      // Add callback URL if webhook is configured
-      if (request.metadata?.webhookUrl) {
-        routeeRequest.callback = {
-          url: request.metadata.webhookUrl as string
-        };
-      }
+      // Add callback URL for webhook notifications
+      const webhookUrl = process.env.WEBHOOK_BASE_URL || process.env.BASE_URL || 'http://localhost:3000';
+      routeeRequest.callback = {
+        url: `${webhookUrl}/webhooks/routee`
+      };
+
+      // Debug: Log the request being sent
+      console.log('=== ROUTEE API DEBUG ===');
+      console.log('Routee API URL:', `${this.baseUrl}/transactional-email`);
+      console.log('Access Token:', accessToken ? `${accessToken.substring(0, 20)}...` : 'MISSING');
+      console.log('Routee API Request:', JSON.stringify(routeeRequest, null, 2));
+      console.log('========================');
 
       // Make the API call to Routee Email API v.2
       const response = await fetch(`${this.baseUrl}/transactional-email`, {
@@ -276,13 +282,24 @@ export class RouteeEmailProvider implements EmailProvider {
 
       const latency = Date.now() - startTime;
 
+      console.log('=== ROUTEE API RESPONSE ===');
+      console.log('Status:', response.status);
+      console.log('Headers:', Object.fromEntries(response.headers.entries()));
+      console.log('==========================');
+
       if (!response.ok) {
         let errorMessage = `Routee API error: ${response.status}`;
         try {
-          const errorData = await response.json() as RouteeErrorResponse;
-          errorMessage = `${errorData.type}: ${errorData.explanation}`;
+          const errorText = await response.text();
+          console.log('Routee API Error Response:', errorText);
+          try {
+            const errorData = JSON.parse(errorText) as RouteeErrorResponse;
+            errorMessage = `${errorData.type}: ${errorData.explanation}`;
+          } catch {
+            errorMessage = `Routee API error: ${response.status} - ${errorText}`;
+          }
         } catch {
-          // Use default error message if JSON parsing fails
+          errorMessage = `Routee API error: ${response.status} - Failed to read response`;
         }
 
         logger.error({
