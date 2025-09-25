@@ -6,7 +6,7 @@
 # 2. Worker mode - runs the email worker
 
 # Check if we should run in worker mode
-if [ "$RAILWAY_SERVICE_NAME" = "email-gateway-worker" ] || [ "$SERVICE_MODE" = "worker" ]; then
+if [ "$RAILWAY_SERVICE_NAME" = "email-gateway-worker" ] || [ "$SERVICE_MODE" = "worker" ] || [ "$RAILWAY_START_COMMAND" = "npm run worker" ]; then
   echo "🚀 Starting Email Gateway Worker..."
   
   # Wait for database to be ready
