@@ -37,8 +37,9 @@ RUN npm ci --only=production && npm cache clean --force
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist/
 
-# Generate Prisma client
+# Generate Prisma client and run migrations
 RUN npx prisma generate
+RUN npx prisma migrate deploy
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs
