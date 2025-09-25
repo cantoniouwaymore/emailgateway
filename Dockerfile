@@ -37,9 +37,12 @@ RUN npm ci --only=production && npm cache clean --force
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist/
 
-# Generate Prisma client and run migrations
+# Copy startup script
+COPY start.sh ./start.sh
+RUN chmod +x ./start.sh
+
+# Generate Prisma client
 RUN npx prisma generate
-RUN npx prisma migrate deploy
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs
@@ -57,4 +60,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3000/healthz', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
 
 # Start the application
-CMD ["node", "dist/index.js"]
+CMD ["./start.sh"]
