@@ -6,9 +6,12 @@ import { Recipient } from '../../types/email';
 export class AdminController {
   async getDashboardHTML(request: FastifyRequest, reply: FastifyReply) {
     try {
-      // Get system health
+      // Get comprehensive system health
       const healthResponse = await fetch('http://localhost:3000/health');
       const health = await healthResponse.json();
+
+      // Get detailed service health
+      const serviceHealth = await this.getDetailedServiceHealth();
 
       // Get recent messages (last 50)
       const recentMessages = await prisma.message.findMany({
@@ -49,8 +52,13 @@ export class AdminController {
         where: { status: 'SENT' }
       });
 
+      // Get system metrics
+      const systemMetrics = this.getSystemMetrics();
+
       const html = this.generateDashboardHTML({
         health,
+        serviceHealth,
+        systemMetrics,
         recentMessages,
         stats,
         queueDepth,
@@ -328,8 +336,21 @@ export class AdminController {
     };
   }
 
+  private formatUptime(seconds: number): string {
+    if (!seconds) return '0s';
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    if (days > 0) return `${days}d ${hours}h`;
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    if (minutes > 0) return `${minutes}m ${secs}s`;
+    return `${secs}s`;
+  }
+
   private generateDashboardHTML(data: any): string {
-    const { health, recentMessages, stats, queueDepth, failedCount, sentCount } = data;
+    const { health, serviceHealth, systemMetrics, recentMessages, stats, queueDepth, failedCount, sentCount } = data;
     
     return `
 <!DOCTYPE html>
@@ -442,6 +463,168 @@ export class AdminController {
                                 <dt class="text-sm font-medium text-gray-500 truncate">Failed Today</dt>
                                 <dd class="text-lg font-medium text-gray-900">${failedCount || 0}</dd>
                             </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Service Health Section -->
+        <div class="mb-8">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">
+                <i class="fas fa-server mr-2"></i>
+                Service Health
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Database Health -->
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="p-5">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-database text-2xl ${serviceHealth?.database?.healthy ? 'text-green-500' : 'text-red-500'}"></i>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">Database</dt>
+                                    <dd class="text-lg font-medium text-gray-900">${serviceHealth?.database?.healthy ? 'Healthy' : 'Unhealthy'}</dd>
+                                    <dd class="text-xs text-gray-500">${serviceHealth?.database?.latency ? serviceHealth.database.latency + 'ms' : ''}</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Redis Health -->
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="p-5">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-memory text-2xl ${serviceHealth?.redis?.healthy ? 'text-green-500' : 'text-red-500'}"></i>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">Redis</dt>
+                                    <dd class="text-lg font-medium text-gray-900">${serviceHealth?.redis?.healthy ? 'Healthy' : 'Unhealthy'}</dd>
+                                    <dd class="text-xs text-gray-500">${serviceHealth?.redis?.latency ? serviceHealth.redis.latency + 'ms' : ''}</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Worker Health -->
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="p-5">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-cogs text-2xl ${serviceHealth?.worker?.healthy ? 'text-green-500' : 'text-red-500'}"></i>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">Worker</dt>
+                                    <dd class="text-lg font-medium text-gray-900">${serviceHealth?.worker?.healthy ? 'Healthy' : 'Unhealthy'}</dd>
+                                    <dd class="text-xs text-gray-500">${serviceHealth?.worker?.details?.stuckMessages ? serviceHealth.worker.details.stuckMessages + ' stuck' : ''}</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Provider Health -->
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="p-5">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-envelope text-2xl ${serviceHealth?.providers?.healthy ? 'text-green-500' : 'text-red-500'}"></i>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">Providers</dt>
+                                    <dd class="text-lg font-medium text-gray-900">${serviceHealth?.providers?.healthy ? 'Healthy' : 'Unhealthy'}</dd>
+                                    <dd class="text-xs text-gray-500">${Object.keys(serviceHealth?.providers?.details || {}).length} providers</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Metrics Section -->
+        <div class="mb-8">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">
+                <i class="fas fa-chart-line mr-2"></i>
+                System Metrics
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Memory Usage -->
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="p-5">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-memory text-2xl text-blue-500"></i>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">Memory Usage</dt>
+                                    <dd class="text-lg font-medium text-gray-900">${systemMetrics?.memory?.used || 0} MB</dd>
+                                    <dd class="text-xs text-gray-500">RSS: ${systemMetrics?.memory?.rss || 0} MB</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Uptime -->
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="p-5">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-clock text-2xl text-green-500"></i>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">Uptime</dt>
+                                    <dd class="text-lg font-medium text-gray-900">${this.formatUptime(systemMetrics?.uptime || 0)}</dd>
+                                    <dd class="text-xs text-gray-500">${systemMetrics?.serviceMode || 'api'}</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Node Version -->
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="p-5">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <i class="fab fa-node-js text-2xl text-green-500"></i>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">Node Version</dt>
+                                    <dd class="text-lg font-medium text-gray-900">${systemMetrics?.nodeVersion || 'Unknown'}</dd>
+                                    <dd class="text-xs text-gray-500">${systemMetrics?.platform || 'Unknown'}</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Last Updated -->
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="p-5">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-sync-alt text-2xl text-blue-500"></i>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">Last Updated</dt>
+                                    <dd class="text-lg font-medium text-gray-900">${new Date().toLocaleTimeString()}</dd>
+                                    <dd class="text-xs text-gray-500">Auto-refresh: 30s</dd>
+                                </dl>
+                            </div>
                         </div>
                     </div>
                 </div>
