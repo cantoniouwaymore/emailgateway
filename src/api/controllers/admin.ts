@@ -96,9 +96,12 @@ export class AdminController {
 
   async getApiData(request: FastifyRequest, reply: FastifyReply) {
     try {
-      // Get system health
+      // Get comprehensive system health
       const healthResponse = await fetch('http://localhost:3000/health');
       const health = await healthResponse.json();
+
+      // Get detailed service health
+      const serviceHealth = await this.getDetailedServiceHealth();
 
       // Get recent messages
       const recentMessages = await prisma.message.findMany({
@@ -128,8 +131,13 @@ export class AdminController {
         where: { status: 'QUEUED' }
       });
 
+      // Get system metrics
+      const systemMetrics = this.getSystemMetrics();
+
       return reply.send({
         health,
+        serviceHealth,
+        systemMetrics,
         recentMessages,
         stats,
         queueDepth,
@@ -139,6 +147,177 @@ export class AdminController {
       logger.error({ error }, 'Admin API data error');
       return reply.status(500).send({ error: 'Failed to load data' });
     }
+  }
+
+  private async getDetailedServiceHealth() {
+    const healthChecks = await Promise.allSettled([
+      this.checkDatabaseHealth(),
+      this.checkRedisHealth(),
+      this.checkWorkerHealth(),
+      this.checkProviderHealth()
+    ]);
+
+    return {
+      database: healthChecks[0].status === 'fulfilled' ? healthChecks[0].value : { healthy: false, error: 'Database check failed' },
+      redis: healthChecks[1].status === 'fulfilled' ? healthChecks[1].value : { healthy: false, error: 'Redis check failed' },
+      worker: healthChecks[2].status === 'fulfilled' ? healthChecks[2].value : { healthy: false, error: 'Worker check failed' },
+      providers: healthChecks[3].status === 'fulfilled' ? healthChecks[3].value : { healthy: false, error: 'Provider check failed' }
+    };
+  }
+
+  private async checkDatabaseHealth() {
+    try {
+      const startTime = Date.now();
+      await prisma.$queryRaw`SELECT 1`;
+      const latency = Date.now() - startTime;
+      
+      // Get connection pool info
+      const poolInfo = await prisma.$queryRaw`
+        SELECT 
+          count(*) as total_connections,
+          count(*) FILTER (WHERE state = 'active') as active_connections,
+          count(*) FILTER (WHERE state = 'idle') as idle_connections
+        FROM pg_stat_activity 
+        WHERE datname = current_database()
+      `;
+
+      return {
+        healthy: true,
+        latency,
+        details: {
+          connectionPool: poolInfo[0],
+          database: process.env.DATABASE_URL?.split('@')[1]?.split('/')[0] || 'unknown'
+        }
+      };
+    } catch (error) {
+      return {
+        healthy: false,
+        error: error instanceof Error ? error.message : 'Unknown database error'
+      };
+    }
+  }
+
+  private async checkRedisHealth() {
+    try {
+      const startTime = Date.now();
+      const Redis = require('ioredis');
+      const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
+      
+      await redis.ping();
+      const latency = Date.now() - startTime;
+      
+      // Get Redis info
+      const info = await redis.info('memory');
+      const memoryInfo = info.split('\n').reduce((acc: any, line: string) => {
+        const [key, value] = line.split(':');
+        if (key && value) {
+          acc[key] = value.trim();
+        }
+        return acc;
+      }, {});
+
+      await redis.quit();
+
+      return {
+        healthy: true,
+        latency,
+        details: {
+          memory: {
+            used: memoryInfo.used_memory_human,
+            peak: memoryInfo.used_memory_peak_human,
+            fragmentation: memoryInfo.mem_fragmentation_ratio
+          },
+          redis: process.env.REDIS_URL?.split('@')[1] || 'localhost:6379'
+        }
+      };
+    } catch (error) {
+      return {
+        healthy: false,
+        error: error instanceof Error ? error.message : 'Unknown Redis error'
+      };
+    }
+  }
+
+  private async checkWorkerHealth() {
+    try {
+      // Check if there are any recent worker activities
+      const recentWorkerActivity = await prisma.message.count({
+        where: {
+          updatedAt: {
+            gte: new Date(Date.now() - 5 * 60 * 1000) // Last 5 minutes
+          },
+          status: {
+            in: ['SENT', 'FAILED']
+          }
+        }
+      });
+
+      // Check for stuck messages (queued for too long)
+      const stuckMessages = await prisma.message.count({
+        where: {
+          status: 'QUEUED',
+          createdAt: {
+            lt: new Date(Date.now() - 10 * 60 * 1000) // Older than 10 minutes
+          }
+        }
+      });
+
+      return {
+        healthy: stuckMessages === 0,
+        details: {
+          recentActivity: recentWorkerActivity,
+          stuckMessages,
+          workerStatus: stuckMessages > 0 ? 'degraded' : 'healthy'
+        }
+      };
+    } catch (error) {
+      return {
+        healthy: false,
+        error: error instanceof Error ? error.message : 'Unknown worker error'
+      };
+    }
+  }
+
+  private async checkProviderHealth() {
+    try {
+      const { ProviderManager } = await import('../../providers/manager');
+      const providerManager = new ProviderManager();
+      const providerHealth = await providerManager.getProviderHealth();
+      
+      const allHealthy = Object.values(providerHealth).every(p => p.healthy);
+      
+      return {
+        healthy: allHealthy,
+        details: providerHealth
+      };
+    } catch (error) {
+      return {
+        healthy: false,
+        error: error instanceof Error ? error.message : 'Unknown provider error'
+      };
+    }
+  }
+
+  private getSystemMetrics() {
+    const memUsage = process.memoryUsage();
+    const cpuUsage = process.cpuUsage();
+    
+    return {
+      memory: {
+        used: Math.round(memUsage.heapUsed / 1024 / 1024), // MB
+        total: Math.round(memUsage.heapTotal / 1024 / 1024), // MB
+        external: Math.round(memUsage.external / 1024 / 1024), // MB
+        rss: Math.round(memUsage.rss / 1024 / 1024) // MB
+      },
+      cpu: {
+        user: cpuUsage.user,
+        system: cpuUsage.system
+      },
+      uptime: Math.floor(process.uptime()),
+      nodeVersion: process.version,
+      platform: process.platform,
+      serviceMode: process.env.SERVICE_MODE || 'api'
+    };
   }
 
   private generateDashboardHTML(data: any): string {
