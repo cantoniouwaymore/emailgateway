@@ -48,6 +48,7 @@
 
 - **Node.js** 20+ 
 - **Docker & Docker Compose** (optional)
+- **Railway CLI** (for Railway deployment)
 - **PostgreSQL** 15+
 - **Redis** 7+
 
@@ -429,6 +430,22 @@ docker run -p 3000:3000 email-gateway
 ```bash
 kubectl apply -f k8s/
 ```
+
+### Railway (Recommended for Production)
+```bash
+# Quick deployment with both API and Worker services
+./deploy-railway.sh
+
+# Or manual deployment
+railway login
+railway service create email-gateway-api
+railway service create email-gateway-worker
+railway add postgresql
+railway add redis
+railway up
+```
+
+> 📖 **Detailed Railway Guide**: See [docs/RAILWAY_DEPLOYMENT.md](docs/RAILWAY_DEPLOYMENT.md) for complete setup instructions.
 
 ## 📚 Documentation
 
