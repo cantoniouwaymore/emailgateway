@@ -5,7 +5,11 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
+    "dev:api": "tsx watch src/index.ts",
+    "dev:worker": "tsx watch src/queue/worker.ts",
     "start": "node dist/startup.js",
+    "start:api": "node dist/index-api.js",
+    "start:worker": "node dist/worker-standalone.js",
     "worker": "tsx src/queue/worker.ts",
     "build": "tsc",
     "migrate": "prisma migrate dev",

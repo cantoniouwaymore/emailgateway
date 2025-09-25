@@ -3,12 +3,12 @@ builder = "dockerfile"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "npm run start:api"
+startCommand = "npm run start:worker"
 healthcheckPath = "/healthz"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
 
-# API Service Configuration
-# This service handles HTTP requests and queues emails
-# It runs the Fastify web server
+# Worker Service Configuration
+# This service processes the email queue
+# It runs the BullMQ worker

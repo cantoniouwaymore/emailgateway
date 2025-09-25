@@ -40,7 +40,9 @@ COPY --from=builder /app/dist ./dist/
 # Copy startup scripts
 COPY start.sh ./start.sh
 COPY start-railway.sh ./start-railway.sh
-RUN chmod +x ./start.sh ./start-railway.sh
+COPY start-api.sh ./start-api.sh
+COPY start-worker.sh ./start-worker.sh
+RUN chmod +x ./start.sh ./start-railway.sh ./start-api.sh ./start-worker.sh
 
 # Generate Prisma client
 RUN npx prisma generate
