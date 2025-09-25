@@ -3,11 +3,11 @@ builder = "dockerfile"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "npm start"
+startCommand = "npm run worker"
 healthcheckPath = "/healthz"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
 
-# Default API Service Configuration
-# This service handles HTTP requests and queues emails
+# Worker Service Configuration
+# This service processes the email queue and sends emails

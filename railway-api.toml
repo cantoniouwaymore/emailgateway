@@ -9,5 +9,5 @@ healthcheckTimeout = 300
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
 
-# Default API Service Configuration
+# API Service Configuration
 # This service handles HTTP requests and queues emails
