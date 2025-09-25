@@ -7,12 +7,14 @@ import { ProviderManager } from '../providers/manager';
 import { EmailJobData } from './producer';
 import { logger, createTraceId } from '../utils/logger';
 import { retryCount, emailsSentTotal, emailsFailedTotal } from '../utils/metrics';
+import { createServer } from 'http';
 
 export class EmailWorker {
   private worker: Worker<EmailJobData>;
   private templateEngine: TemplateEngine;
   private providerManager: ProviderManager;
   private redis: Redis;
+  private healthServer: any;
 
   constructor() {
     const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
@@ -28,7 +30,33 @@ export class EmailWorker {
       connection: this.redis,
       concurrency: parseInt(process.env.WORKER_CONCURRENCY || '5'),
     });
+
+    // Start health check server
+    this.startHealthServer();
     this.setupWorkerEvents();
+  }
+
+  private startHealthServer(): void {
+    const port = parseInt(process.env.PORT || '3000');
+    const host = process.env.HOST || '0.0.0.0';
+    
+    this.healthServer = createServer((req, res) => {
+      if (req.url === '/healthz') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ 
+          status: 'healthy', 
+          service: 'email-worker',
+          timestamp: new Date().toISOString()
+        }));
+      } else {
+        res.writeHead(404);
+        res.end('Not Found');
+      }
+    });
+
+    this.healthServer.listen(port, host, () => {
+      logger.info(`Health check server listening at http://${host}:${port}`);
+    });
   }
 
   private setupWorkerEvents(): void {
@@ -211,6 +239,12 @@ export class EmailWorker {
     logger.info('Shutting down email worker...');
     await this.worker.close();
     await this.redis.quit();
+    
+    // Close health server
+    if (this.healthServer) {
+      this.healthServer.close();
+    }
+    
     logger.info('Email worker shut down');
   }
 }
