@@ -10,4 +10,4 @@ restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
 
 # Worker Service Configuration
-# This service processes the email queue and sends emails
+# This service processes the email queue
