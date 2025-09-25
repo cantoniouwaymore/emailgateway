@@ -259,7 +259,7 @@ export class RouteeEmailProvider implements EmailProvider {
 
       // Add callback URL for webhook notifications
       const webhookUrl = process.env.WEBHOOK_BASE_URL || process.env.BASE_URL || 'http://localhost:3000';
-      routeeRequest.callback = {
+      routeeRequest.eventCallback = {
         url: `${webhookUrl}/webhooks/routee`
       };
 

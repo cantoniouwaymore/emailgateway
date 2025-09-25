@@ -677,7 +677,197 @@ curl -H "Authorization: Bearer your-jwt-token" \
 - JWT authentication
 - Rate limiting
 
+## Admin Dashboard
+
+### Web Interface
+
+Access the admin dashboard for real-time monitoring:
+
+```http
+GET /admin
+```
+
+**Response**: HTML dashboard interface
+
+**Features**:
+- Real-time email status monitoring
+- System health indicators
+- Message statistics and queue depth
+- Detailed message information
+- Provider event tracking
+- Auto-refresh every 30 seconds
+
+### Admin API Data
+
+Get real-time data for the admin dashboard:
+
+```http
+GET /admin/api/data
+```
+
+**Response**:
+```json
+{
+  "health": {
+    "status": "healthy",
+    "timestamp": "2025-09-25T16:30:00Z",
+    "uptime": 3600
+  },
+  "recentMessages": [
+    {
+      "messageId": "msg_abc123",
+      "status": "sent",
+      "attempts": 1,
+      "createdAt": "2025-09-25T16:30:00Z",
+      "updatedAt": "2025-09-25T16:30:05Z",
+      "provider": "routee",
+      "providerMessageId": "3160db7c-591d-4693-a407-675dad16b09a",
+      "toJson": "[{\"email\":\"user@example.com\",\"name\":\"User Name\"}]",
+      "subject": "Welcome to Waymore!"
+    }
+  ],
+  "stats": [
+    {
+      "status": "SENT",
+      "_count": {
+        "status": 150
+      }
+    },
+    {
+      "status": "FAILED",
+      "_count": {
+        "status": 5
+      }
+    }
+  ],
+  "queueDepth": 0,
+  "timestamp": "2025-09-25T16:30:00Z"
+}
+```
+
+## Webhook Integration
+
+### Routee Webhook
+
+Receive real-time status updates from Routee:
+
+```http
+POST /webhooks/routee
+```
+
+**Headers**:
+```http
+Content-Type: application/json
+X-Routee-Signature: <signature> (optional)
+X-Routee-Timestamp: <timestamp> (optional)
+```
+
+**Request Body**:
+```json
+{
+  "events": [
+    {
+      "trackingId": "3160db7c-591d-4693-a407-675dad16b09a",
+      "eventType": "delivered",
+      "timestamp": "2025-09-25T16:30:00Z",
+      "details": {
+        "recipient": "user@example.com",
+        "deliveryTime": "2025-09-25T16:30:00Z"
+      }
+    }
+  ]
+}
+```
+
+**Response**:
+```json
+{
+  "processed": 1,
+  "failed": 0,
+  "total": 1
+}
+```
+
+### Webhook Event Types
+
+| Event Type | Status Update | Description |
+|------------|---------------|-------------|
+| `delivered` | `DELIVERED` | Email successfully delivered |
+| `bounce` | `BOUNCED` | Email bounced back |
+| `failed` | `BOUNCED` | Email delivery failed |
+| `dropped` | `BOUNCED` | Email dropped by provider |
+| `reject` | `BOUNCED` | Email rejected by provider |
+| `spam` | `BOUNCED` | Email marked as spam |
+
+### Webhook Security
+
+Optional webhook signature validation:
+
+```bash
+# Set webhook secret
+ROUTEE_WEBHOOK_SECRET=your-webhook-secret
+```
+
+The webhook endpoint validates the signature using HMAC-SHA256:
+
+```
+signature = HMAC-SHA256(timestamp + payload, secret)
+```
+
+## Team Integration
+
+### Postman Collection
+
+Ready-to-use API collection for your team:
+
+**File**: `Email-Gateway-API.postman_collection.json`
+
+**Features**:
+- Auto-token management
+- Auto-message ID capture
+- Pre-configured headers
+- Error handling examples
+- Complete request examples
+
+**Setup**:
+1. Import the Postman collection
+2. Follow `POSTMAN_SETUP.md` guide
+3. Start with "Get JWT Token" request
+4. Use "Send Email - Universal Template" to send emails
+
+### Usage Examples
+
+**JavaScript**:
+```javascript
+// See example-usage.js for complete examples
+const { sendEmail, checkMessageStatus } = require('./example-usage.js');
+
+// Send email
+const messageId = await sendEmail(jwtToken);
+
+// Check status
+const status = await checkMessageStatus(messageId, jwtToken);
+```
+
+**Python**:
+```python
+# See example-usage.js for Python examples
+import requests
+
+def send_email(token, email_data):
+    response = requests.post(
+        'http://localhost:3000/api/v1/emails',
+        headers={
+            'Authorization': f'Bearer {token}',
+            'Content-Type': 'application/json',
+            'Idempotency-Key': f'python-{int(time.time())}'
+        },
+        json=email_data
+    )
+    return response.json()
+```
+
 ---
 
-**Last Updated**: September 2024  
+**Last Updated**: September 2025  
 **API Version**: v1.0.0

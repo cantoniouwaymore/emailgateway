@@ -231,7 +231,7 @@ export class WebhookController {
           'User-Agent': 'EmailGateway/1.0'
         },
         body: JSON.stringify(webhookPayload),
-        timeout: 10000 // 10 second timeout
+        // timeout: 10000 // 10 second timeout - removed due to TypeScript error
       });
 
       if (!response.ok) {

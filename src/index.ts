@@ -10,6 +10,7 @@ import { emailRoutes } from './api/routes/email';
 import { healthRoutes } from './api/routes/health';
 import { senderRoutes } from './api/routes/senders';
 import { webhookRoutes } from './api/routes/webhook';
+import { adminRoutes } from './api/routes/admin';
 import { generateTestToken } from './utils/auth';
 
 const PORT = parseInt(process.env['PORT'] || '3000');
@@ -66,6 +67,7 @@ async function buildServer() {
   // Register routes
   await fastify.register(healthRoutes);
   await fastify.register(webhookRoutes);
+  await fastify.register(adminRoutes);
   await fastify.register(emailRoutes, { prefix: '/api' });
   await fastify.register(senderRoutes, { prefix: '/api' });
 

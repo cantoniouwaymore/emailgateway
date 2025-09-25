@@ -18,6 +18,9 @@
 - **Idempotency**: Exactly-once intake with Idempotency-Key header
 - **Observability**: Structured logging, Prometheus metrics, health checks
 - **Security**: JWT authentication, rate limiting, input validation
+- **Admin Dashboard**: Real-time web interface for monitoring email delivery
+- **Webhook Integration**: Real-time status updates from email providers
+- **Postman Collection**: Ready-to-use API collection for team integration
 
 ### 🏗️ Architecture
 - **Stateless Design**: Horizontally scalable microservice
@@ -139,6 +142,9 @@ npm run worker
 | `GET` | `/health` | Detailed health check |
 | `GET` | `/metrics` | Prometheus metrics |
 | `GET` | `/test-token` | Generate test JWT (dev only) |
+| `GET` | `/admin` | Admin dashboard (web interface) |
+| `GET` | `/admin/api/data` | Admin dashboard API data |
+| `POST` | `/webhooks/routee` | Routee webhook endpoint |
 
 ### 💡 Example Usage
 
@@ -198,6 +204,19 @@ curl -H "Authorization: Bearer YOUR_TOKEN" \
 }
 ```
 
+#### 4. Access Admin Dashboard
+```bash
+# Open in browser
+open http://localhost:3000/admin
+```
+
+#### 5. Test with Postman Collection
+```bash
+# Import the Postman collection
+# File: Email-Gateway-API.postman_collection.json
+# Follow: POSTMAN_SETUP.md
+```
+
 ## 🏗️ Project Structure
 
 ```
@@ -217,6 +236,9 @@ emailgateway/
 ├── 📁 docs/                  # Documentation
 ├── 📄 docker-compose.yml     # Local development
 ├── 📄 Dockerfile             # Production container
+├── 📄 Email-Gateway-API.postman_collection.json  # Postman collection
+├── 📄 POSTMAN_SETUP.md       # Postman setup guide
+├── 📄 example-usage.js        # Usage examples
 └── 📄 README.md              # This file
 ```
 
@@ -235,6 +257,8 @@ emailgateway/
 | `RATE_GLOBAL_RPS` | Global rate limit | `200` |
 | `LOG_LEVEL` | Logging level | `info` |
 | `PORT` | Server port | `3000` |
+| `WEBHOOK_BASE_URL` | Base URL for webhooks | `http://localhost:3000` |
+| `ROUTEE_WEBHOOK_SECRET` | Webhook signature secret | (optional) |
 
 ### Provider Configuration
 
@@ -305,6 +329,63 @@ The test suite covers:
 - **Liveness**: `/healthz` - Is the service running?
 - **Readiness**: `/readyz` - Is the service ready to serve traffic?
 - **Health**: `/health` - Detailed health status
+
+## 🎛️ Admin Dashboard
+
+### Real-time Monitoring
+Access the admin dashboard at `http://localhost:3000/admin` for:
+
+- **System Health Cards** - Real-time system status
+- **Queue Depth** - Current pending emails
+- **Message Statistics** - Sent/Failed counts
+- **Recent Messages Table** - All email activity with:
+  - Message IDs and status badges
+  - Recipients and subject lines
+  - Provider information
+  - Timestamps and creation dates
+  - Click "View" for detailed message information
+
+### Features
+- **Auto-refresh** - Updates every 30 seconds
+- **Message Details** - Complete email information
+- **Provider Events** - Webhook events from email providers
+- **Error Tracking** - Detailed error information
+- **Responsive Design** - Works on desktop and mobile
+
+## 🔗 Webhook Integration
+
+### Real-time Status Updates
+The email gateway receives webhook events from email providers:
+
+- **Routee Webhook** - `/webhooks/routee`
+- **Status Mapping** - Automatic status updates (delivered, bounced, failed)
+- **Event Storage** - All webhook events are stored for analytics
+- **Client Notifications** - Forward webhooks to client URLs
+
+### Webhook Events
+- `delivered` → Updates to `DELIVERED` status
+- `bounce` → Updates to `BOUNCED` status
+- `failed` → Updates to `BOUNCED` status
+- `dropped` → Updates to `BOUNCED` status
+
+## 📦 Team Integration
+
+### Postman Collection
+Ready-to-use API collection for your team:
+
+- **Import**: `Email-Gateway-API.postman_collection.json`
+- **Setup Guide**: `POSTMAN_SETUP.md`
+- **Features**:
+  - Auto-token management
+  - Auto-message ID capture
+  - Pre-configured headers
+  - Error handling examples
+  - Complete request examples
+
+### Usage Examples
+- **JavaScript**: `example-usage.js` - Programmatic usage examples
+- **cURL**: Command-line examples in this README
+- **Postman**: Complete collection with all endpoints
 
 ## 🔒 Security
 
