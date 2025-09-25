@@ -6,11 +6,13 @@ const isWorkerMode =
   process.env.SERVICE_MODE === 'worker' ||
   process.env.RAILWAY_START_COMMAND === 'npm run worker';
 
+console.log('🔍 Debug: RAILWAY_SERVICE_NAME=' + process.env.RAILWAY_SERVICE_NAME);
+console.log('🔍 Debug: SERVICE_MODE=' + process.env.SERVICE_MODE);
+console.log('🔍 Debug: RAILWAY_START_COMMAND=' + process.env.RAILWAY_START_COMMAND);
+console.log('🔍 Debug: isWorkerMode=' + isWorkerMode);
+
 if (isWorkerMode) {
   console.log('🚀 Starting Email Gateway Worker...');
-  console.log('🔍 Debug: RAILWAY_SERVICE_NAME=' + process.env.RAILWAY_SERVICE_NAME);
-  console.log('🔍 Debug: SERVICE_MODE=' + process.env.SERVICE_MODE);
-  console.log('🔍 Debug: RAILWAY_START_COMMAND=' + process.env.RAILWAY_START_COMMAND);
   
   // Import and start the worker
   import('./queue/worker').then(() => {
