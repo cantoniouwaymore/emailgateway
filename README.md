@@ -11,16 +11,16 @@
 ## ✨ Features
 
 ### 🚀 Core Capabilities
-- **RESTful API**: Standardized POST /v1/emails endpoint with full validation
-- **Template Engine**: MJML + Handlebars with localization support
-- **Queue System**: BullMQ (Redis) for reliable background job processing
-- **Provider Abstraction**: Pluggable email providers (Routee, SES, SendGrid)
-- **Idempotency**: Exactly-once intake with Idempotency-Key header
-- **Observability**: Structured logging, Prometheus metrics, health checks
-- **Security**: JWT authentication, rate limiting, input validation
-- **Admin Dashboard**: Real-time web interface for monitoring email delivery
-- **Webhook Integration**: Real-time status updates from email providers
-- **Postman Collection**: Ready-to-use API collection for team integration
+- **RESTful API**: Standardized POST /v1/emails endpoint with full validation.
+- **Template Engine**: MJML + Handlebars with localization support.
+- **Queue System**: BullMQ (Redis) for reliable background job processing.
+- **Provider Abstraction**: Pluggable email providers (Routee, SES, SendGrid).
+- **Idempotency**: Exactly-once intake with Idempotency-Key header.
+- **Observability**: Structured logging, Prometheus metrics, health checks.
+- **Security**: JWT authentication, rate limiting, input validation.
+- **Admin Dashboard**: Real-time web interface for monitoring email delivery.
+- **Webhook Integration**: Real-time status updates from email providers.
+- **Postman Collection**: Ready-to-use API collection for team integration.
 
 ### 🏗️ Architecture
 - **Stateless Design**: Horizontally scalable microservice
