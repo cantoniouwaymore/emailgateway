@@ -31,8 +31,10 @@ export class EmailWorker {
       concurrency: parseInt(process.env.WORKER_CONCURRENCY || '5'),
     });
 
-    // Start health check server
-    this.startHealthServer();
+    // Start health check server only if not in Railway worker mode
+    if (process.env.RAILWAY_SERVICE_NAME !== 'email-gateway-worker') {
+      this.startHealthServer();
+    }
     this.setupWorkerEvents();
   }
 
@@ -89,7 +91,7 @@ export class EmailWorker {
     process.on('SIGINT', () => this.shutdown());
   }
 
-  private async processEmailJob(job: Job<EmailJobData>): Promise<void> {
+  async processEmailJob(job: Job<EmailJobData>): Promise<void> {
     const traceId = createTraceId();
     const { messageId, templateKey, locale, version, variables, to, cc, bcc, from, replyTo, subject, attachments, webhookUrl, tenantId, attempts } = job.data;
 
