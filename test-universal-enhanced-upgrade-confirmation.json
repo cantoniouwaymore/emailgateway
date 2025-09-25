@@ -1,0 +1,52 @@
+{
+  "to": [
+    {
+      "email": "cantoniou@waymore.io",
+      "name": "Antonio"
+    }
+  ],
+  "from": {
+    "email": "marketing@waymore.io",
+    "name": "Waymore Team"
+  },
+  "subject": "Your plan has been upgraded to Advanced",
+  "template": {
+    "key": "universal",
+    "locale": "en"
+  },
+  "variables": {
+    "workspace_name": "Waymore",
+    "user_firstname": "Antonio",
+    "product_name": "Waymore Platform",
+    "old_plan_name": "Basic",
+    "new_plan_name": "Advanced",
+    "upgrade_date": "10 Oct 2025",
+    "new_limits": "100,000 contacts, 3GB storage, Advanced analytics",
+    "billing_change": "Prorated charge €20 added to next invoice",
+    "billing_url": "https://app.waymore.io/billing",
+    "support_email": "support@waymore.io",
+    "email_title": "Plan Upgrade Successful",
+    "custom_content": "Hello {{user_firstname}},<br><br>🎉 <strong>Congratulations!</strong> Your subscription for <strong>{{workspace_name}}</strong> has been successfully upgraded.<br><br>📈 <strong>Plan Change:</strong> {{old_plan_name}} → {{new_plan_name}}<br>📅 <strong>Effective from:</strong> {{upgrade_date}}<br>✨ <strong>New features:</strong> {{new_limits}}<br>💰 <strong>Billing update:</strong> {{billing_change}}<br><br>You now have access to your enhanced plan benefits!",
+    "facts": [
+      {"label": "Previous Plan:", "value": "Basic"},
+      {"label": "New Plan:", "value": "Advanced"},
+      {"label": "Effective Date:", "value": "10 Oct 2025"},
+      {"label": "New Features:", "value": "100,000 contacts, 3GB storage, Advanced analytics"},
+      {"label": "Billing Update:", "value": "Prorated charge €20 added to next invoice"},
+      {"label": "Workspace:", "value": "Waymore"}
+    ],
+    "cta_primary": {
+      "label": "Manage Plan",
+      "url": "https://app.waymore.io/billing"
+    },
+    "cta_secondary": {
+      "label": "View Features",
+      "url": "https://app.waymore.io/features"
+    }
+  },
+  "metadata": {
+    "tenantId": "waymore_test",
+    "eventId": "upgrade_confirmation_success",
+    "notificationType": "upgrade_confirmation"
+  }
+}

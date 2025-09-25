@@ -149,8 +149,7 @@ export class RouteeEmailProvider implements EmailProvider {
         })),
         subject: request.subject,
         content: {
-          html: request.html,
-          text: request.text
+          html: request.html
         },
         ttl: 60, // 1 hour default (30-4320 minutes)
         maxAttempts: 3,

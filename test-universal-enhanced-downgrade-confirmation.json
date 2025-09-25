@@ -1,0 +1,52 @@
+{
+  "to": [
+    {
+      "email": "cantoniou@waymore.io",
+      "name": "Antonio"
+    }
+  ],
+  "from": {
+    "email": "marketing@waymore.io",
+    "name": "Waymore Team"
+  },
+  "subject": "Your plan has been changed to Basic",
+  "template": {
+    "key": "universal",
+    "locale": "en"
+  },
+  "variables": {
+    "workspace_name": "Waymore",
+    "user_firstname": "Antonio",
+    "product_name": "Waymore Platform",
+    "old_plan_name": "Advanced",
+    "new_plan_name": "Basic",
+    "downgrade_date": "10 Oct 2025",
+    "new_limits": "10,000 contacts, 1GB storage, Basic analytics",
+    "billing_change": "Credit of €15 applied to next invoice",
+    "billing_url": "https://app.waymore.io/billing",
+    "support_email": "support@waymore.io",
+    "email_title": "Plan Change Confirmed",
+    "custom_content": "Hello {{user_firstname}},<br><br>📋 <strong>Plan Change Confirmed</strong> - Your subscription for <strong>{{workspace_name}}</strong> has been successfully changed.<br><br>📉 <strong>Plan Change:</strong> {{old_plan_name}} → {{new_plan_name}}<br>📅 <strong>Effective from:</strong> {{downgrade_date}}<br>📊 <strong>New limits:</strong> {{new_limits}}<br>💰 <strong>Billing update:</strong> {{billing_change}}<br><br>Your account has been updated with the new plan limits.",
+    "facts": [
+      {"label": "Previous Plan:", "value": "Advanced"},
+      {"label": "New Plan:", "value": "Basic"},
+      {"label": "Effective Date:", "value": "10 Oct 2025"},
+      {"label": "New Limits:", "value": "10,000 contacts, 1GB storage, Basic analytics"},
+      {"label": "Billing Update:", "value": "Credit of €15 applied to next invoice"},
+      {"label": "Workspace:", "value": "Waymore"}
+    ],
+    "cta_primary": {
+      "label": "Manage Plan",
+      "url": "https://app.waymore.io/billing"
+    },
+    "cta_secondary": {
+      "label": "View Current Usage",
+      "url": "https://app.waymore.io/usage"
+    }
+  },
+  "metadata": {
+    "tenantId": "waymore_test",
+    "eventId": "downgrade_confirmation_success",
+    "notificationType": "downgrade_confirmation"
+  }
+}

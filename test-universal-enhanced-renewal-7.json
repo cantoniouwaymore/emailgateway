@@ -1,0 +1,42 @@
+{
+  "to": [
+    {
+      "email": "cantoniou@waymore.io",
+      "name": "Antonio"
+    }
+  ],
+  "from": {
+    "email": "marketing@waymore.io",
+    "name": "Waymore Team"
+  },
+  "subject": "Renewal Reminder",
+  "template": {
+    "key": "universal",
+    "locale": "en"
+  },
+  "variables": {
+    "workspace_name": "Waymore",
+    "user_firstname": "Antonio",
+    "product_name": "Waymore Platform",
+    "plan_name": "Pro",
+    "renewal_date": "01 Oct 2025",
+    "billing_url": "https://app.waymore.io/billing",
+    "support_email": "support@waymore.io",
+    "email_title": "Renewal Reminder",
+    "custom_content": "Hello {{user_firstname}},<br><br>Your <strong>{{plan_name}}</strong> plan will renew on <strong>{{renewal_date}}</strong>.<br><br>💡 <strong>Tip:</strong> Make sure your payment method is up to date to avoid any service interruptions.",
+    "facts": [
+      {"label": "Plan:", "value": "Pro"},
+      {"label": "Renewal Date:", "value": "01 Oct 2025"},
+      {"label": "Workspace:", "value": "Waymore"}
+    ],
+    "cta_primary": {
+      "label": "Manage Billing",
+      "url": "https://app.waymore.io/billing"
+    }
+  },
+  "metadata": {
+    "tenantId": "waymore_test",
+    "eventId": "renewal_7_days_enhanced",
+    "notificationType": "renewal_reminder"
+  }
+}

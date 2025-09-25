@@ -56,13 +56,22 @@ export class TemplateEngine {
     const { key, locale = 'en', version, variables } = options;
 
     try {
+      // Process custom_content variable if it exists
+      const processedVariables = { ...variables };
+      if (processedVariables.custom_content && typeof processedVariables.custom_content === 'string') {
+        // Compile and render the custom_content with Handlebars
+        const customContentTemplate = Handlebars.compile(processedVariables.custom_content);
+        processedVariables.custom_content = customContentTemplate(variables);
+        logger.debug({ templateKey: key }, 'Custom content processed with Handlebars variables');
+      }
+
       // Load template files
       const templatePath = this.getTemplatePath(key, locale, version);
       const mjmlTemplate = this.loadTemplate(templatePath, 'mjml');
       
       // Compile Handlebars template
       const compiledTemplate = Handlebars.compile(mjmlTemplate);
-      const renderedMjml = compiledTemplate(variables);
+      const renderedMjml = compiledTemplate(processedVariables);
 
       // Convert MJML to HTML
       const mjmlResult = mjml(renderedMjml, {
@@ -82,7 +91,7 @@ export class TemplateEngine {
       try {
         const textTemplate = this.loadTemplate(templatePath, 'txt');
         const compiledTextTemplate = Handlebars.compile(textTemplate);
-        result.text = compiledTextTemplate(variables);
+        result.text = compiledTextTemplate(processedVariables);
       } catch {
         // Text template is optional
       }
@@ -91,8 +100,10 @@ export class TemplateEngine {
       try {
         const subjectTemplate = this.loadTemplate(templatePath, 'subject');
         const compiledSubjectTemplate = Handlebars.compile(subjectTemplate);
-        result.subject = compiledSubjectTemplate(variables);
-      } catch {
+        result.subject = compiledSubjectTemplate(processedVariables);
+        logger.info({ templateKey: key, renderedSubject: result.subject }, 'Subject template rendered successfully');
+      } catch (error) {
+        logger.debug({ templateKey: key, error: error instanceof Error ? error.message : 'Unknown error' }, 'Subject template not found or error');
         // Subject template is optional
       }
 

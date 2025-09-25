@@ -1,0 +1,45 @@
+{
+  "to": [
+    {
+      "email": "cantoniou@waymore.io",
+      "name": "Antonio"
+    }
+  ],
+  "from": {
+    "email": "marketing@waymore.io",
+    "name": "Waymore Team"
+  },
+  "subject": "Usage Threshold Warning",
+  "template": {
+    "key": "universal",
+    "locale": "en"
+  },
+  "variables": {
+    "workspace_name": "Waymore",
+    "user_firstname": "Antonio",
+    "product_name": "Waymore Platform",
+    "plan_name": "Pro",
+    "usage_percent": "80",
+    "usage_current": "8,000",
+    "usage_limit": "10,000",
+    "usage_metric": "emails",
+    "upgrade_url": "https://app.waymore.io/billing",
+    "support_email": "support@waymore.io",
+    "email_title": "Usage Threshold Warning",
+    "custom_content": "Hello {{user_firstname}},<br><br>Your current <strong>{{product_name}}</strong> subscription <strong>{{plan_name}}</strong> is at <strong>{{usage_percent}}%</strong> of its limit.<br><br>👉 <strong>To avoid interruptions</strong>, you may want to review your plan and upgrade if needed.",
+    "facts": [
+      {"label": "Used:", "value": "8,000 emails"},
+      {"label": "Limit:", "value": "10,000 emails"},
+      {"label": "Usage:", "value": "80%"}
+    ],
+    "cta_primary": {
+      "label": "Manage Plan",
+      "url": "https://app.waymore.io/billing"
+    }
+  },
+  "metadata": {
+    "tenantId": "waymore_test",
+    "eventId": "usage_threshold_80_enhanced",
+    "notificationType": "usage_warning"
+  }
+}

@@ -1,5 +1,9 @@
 {{email_title}}
 
+{{#if custom_content}}
+{{custom_content}}
+
+{{/if}}
 {{#if facts}}
 Details:
 {{#each facts}}
@@ -12,4 +16,4 @@ Details:
 {{/if}}
 
 ---
-This email was sent by Waymore Platform. If you have any questions, please contact support.
+This email was sent by {{workspace_name}}. If you have any questions, please contact {{support_email}}.

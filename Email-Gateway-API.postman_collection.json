@@ -227,6 +227,286 @@
           }
         },
         {
+          "name": "Send Email - Welcome Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$timestamp}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": {\n    \"email\": \"marketing@waymore.io\",\n    \"name\": \"Waymore Team\"\n  },\n  \"subject\": \"Welcome to Waymore!\",\n  \"template\": {\n    \"key\": \"universal\",\n    \"locale\": \"en\"\n  },\n  \"to\": [\n    {\n      \"email\": \"user@example.com\",\n      \"name\": \"John Doe\"\n    }\n  ],\n  \"variables\": {\n    \"workspace_name\": \"Acme Corp\",\n    \"user_firstname\": \"John\",\n    \"product_name\": \"Waymore Platform\",\n    \"support_email\": \"support@waymore.io\",\n    \"email_title\": \"Welcome to Waymore!\",\n    \"custom_content\": \"Hello {{user_firstname}},\\n\\n🎉 <strong>Welcome to {{product_name}}!</strong>\\n\\nWe're excited to have you on board. Here are some quick tips to get you started:\\n\\n• <strong>Explore the dashboard</strong> to see your workspace overview\\n• <strong>Invite team members</strong> to collaborate on your projects\\n• <strong>Check out our documentation</strong> for detailed guides\\n\\nIf you have any questions, don't hesitate to reach out to our support team.\",\n    \"facts\": [\n      {\"label\": \"Account Type:\", \"value\": \"Pro Plan\"},\n      {\"label\": \"Workspace:\", \"value\": \"Acme Corp\"},\n      {\"label\": \"Setup Status:\", \"value\": \"Complete\"}\n    ],\n    \"cta_primary\": {\n      \"label\": \"Get Started\",\n      \"url\": \"https://app.waymore.io/dashboard\"\n    },\n    \"cta_secondary\": {\n      \"label\": \"View Documentation\",\n      \"url\": \"https://docs.waymore.io\"\n    }\n  },\n  \"metadata\": {\n    \"tenantId\": \"acme_corp\",\n    \"eventId\": \"welcome_user\",\n    \"notificationType\": \"welcome\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/emails",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "emails"]
+            },
+            "description": "Send a welcome email to new users with onboarding tips and quick start information."
+          }
+        },
+        {
+          "name": "Send Email - Renewal 1 Day Final Reminder",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$timestamp}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": {\n    \"email\": \"marketing@waymore.io\",\n    \"name\": \"Waymore Team\"\n  },\n  \"subject\": \"Final reminder: Pro renews tomorrow for Acme Corp\",\n  \"template\": {\n    \"key\": \"universal\",\n    \"locale\": \"en\"\n  },\n  \"to\": [\n    {\n      \"email\": \"user@example.com\",\n      \"name\": \"John Doe\"\n    }\n  ],\n  \"variables\": {\n    \"workspace_name\": \"Acme Corp\",\n    \"user_firstname\": \"John\",\n    \"product_name\": \"Waymore Platform\",\n    \"plan_name\": \"Pro\",\n    \"renewal_date\": \"01 Oct 2025\",\n    \"next_charge_amount\": \"70.00\",\n    \"currency\": \"EUR\",\n    \"billing_url\": \"https://app.waymore.io/billing\",\n    \"support_email\": \"support@waymore.io\",\n    \"email_title\": \"Final Reminder: Pro renews tomorrow\",\n    \"custom_content\": \"Hello {{user_firstname}},\\n\\nThis is a friendly reminder that your <strong>{{plan_name}}</strong> subscription for <strong>{{workspace_name}}</strong> renews on <strong>{{renewal_date}}</strong>.\\n\\n💰 <strong>Upcoming charge:</strong> {{next_charge_amount}} {{currency}}\\n\\n⚠️ <strong>Please confirm your payment details</strong> to avoid service interruption.\",\n    \"facts\": [\n      {\"label\": \"Plan:\", \"value\": \"Pro\"},\n      {\"label\": \"Renewal Date:\", \"value\": \"01 Oct 2025\"},\n      {\"label\": \"Charge Amount:\", \"value\": \"70.00 EUR\"},\n      {\"label\": \"Workspace:\", \"value\": \"Acme Corp\"}\n    ],\n    \"cta_primary\": {\n      \"label\": \"Manage Billing\",\n      \"url\": \"https://app.waymore.io/billing\"\n    }\n  },\n  \"metadata\": {\n    \"tenantId\": \"acme_corp\",\n    \"eventId\": \"renewal_1_day_final\",\n    \"notificationType\": \"renewal_final_reminder\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/emails",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "emails"]
+            },
+            "description": "Send a final renewal reminder 1 day before subscription expires. This is the last chance to update payment details before service interruption."
+          }
+        },
+        {
+          "name": "Send Email - Renewal Confirmation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$timestamp}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": {\n    \"email\": \"marketing@waymore.io\",\n    \"name\": \"Waymore Team\"\n  },\n  \"subject\": \"Your Pro plan has been renewed for Acme Corp\",\n  \"template\": {\n    \"key\": \"universal\",\n    \"locale\": \"en\"\n  },\n  \"to\": [\n    {\n      \"email\": \"user@example.com\",\n      \"name\": \"John Doe\"\n    }\n  ],\n  \"variables\": {\n    \"workspace_name\": \"Acme Corp\",\n    \"user_firstname\": \"John\",\n    \"product_name\": \"Waymore Platform\",\n    \"plan_name\": \"Pro\",\n    \"renewal_date\": \"01 Oct 2025\",\n    \"period_start\": \"01 Oct 2025\",\n    \"period_end\": \"31 Oct 2025\",\n    \"amount_charged\": \"70.00\",\n    \"currency\": \"EUR\",\n    \"invoice_url\": \"https://app.waymore.io/invoices/inv_123\",\n    \"billing_url\": \"https://app.waymore.io/billing\",\n    \"support_email\": \"support@waymore.io\",\n    \"email_title\": \"Renewal Successful\",\n    \"custom_content\": \"Hello {{user_firstname}},\\n\\n🎉 <strong>Great news!</strong> Your <strong>{{plan_name}}</strong> subscription for <strong>{{workspace_name}}</strong> renewed successfully on <strong>{{renewal_date}}</strong>.\\n\\n✅ <strong>Billing period:</strong> {{period_start}} → {{period_end}}\\n💰 <strong>Charged:</strong> {{amount_charged}} {{currency}}\\n📄 <strong>Invoice:</strong> <a href=\\\"{{invoice_url}}\\\" style=\\\"color: #007bff;\\\">View invoice</a>\\n\\nYou're all set for the new period!\",\n    \"facts\": [\n      {\"label\": \"Plan:\", \"value\": \"Pro\"},\n      {\"label\": \"Renewal Date:\", \"value\": \"01 Oct 2025\"},\n      {\"label\": \"Billing Period:\", \"value\": \"01 Oct 2025 → 31 Oct 2025\"},\n      {\"label\": \"Amount Charged:\", \"value\": \"70.00 EUR\"},\n      {\"label\": \"Workspace:\", \"value\": \"Acme Corp\"}\n    ],\n    \"cta_primary\": {\n      \"label\": \"Manage Billing\",\n      \"url\": \"https://app.waymore.io/billing\"\n    },\n    \"cta_secondary\": {\n      \"label\": \"View Invoice\",\n      \"url\": \"https://app.waymore.io/invoices/inv_123\"\n    }\n  },\n  \"metadata\": {\n    \"tenantId\": \"acme_corp\",\n    \"eventId\": \"renewal_confirmation_success\",\n    \"notificationType\": \"renewal_confirmation\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/emails",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "emails"]
+            },
+            "description": "Send a renewal confirmation email after successful payment. Includes billing period, amount charged, and invoice link."
+          }
+        },
+        {
+          "name": "Send Email - Payment Success",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$timestamp}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": {\n    \"email\": \"marketing@waymore.io\",\n    \"name\": \"Waymore Team\"\n  },\n  \"subject\": \"Payment received for your Pro plan – Acme Corp\",\n  \"template\": {\n    \"key\": \"universal\",\n    \"locale\": \"en\"\n  },\n  \"to\": [\n    {\n      \"email\": \"user@example.com\",\n      \"name\": \"John Doe\"\n    }\n  ],\n  \"variables\": {\n    \"workspace_name\": \"Acme Corp\",\n    \"user_firstname\": \"John\",\n    \"product_name\": \"Waymore Platform\",\n    \"plan_name\": \"Pro\",\n    \"payment_date\": \"01 Oct 2025\",\n    \"amount_charged\": \"70.00\",\n    \"currency\": \"EUR\",\n    \"billing_url\": \"https://app.waymore.io/billing\",\n    \"support_email\": \"support@waymore.io\",\n    \"email_title\": \"Payment Successful\",\n    \"custom_content\": \"Hello {{user_firstname}},\\n\\n✅ <strong>Payment Confirmed!</strong> We've successfully processed your payment for <strong>{{plan_name}}</strong> on <strong>{{payment_date}}</strong>.\\n\\n💰 <strong>Amount charged:</strong> {{amount_charged}} {{currency}}\\n📄 <strong>Invoice:</strong> Your invoice will be available soon. You'll receive a separate email with your subscription confirmation and invoice link.\\n\\nThank you for keeping your subscription active!\",\n    \"facts\": [\n      {\"label\": \"Plan:\", \"value\": \"Pro\"},\n      {\"label\": \"Payment Date:\", \"value\": \"01 Oct 2025\"},\n      {\"label\": \"Amount Charged:\", \"value\": \"70.00 EUR\"},\n      {\"label\": \"Workspace:\", \"value\": \"Acme Corp\"}\n    ],\n    \"cta_primary\": {\n      \"label\": \"Manage Billing\",\n      \"url\": \"https://app.waymore.io/billing\"\n    }\n  },\n  \"metadata\": {\n    \"tenantId\": \"acme_corp\",\n    \"eventId\": \"payment_success_generic\",\n    \"notificationType\": \"payment_confirmation\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/emails",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "emails"]
+            },
+            "description": "Send a generic payment success confirmation for any successful transaction. Includes amount charged, payment date, and invoice link."
+          }
+        },
+        {
+          "name": "Send Email - Payment Failure (Attempt 1)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$timestamp}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": {\n    \"email\": \"marketing@waymore.io\",\n    \"name\": \"Waymore Team\"\n  },\n  \"subject\": \"Action required: Payment failed for your Pro subscription\",\n  \"template\": {\n    \"key\": \"universal\",\n    \"locale\": \"en\"\n  },\n  \"to\": [\n    {\n      \"email\": \"user@example.com\",\n      \"name\": \"John Doe\"\n    }\n  ],\n  \"variables\": {\n    \"workspace_name\": \"Acme Corp\",\n    \"user_firstname\": \"John\",\n    \"product_name\": \"Waymore Platform\",\n    \"plan_name\": \"Pro\",\n    \"payment_date\": \"01 Oct 2025\",\n    \"amount_attempted\": \"70.00\",\n    \"currency\": \"EUR\",\n    \"failure_reason\": \"Insufficient funds\",\n    \"next_retry_date\": \"03 Oct 2025\",\n    \"payment_update_url\": \"https://app.waymore.io/billing/payment-methods\",\n    \"billing_url\": \"https://app.waymore.io/billing\",\n    \"support_email\": \"support@waymore.io\",\n    \"email_title\": \"Payment Failed - Action Required\",\n    \"custom_content\": \"Hello {{user_firstname}},\\n\\n⚠️ <strong>Payment Failed</strong> - We tried to process your payment for <strong>{{plan_name}}</strong>, but it failed on <strong>{{payment_date}}</strong>.\\n\\n💰 <strong>Amount:</strong> {{amount_attempted}} {{currency}}\\n❌ <strong>Reason:</strong> {{failure_reason}}\\n🔄 <strong>Next retry attempt:</strong> {{next_retry_date}}\\n\\nPlease update your payment details to ensure your subscription continues without interruption.\",\n    \"facts\": [\n      {\"label\": \"Plan:\", \"value\": \"Pro\"},\n      {\"label\": \"Payment Date:\", \"value\": \"01 Oct 2025\"},\n      {\"label\": \"Amount Attempted:\", \"value\": \"70.00 EUR\"},\n      {\"label\": \"Failure Reason:\", \"value\": \"Insufficient funds\"},\n      {\"label\": \"Next Retry:\", \"value\": \"03 Oct 2025\"},\n      {\"label\": \"Workspace:\", \"value\": \"Acme Corp\"}\n    ],\n    \"cta_primary\": {\n      \"label\": \"Update Payment Method\",\n      \"url\": \"https://app.waymore.io/billing/payment-methods\"\n    },\n    \"cta_secondary\": {\n      \"label\": \"Manage Billing\",\n      \"url\": \"https://app.waymore.io/billing\"\n    }\n  },\n  \"metadata\": {\n    \"tenantId\": \"acme_corp\",\n    \"eventId\": \"payment_failure_attempt_1\",\n    \"notificationType\": \"payment_failure\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/emails",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "emails"]
+            },
+            "description": "Send a payment failure notification for first attempt. Includes failure reason, retry schedule, and payment update link."
+          }
+        },
+        {
+          "name": "Send Email - Upgrade Confirmation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$timestamp}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": {\n    \"email\": \"marketing@waymore.io\",\n    \"name\": \"Waymore Team\"\n  },\n  \"subject\": \"Your plan has been upgraded to Advanced\",\n  \"template\": {\n    \"key\": \"universal\",\n    \"locale\": \"en\"\n  },\n  \"to\": [\n    {\n      \"email\": \"user@example.com\",\n      \"name\": \"John Doe\"\n    }\n  ],\n  \"variables\": {\n    \"workspace_name\": \"Acme Corp\",\n    \"user_firstname\": \"John\",\n    \"product_name\": \"Waymore Platform\",\n    \"old_plan_name\": \"Basic\",\n    \"new_plan_name\": \"Advanced\",\n    \"upgrade_date\": \"10 Oct 2025\",\n    \"new_limits\": \"100,000 contacts, 3GB storage, Advanced analytics\",\n    \"billing_change\": \"Prorated charge €20 added to next invoice\",\n    \"billing_url\": \"https://app.waymore.io/billing\",\n    \"support_email\": \"support@waymore.io\",\n    \"email_title\": \"Plan Upgrade Successful\",\n    \"custom_content\": \"Hello {{user_firstname}},<br><br>🎉 <strong>Congratulations!</strong> Your subscription for <strong>{{workspace_name}}</strong> has been successfully upgraded.<br><br>📈 <strong>Plan Change:</strong> {{old_plan_name}} → {{new_plan_name}}<br>📅 <strong>Effective from:</strong> {{upgrade_date}}<br>✨ <strong>New features:</strong> {{new_limits}}<br>💰 <strong>Billing update:</strong> {{billing_change}}<br><br>You now have access to your enhanced plan benefits!\",\n    \"facts\": [\n      {\"label\": \"Previous Plan:\", \"value\": \"Basic\"},\n      {\"label\": \"New Plan:\", \"value\": \"Advanced\"},\n      {\"label\": \"Effective Date:\", \"value\": \"10 Oct 2025\"},\n      {\"label\": \"New Features:\", \"value\": \"100,000 contacts, 3GB storage, Advanced analytics\"},\n      {\"label\": \"Billing Update:\", \"value\": \"Prorated charge €20 added to next invoice\"},\n      {\"label\": \"Workspace:\", \"value\": \"Acme Corp\"}\n    ],\n    \"cta_primary\": {\n      \"label\": \"Manage Plan\",\n      \"url\": \"https://app.waymore.io/billing\"\n    },\n    \"cta_secondary\": {\n      \"label\": \"View Features\",\n      \"url\": \"https://app.waymore.io/features\"\n    }\n  },\n  \"metadata\": {\n    \"tenantId\": \"acme_corp\",\n    \"eventId\": \"upgrade_confirmation_success\",\n    \"notificationType\": \"upgrade_confirmation\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/emails",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "emails"]
+            },
+            "description": "Send an upgrade confirmation email after successful plan upgrade. Includes plan change details, new features, and billing information."
+          }
+        },
+        {
+          "name": "Send Email - Downgrade Confirmation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$timestamp}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": {\n    \"email\": \"marketing@waymore.io\",\n    \"name\": \"Waymore Team\"\n  },\n  \"subject\": \"Your subscription has been downgraded to Basic\",\n  \"template\": {\n    \"key\": \"universal\",\n    \"locale\": \"en\"\n  },\n  \"to\": [\n    {\n      \"email\": \"user@example.com\",\n      \"name\": \"John Doe\"\n    }\n  ],\n  \"variables\": {\n    \"workspace_name\": \"Acme Corp\",\n    \"user_firstname\": \"John\",\n    \"product_name\": \"Waymore Platform\",\n    \"old_plan_name\": \"Advanced\",\n    \"new_plan_name\": \"Basic\",\n    \"downgrade_date\": \"15 Oct 2025\",\n    \"new_limits\": \"10,000 contacts, 1GB storage, Basic analytics\",\n    \"billing_change\": \"Lower monthly charge €12 from next cycle\",\n    \"billing_url\": \"https://app.waymore.io/billing\",\n    \"support_email\": \"support@waymore.io\",\n    \"email_title\": \"Plan Change Confirmed\",\n    \"custom_content\": \"Hello {{user_firstname}},<br><br>📋 <strong>Plan Change Confirmed</strong> - Your subscription for <strong>{{workspace_name}}</strong> has been successfully changed.<br><br>📉 <strong>Plan Change:</strong> {{old_plan_name}} → {{new_plan_name}}<br>📅 <strong>Effective from:</strong> {{downgrade_date}}<br>📊 <strong>New limits:</strong> {{new_limits}}<br>💰 <strong>Billing update:</strong> {{billing_change}}<br><br>Please review your new plan limits to ensure they meet your needs.\",\n    \"facts\": [\n      {\"label\": \"Previous Plan:\", \"value\": \"Advanced\"},\n      {\"label\": \"New Plan:\", \"value\": \"Basic\"},\n      {\"label\": \"Effective Date:\", \"value\": \"15 Oct 2025\"},\n      {\"label\": \"New Limits:\", \"value\": \"10,000 contacts, 1GB storage, Basic analytics\"},\n      {\"label\": \"Billing Update:\", \"value\": \"Lower monthly charge €12 from next cycle\"},\n      {\"label\": \"Workspace:\", \"value\": \"Acme Corp\"}\n    ],\n    \"cta_primary\": {\n      \"label\": \"Manage Plan\",\n      \"url\": \"https://app.waymore.io/billing\"\n    },\n    \"cta_secondary\": {\n      \"label\": \"View Current Usage\",\n      \"url\": \"https://app.waymore.io/usage\"\n    }\n  },\n  \"metadata\": {\n    \"tenantId\": \"acme_corp\",\n    \"eventId\": \"downgrade_confirmation_success\",\n    \"notificationType\": \"downgrade_confirmation\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/emails",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "emails"]
+            },
+            "description": "Send a downgrade confirmation email after successful plan downgrade. Includes plan change details, new limits, and billing information."
+          }
+        },
+        {
+          "name": "Send Email - Payment Failure (Final Suspension)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$timestamp}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": {\n    \"email\": \"marketing@waymore.io\",\n    \"name\": \"Waymore Team\"\n  },\n  \"subject\": \"URGENT: Service suspension pending - Payment failed\",\n  \"template\": {\n    \"key\": \"universal\",\n    \"locale\": \"en\"\n  },\n  \"to\": [\n    {\n      \"email\": \"user@example.com\",\n      \"name\": \"John Doe\"\n    }\n  ],\n  \"variables\": {\n    \"workspace_name\": \"Acme Corp\",\n    \"user_firstname\": \"John\",\n    \"product_name\": \"Waymore Platform\",\n    \"plan_name\": \"Pro\",\n    \"payment_date\": \"01 Oct 2025\",\n    \"amount_attempted\": \"70.00\",\n    \"currency\": \"EUR\",\n    \"failure_reason\": \"Insufficient funds\",\n    \"suspension_date\": \"05 Oct 2025\",\n    \"payment_update_url\": \"https://app.waymore.io/billing/payment-methods\",\n    \"support_url\": \"https://app.waymore.io/support\",\n    \"billing_url\": \"https://app.waymore.io/billing\",\n    \"support_email\": \"support@waymore.io\",\n    \"email_title\": \"URGENT: Service Suspension Pending\",\n    \"custom_content\": \"Hello {{user_firstname}},<br><br>🚨 <strong>URGENT ACTION REQUIRED</strong> - Your <strong>{{plan_name}}</strong> subscription for <strong>{{workspace_name}}</strong> is at risk of suspension.<br><br>❌ <strong>Payment Status:</strong> All retry attempts have failed<br>💰 <strong>Amount:</strong> {{amount_attempted}} {{currency}}<br>📅 <strong>Suspension Date:</strong> {{suspension_date}}<br>⚠️ <strong>Consequence:</strong> Service will be suspended and data access will be limited<br><br><strong>IMMEDIATE ACTION REQUIRED:</strong> Update your payment method now to prevent service interruption.\",\n    \"facts\": [\n      {\"label\": \"Plan:\", \"value\": \"Pro\"},\n      {\"label\": \"Payment Date:\", \"value\": \"01 Oct 2025\"},\n      {\"label\": \"Amount Attempted:\", \"value\": \"70.00 EUR\"},\n      {\"label\": \"Failure Reason:\", \"value\": \"Insufficient funds\"},\n      {\"label\": \"Suspension Date:\", \"value\": \"05 Oct 2025\"},\n      {\"label\": \"Workspace:\", \"value\": \"Acme Corp\"}\n    ],\n    \"cta_primary\": {\n      \"label\": \"Fix Payment Now\",\n      \"url\": \"https://app.waymore.io/billing/payment-methods\"\n    },\n    \"cta_secondary\": {\n      \"label\": \"Contact Support\",\n      \"url\": \"https://app.waymore.io/support\"\n    }\n  },\n  \"metadata\": {\n    \"tenantId\": \"acme_corp\",\n    \"eventId\": \"payment_failure_final_suspension\",\n    \"notificationType\": \"payment_failure_final\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/emails",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "emails"]
+            },
+            "description": "Send a final payment failure notification with suspension warning. Urgent action required to prevent service interruption."
+          }
+        },
+        {
           "name": "Send Email - Usage Threshold Warning",
           "request": {
             "method": "POST",
@@ -246,7 +526,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"from\": {\n    \"email\": \"billing@waymore.io\",\n    \"name\": \"Waymore Billing\"\n  },\n  \"subject\": \"[{{workspace_name}}] You've used {{usage_percent}}% of your {{plan_name}} quota\",\n  \"template\": {\n    \"key\": \"usage-80-threshold\",\n    \"locale\": \"en\"\n  },\n  \"to\": [\n    {\n      \"email\": \"user@example.com\",\n      \"name\": \"John Doe\"\n    }\n  ],\n  \"variables\": {\n    \"workspace_name\": \"Acme Corp\",\n    \"user_firstname\": \"John\",\n    \"plan_name\": \"Advanced\",\n    \"usage_percent\": \"80\",\n    \"usage_current\": \"24,000\",\n    \"usage_limit\": \"30,000\",\n    \"usage_metric\": \"contacts\",\n    \"upgrade_url\": \"https://app.waymore.io/billing\"\n  },\n  \"metadata\": {\n    \"tenantId\": \"acme_corp\",\n    \"eventId\": \"usage_threshold_80\",\n    \"notificationType\": \"usage_warning\"\n  }\n}",
+              "raw": "{\n  \"from\": {\n    \"email\": \"marketing@waymore.io\",\n    \"name\": \"Waymore Team\"\n  },\n  \"subject\": \"Usage Threshold Warning\",\n  \"template\": {\n    \"key\": \"universal\",\n    \"locale\": \"en\"\n  },\n  \"to\": [\n    {\n      \"email\": \"user@example.com\",\n      \"name\": \"John Doe\"\n    }\n  ],\n  \"variables\": {\n    \"workspace_name\": \"Acme Corp\",\n    \"user_firstname\": \"John\",\n    \"product_name\": \"Waymore Platform\",\n    \"plan_name\": \"Advanced\",\n    \"usage_percent\": \"80\",\n    \"usage_current\": \"24,000\",\n    \"usage_limit\": \"30,000\",\n    \"usage_metric\": \"contacts\",\n    \"upgrade_url\": \"https://app.waymore.io/billing\",\n    \"support_email\": \"support@waymore.io\",\n    \"email_title\": \"Usage Threshold Warning\",\n    \"custom_content\": \"Hello {{user_firstname}},\\n\\nYour current <strong>{{product_name}}</strong> subscription <strong>{{plan_name}}</strong> is at <strong>{{usage_percent}}%</strong> of its limit.\\n\\n👉 <strong>To avoid interruptions</strong>, you may want to review your plan and upgrade if needed.\",\n    \"facts\": [\n      {\"label\": \"Used:\", \"value\": \"24,000 contacts\"},\n      {\"label\": \"Limit:\", \"value\": \"30,000 contacts\"},\n      {\"label\": \"Usage:\", \"value\": \"80%\"}\n    ],\n    \"cta_primary\": {\n      \"label\": \"Manage Plan\",\n      \"url\": \"https://app.waymore.io/billing\"\n    }\n  },\n  \"metadata\": {\n    \"tenantId\": \"acme_corp\",\n    \"eventId\": \"usage_threshold_80\",\n    \"notificationType\": \"usage_warning\"\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -281,7 +561,171 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"from\": {\n    \"email\": \"billing@waymore.io\",\n    \"name\": \"Waymore Billing\"\n  },\n  \"subject\": \"[Acme Corp] You've used 80% of your Advanced quota\",\n  \"template\": {\n    \"key\": \"usage-80-threshold\",\n    \"locale\": \"en\"\n  },\n  \"to\": [\n    {\n      \"email\": \"user@example.com\",\n      \"name\": \"John Doe\"\n    }\n  ],\n  \"variables\": {\n    \"workspace_name\": \"Acme Corp\",\n    \"user_firstname\": \"John\",\n    \"plan_name\": \"Advanced\",\n    \"usage_percent\": \"80\",\n    \"usage_current\": \"24,000\",\n    \"usage_limit\": \"30,000\",\n    \"usage_metric\": \"contacts\",\n    \"upgrade_url\": \"https://app.waymore.io/billing\"\n  }\n}",
+                  "raw": "{\n  \"from\": {\n    \"email\": \"marketing@waymore.io\",\n    \"name\": \"Waymore Team\"\n  },\n  \"subject\": \"Usage Threshold Warning\",\n  \"template\": {\n    \"key\": \"universal\",\n    \"locale\": \"en\"\n  },\n  \"to\": [\n    {\n      \"email\": \"user@example.com\",\n      \"name\": \"John Doe\"\n    }\n  ],\n  \"variables\": {\n    \"workspace_name\": \"Acme Corp\",\n    \"user_firstname\": \"John\",\n    \"product_name\": \"Waymore Platform\",\n    \"plan_name\": \"Advanced\",\n    \"usage_percent\": \"80\",\n    \"usage_current\": \"24,000\",\n    \"usage_limit\": \"30,000\",\n    \"usage_metric\": \"contacts\",\n    \"upgrade_url\": \"https://app.waymore.io/billing\",\n    \"support_email\": \"support@waymore.io\",\n    \"email_title\": \"Usage Threshold Warning\",\n    \"custom_content\": \"Hello {{user_firstname}},\\n\\nYour current <strong>{{product_name}}</strong> subscription <strong>{{plan_name}}</strong> is at <strong>{{usage_percent}}%</strong> of its limit.\\n\\n👉 <strong>To avoid interruptions</strong>, you may want to review your plan and upgrade if needed.\",\n    \"facts\": [\n      {\"label\": \"Used:\", \"value\": \"24,000 contacts\"},\n      {\"label\": \"Limit:\", \"value\": \"30,000 contacts\"},\n      {\"label\": \"Usage:\", \"value\": \"80%\"}\n    ],\n    \"cta_primary\": {\n      \"label\": \"Manage Plan\",\n      \"url\": \"https://app.waymore.io/billing\"\n    }\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/v1/emails",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "v1", "emails"]
+                }
+              },
+              "status": "Accepted",
+              "code": 202,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"messageId\": \"msg_abc123\",\n  \"status\": \"queued\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Send Email - Usage 100% Reached",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$timestamp}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": {\n    \"email\": \"marketing@waymore.io\",\n    \"name\": \"Waymore Team\"\n  },\n  \"subject\": \"Usage Limit Reached\",\n  \"template\": {\n    \"key\": \"universal\",\n    \"locale\": \"en\"\n  },\n  \"to\": [\n    {\n      \"email\": \"user@example.com\",\n      \"name\": \"John Doe\"\n    }\n  ],\n  \"variables\": {\n    \"workspace_name\": \"Acme Corp\",\n    \"user_firstname\": \"John\",\n    \"product_name\": \"Waymore Platform\",\n    \"plan_name\": \"Advanced\",\n    \"usage_percent\": \"100\",\n    \"usage_current\": \"30,000\",\n    \"usage_limit\": \"30,000\",\n    \"usage_metric\": \"contacts\",\n    \"upgrade_url\": \"https://app.waymore.io/billing\",\n    \"support_email\": \"support@waymore.io\",\n    \"email_title\": \"Usage Limit Reached\",\n    \"custom_content\": \"Hello {{user_firstname}},\\n\\n🚨 <strong>URGENT:</strong> Your {{product_name}} subscription has reached its limit!\\n\\nYour <strong>{{plan_name}}</strong> plan is now <strong>blocked</strong> until you upgrade.\\n\\n⚠️ <strong>Action Required:</strong> Upgrade your plan immediately to restore service.\",\n    \"facts\": [\n      {\"label\": \"Used:\", \"value\": \"30,000 contacts\"},\n      {\"label\": \"Limit:\", \"value\": \"30,000 contacts\"},\n      {\"label\": \"Status:\", \"value\": \"100% - Blocked\"}\n    ],\n    \"cta_primary\": {\n      \"label\": \"Upgrade Plan\",\n      \"url\": \"https://app.waymore.io/billing\"\n    }\n  },\n  \"metadata\": {\n    \"tenantId\": \"acme_corp\",\n    \"eventId\": \"usage_100_reached\",\n    \"notificationType\": \"usage_limit_reached\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/emails",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "emails"]
+            },
+            "description": "Send a usage limit reached email when a user hits 100% of their plan quota and is blocked from further usage. This template includes workspace name, user details, usage statistics, and an urgent upgrade CTA."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{jwt_token}}"
+                  },
+                  {
+                    "key": "Idempotency-Key",
+                    "value": "{{$timestamp}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"from\": {\n    \"email\": \"marketing@waymore.io\",\n    \"name\": \"Waymore Team\"\n  },\n  \"subject\": \"Usage Limit Reached\",\n  \"template\": {\n    \"key\": \"usage-100-reached\",\n    \"locale\": \"en\"\n  },\n  \"to\": [\n    {\n      \"email\": \"user@example.com\",\n      \"name\": \"John Doe\"\n    }\n  ],\n  \"variables\": {\n    \"workspace_name\": \"Acme Corp\",\n    \"user_firstname\": \"John\",\n    \"product_name\": \"Waymore Platform\",\n    \"plan_name\": \"Advanced\",\n    \"usage_percent\": \"100\",\n    \"usage_current\": \"30,000\",\n    \"usage_limit\": \"30,000\",\n    \"usage_metric\": \"contacts\",\n    \"upgrade_url\": \"https://app.waymore.io/billing\",\n    \"support_email\": \"support@waymore.io\"\n  },\n  \"metadata\": {\n    \"tenantId\": \"acme_corp\",\n    \"eventId\": \"usage_100_reached\",\n    \"notificationType\": \"usage_limit_reached\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/v1/emails",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "v1", "emails"]
+                }
+              },
+              "status": "Accepted",
+              "code": 202,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"messageId\": \"msg_abc123\",\n  \"status\": \"queued\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Send Email - Renewal 7 Days Reminder",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$timestamp}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": {\n    \"email\": \"marketing@waymore.io\",\n    \"name\": \"Waymore Team\"\n  },\n  \"subject\": \"Renewal Reminder\",\n  \"template\": {\n    \"key\": \"universal\",\n    \"locale\": \"en\"\n  },\n  \"to\": [\n    {\n      \"email\": \"user@example.com\",\n      \"name\": \"John Doe\"\n    }\n  ],\n  \"variables\": {\n    \"workspace_name\": \"Acme Corp\",\n    \"user_firstname\": \"John\",\n    \"product_name\": \"Waymore Platform\",\n    \"plan_name\": \"Advanced\",\n    \"renewal_date\": \"01 Oct 2025\",\n    \"billing_url\": \"https://app.waymore.io/billing\",\n    \"support_email\": \"support@waymore.io\",\n    \"email_title\": \"Renewal Reminder\",\n    \"custom_content\": \"Hello {{user_firstname}},\\n\\nYour <strong>{{plan_name}}</strong> plan will renew on <strong>{{renewal_date}}</strong>.\\n\\n💡 <strong>Tip:</strong> Make sure your payment method is up to date to avoid any service interruptions.\",\n    \"facts\": [\n      {\"label\": \"Plan:\", \"value\": \"Advanced\"},\n      {\"label\": \"Renewal Date:\", \"value\": \"01 Oct 2025\"},\n      {\"label\": \"Workspace:\", \"value\": \"Acme Corp\"}\n    ],\n    \"cta_primary\": {\n      \"label\": \"Manage Billing\",\n      \"url\": \"https://app.waymore.io/billing\"\n    }\n  },\n  \"metadata\": {\n    \"tenantId\": \"acme_corp\",\n    \"eventId\": \"renewal_7_days\",\n    \"notificationType\": \"renewal_reminder\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/emails",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "emails"]
+            },
+            "description": "Send a renewal reminder email 7 days before subscription expiry. This template includes workspace name, user details, renewal date, and a billing management CTA."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{jwt_token}}"
+                  },
+                  {
+                    "key": "Idempotency-Key",
+                    "value": "{{$timestamp}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"from\": {\n    \"email\": \"marketing@waymore.io\",\n    \"name\": \"Waymore Team\"\n  },\n  \"subject\": \"Renewal Reminder\",\n  \"template\": {\n    \"key\": \"renewal-7-days\",\n    \"locale\": \"en\"\n  },\n  \"to\": [\n    {\n      \"email\": \"user@example.com\",\n      \"name\": \"John Doe\"\n    }\n  ],\n  \"variables\": {\n    \"workspace_name\": \"Acme Corp\",\n    \"user_firstname\": \"John\",\n    \"product_name\": \"Waymore Platform\",\n    \"plan_name\": \"Advanced\",\n    \"renewal_date\": \"01 Oct 2025\",\n    \"billing_url\": \"https://app.waymore.io/billing\",\n    \"support_email\": \"support@waymore.io\"\n  },\n  \"metadata\": {\n    \"tenantId\": \"acme_corp\",\n    \"eventId\": \"renewal_7_days\",\n    \"notificationType\": \"renewal_reminder\"\n  }\n}",
                   "options": {
                     "raw": {
                       "language": "json"
