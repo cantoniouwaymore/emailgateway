@@ -1,4 +1,28 @@
 import 'dotenv/config';
+
+// Check if we should run in worker mode
+const isWorkerMode = 
+  process.env.RAILWAY_SERVICE_NAME === 'email-gateway-worker' ||
+  process.env.SERVICE_MODE === 'worker' ||
+  process.env.RAILWAY_START_COMMAND === 'npm run worker';
+
+if (isWorkerMode) {
+  console.log('🚀 Starting Email Gateway Worker...');
+  console.log('🔍 Debug: RAILWAY_SERVICE_NAME=' + process.env.RAILWAY_SERVICE_NAME);
+  console.log('🔍 Debug: SERVICE_MODE=' + process.env.SERVICE_MODE);
+  console.log('🔍 Debug: RAILWAY_START_COMMAND=' + process.env.RAILWAY_START_COMMAND);
+  
+  // Import and start the worker
+  import('./queue/worker').then(() => {
+    console.log('✅ Worker started successfully');
+  }).catch((error) => {
+    console.error('❌ Worker failed to start:', error);
+    process.exit(1);
+  });
+} else {
+  console.log('🌐 Starting Email Gateway API Server...');
+}
+
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
