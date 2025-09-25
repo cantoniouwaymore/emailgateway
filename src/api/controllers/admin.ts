@@ -172,7 +172,11 @@ export class AdminController {
       const latency = Date.now() - startTime;
       
       // Get connection pool info
-      const poolInfo = await prisma.$queryRaw`
+      const poolInfo = await prisma.$queryRaw<Array<{
+        total_connections: bigint;
+        active_connections: bigint;
+        idle_connections: bigint;
+      }>>`
         SELECT 
           count(*) as total_connections,
           count(*) FILTER (WHERE state = 'active') as active_connections,
@@ -185,7 +189,11 @@ export class AdminController {
         healthy: true,
         latency,
         details: {
-          connectionPool: poolInfo[0],
+          connectionPool: {
+            total_connections: Number(poolInfo[0]?.total_connections || 0),
+            active_connections: Number(poolInfo[0]?.active_connections || 0),
+            idle_connections: Number(poolInfo[0]?.idle_connections || 0)
+          },
           database: process.env.DATABASE_URL?.split('@')[1]?.split('/')[0] || 'unknown'
         }
       };
