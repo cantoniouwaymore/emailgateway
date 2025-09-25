@@ -1,5 +1,6 @@
 import { EmailProvider, SendProviderRequest, SendProviderResult } from './types';
 import { RouteeEmailProvider } from './routee';
+import { RouteeEmailProvider as RouteeEmailProviderReal } from './routee-real';
 import { logger } from '../utils/logger';
 import { providerLatencyMs, emailsSentTotal, emailsFailedTotal } from '../utils/metrics';
 
@@ -20,9 +21,18 @@ export class ProviderManager {
   private initializeProviders(): void {
     // Initialize Routee provider
     if (this.enabledProviders.includes('routee')) {
-      const routeeProvider = new RouteeEmailProvider();
-      this.providers.set('routee', routeeProvider);
-      logger.info('Initialized Routee email provider');
+      // Check if we should use real Routee implementation
+      const useRealRoutee = process.env.ROUTEE_CLIENT_ID && process.env.ROUTEE_CLIENT_SECRET;
+      
+      if (useRealRoutee) {
+        const routeeProvider = new RouteeEmailProviderReal();
+        this.providers.set('routee', routeeProvider);
+        logger.info('Initialized Routee email provider (Real API)');
+      } else {
+        const routeeProvider = new RouteeEmailProvider();
+        this.providers.set('routee', routeeProvider);
+        logger.info('Initialized Routee email provider (Stub/Mock)');
+      }
     }
 
     // Add more providers here as needed
@@ -44,6 +54,10 @@ export class ProviderManager {
     }
 
     return this.sendWithProvider(primaryProvider, request);
+  }
+
+  getProvider(name: string): EmailProvider | null {
+    return this.providers.get(name) || null;
   }
 
   private getPrimaryProvider(): EmailProvider | null {

@@ -36,6 +36,7 @@ export interface HealthStatus {
   healthy: boolean;
   latency?: number;
   error?: string;
+  details?: Record<string, unknown>;
 }
 
 export interface EmailProvider {

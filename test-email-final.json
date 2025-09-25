@@ -1,0 +1,68 @@
+{
+  "to": [
+    {
+      "email": "cantoniou@waymore.io",
+      "name": "Antonio"
+    }
+  ],
+  "from": {
+    "email": "marketing@waymore.io",
+    "name": "Waymore Email Gateway"
+  },
+  "subject": "🎉 Email Gateway Test - SUCCESS!",
+  "template": {
+    "key": "notifications/universal",
+    "locale": "en"
+  },
+  "variables": {
+    "email_title": "Email Gateway is Working Perfectly! 🚀",
+    "user_name": "Antonio",
+    "intro_text": "Congratulations! Your Email Gateway microservice is now fully operational and sending real emails through Routee API.",
+    "facts": [
+      {
+        "label": "Service Status",
+        "value": "Production Ready ✅"
+      },
+      {
+        "label": "Provider",
+        "value": "Routee API v.2"
+      },
+      {
+        "label": "Authentication",
+        "value": "Working"
+      },
+      {
+        "label": "Sender",
+        "value": "marketing@waymore.io"
+      },
+      {
+        "label": "Template Engine",
+        "value": "MJML + Handlebars"
+      },
+      {
+        "label": "Queue System",
+        "value": "BullMQ + Redis"
+      },
+      {
+        "label": "Database",
+        "value": "PostgreSQL + Prisma"
+      },
+      {
+        "label": "Test Time",
+        "value": "2025-09-25 12:54:00"
+      }
+    ],
+    "cta_primary": {
+      "label": "View Dashboard",
+      "url": "https://app.routee.net"
+    },
+    "cta_secondary": {
+      "label": "View Repository",
+      "url": "https://github.com/cantoniouwaymore/emailgateway"
+    }
+  },
+  "metadata": {
+    "tenantId": "waymore",
+    "eventId": "gateway_test_success"
+  }
+}

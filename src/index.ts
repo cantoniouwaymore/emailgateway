@@ -7,6 +7,7 @@ import { logger } from './utils/logger';
 import { setupMetricsEndpoint } from './utils/metrics';
 import { emailRoutes } from './api/routes/email';
 import { healthRoutes } from './api/routes/health';
+import { senderRoutes } from './api/routes/senders';
 import { generateTestToken } from './utils/auth';
 
 const PORT = parseInt(process.env['PORT'] || '3000');
@@ -63,6 +64,7 @@ async function buildServer() {
   // Register routes
   await fastify.register(healthRoutes);
   await fastify.register(emailRoutes, { prefix: '/api' });
+  await fastify.register(senderRoutes, { prefix: '/api' });
 
   // Add a test endpoint to generate JWT tokens (development only)
   if (NODE_ENV === 'development') {

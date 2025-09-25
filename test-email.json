@@ -1,0 +1,32 @@
+{
+  "to": [{"email": "cantoniou@waymore.io", "name": "Antonio"}],
+  "from": {"email": "no-reply@waymore.io", "name": "Waymore Platform"},
+  "subject": "🎉 Email Gateway Test - Success!",
+  "template": {"key": "notifications/universal", "locale": "en"},
+  "variables": {
+    "email_title": "Email Gateway Test Successful! 🚀",
+    "user_name": "Antonio",
+    "facts": [
+      {"label": "Service", "value": "Email Gateway"},
+      {"label": "Status", "value": "✅ Working Perfectly"},
+      {"label": "Timestamp", "value": "2024-09-25 12:27 UTC"},
+      {"label": "Features", "value": "MJML Templates + Handlebars"},
+      {"label": "Queue System", "value": "BullMQ + Redis"},
+      {"label": "Database", "value": "PostgreSQL + Prisma"},
+      {"label": "Documentation", "value": "70K+ lines of docs"}
+    ],
+    "cta_primary": {
+      "label": "View Repository",
+      "url": "https://github.com/cantoniouwaymore/emailgateway"
+    },
+    "cta_secondary": {
+      "label": "View Documentation",
+      "url": "https://github.com/cantoniouwaymore/emailgateway/tree/main/docs"
+    }
+  },
+  "metadata": {
+    "tenantId": "waymore_test",
+    "eventId": "test_email_1727174844",
+    "testType": "integration_test"
+  }
+}
