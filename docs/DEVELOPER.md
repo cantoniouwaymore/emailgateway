@@ -567,6 +567,56 @@ export const createMockReply = () => ({
 });
 ```
 
+## Build Process
+
+### Development Build
+```bash
+# Start development server with hot reload
+npm run dev
+
+# Start worker in development mode
+npm run worker
+```
+
+### Production Build
+```bash
+# Build TypeScript to JavaScript
+npm run build
+
+# Start production API server
+npm run start:api
+
+# Start production worker (in another terminal)
+npm run start:worker
+```
+
+### Build Output
+The build process compiles TypeScript files to the `dist/` directory:
+- `dist/index-api.js` - API server entry point
+- `dist/index.js` - Main application entry point (with worker mode detection)
+- `dist/worker-simple.js` - Standalone worker entry point
+- `dist/worker-standalone.js` - Alternative worker entry point
+- `dist/startup.js` - Production startup script
+- `dist/queue/worker.js` - Worker implementation
+- `dist/api/` - Compiled API controllers and routes
+- `dist/providers/` - Compiled email providers
+- `dist/db/` - Database client and utilities
+- `dist/utils/` - Utility functions
+- `dist/templates/` - Template engine
+- `dist/types/` - Type definitions
+
+### Build Verification
+After building, verify the output:
+```bash
+# Check if build was successful
+ls -la dist/
+
+# Test production build
+npm run start:api
+# In another terminal:
+npm run start:worker
+```
+
 ## Deployment
 
 ### Docker Deployment

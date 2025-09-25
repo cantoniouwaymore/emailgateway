@@ -31,10 +31,8 @@ export class EmailWorker {
       concurrency: parseInt(process.env.WORKER_CONCURRENCY || '5'),
     });
 
-    // Start health check server only if not in Railway worker mode
-    if (process.env.RAILWAY_SERVICE_NAME !== 'email-gateway-worker') {
-      this.startHealthServer();
-    }
+    // Start health check server for standalone worker mode
+    this.startHealthServer();
     this.setupWorkerEvents();
   }
 

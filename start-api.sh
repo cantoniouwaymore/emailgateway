@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Railway startup script for Email Gateway API Service
+# Production startup script for Email Gateway API Service
 # This script runs the web server
 
 echo "🚀 Starting Email Gateway API Server..."

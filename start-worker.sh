@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Railway startup script for Email Gateway Worker Service
+# Production startup script for Email Gateway Worker Service
 # This script runs the email worker
 
 echo "🚀 Starting Email Gateway Worker..."

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Railway Startup Script
+ * Production Startup Script
  * This script detects the environment and starts either the API server or the worker
  */
 

@@ -48,7 +48,6 @@
 
 - **Node.js** 20+ 
 - **Docker & Docker Compose** (optional)
-- **Railway CLI** (for Railway deployment)
 - **PostgreSQL** 15+
 - **Redis** 7+
 
@@ -431,21 +430,41 @@ docker run -p 3000:3000 email-gateway
 kubectl apply -f k8s/
 ```
 
-### Railway (Recommended for Production)
+### Production Build
 ```bash
-# Quick deployment with both API and Worker services
-./deploy-railway.sh
+# Build TypeScript to JavaScript
+npm run build
 
-# Or manual deployment
-railway login
-railway service create email-gateway-api
-railway service create email-gateway-worker
-railway add postgresql
-railway add redis
-railway up
+# Start the API server
+npm run start:api
+
+# Start the worker (in another terminal)
+npm run start:worker
 ```
 
-> 📖 **Detailed Railway Guide**: See [docs/RAILWAY_DEPLOYMENT.md](docs/RAILWAY_DEPLOYMENT.md) for complete setup instructions.
+### Build Process Details
+The build process compiles TypeScript source files to the `dist/` directory:
+- **Entry Points**: `index-api.js`, `worker-simple.js`, `startup.js`
+- **API Layer**: Controllers, routes, and schemas
+- **Providers**: Email provider implementations
+- **Queue System**: Worker and producer logic
+- **Utilities**: Authentication, logging, metrics
+- **Database**: Prisma client and database utilities
+
+### Available Scripts
+```bash
+npm run dev          # Development server with hot reload
+npm run dev:api      # Development API server only
+npm run dev:worker   # Development worker only
+npm run build        # Build TypeScript to JavaScript
+npm run start:api    # Start production API server
+npm run start:worker # Start production worker
+npm run worker       # Run worker in development mode
+npm run migrate      # Run database migrations
+npm run generate     # Generate Prisma client
+npm run lint         # Run ESLint
+npm run type-check   # TypeScript type checking
+```
 
 ## 📚 Documentation
 

@@ -39,10 +39,9 @@ COPY --from=builder /app/dist ./dist/
 
 # Copy startup scripts
 COPY start.sh ./start.sh
-COPY start-railway.sh ./start-railway.sh
 COPY start-api.sh ./start-api.sh
 COPY start-worker.sh ./start-worker.sh
-RUN chmod +x ./start.sh ./start-railway.sh ./start-api.sh ./start-worker.sh
+RUN chmod +x ./start.sh ./start-api.sh ./start-worker.sh
 
 # Generate Prisma client
 RUN npx prisma generate
@@ -63,5 +62,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3000/healthz', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
 
 # Start the application
-# Use Railway script if RAILWAY environment is set, otherwise use regular start script
-CMD ["sh", "-c", "if [ -n \"$RAILWAY\" ]; then ./start-railway.sh; else ./start.sh; fi"]
+CMD ["./start.sh"]
