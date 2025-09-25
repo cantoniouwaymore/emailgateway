@@ -1,0 +1,17 @@
+[{{workspace_name}}] You've used {{usage_percent}}% of your {{plan_name}} quota
+
+Hello {{user_firstname}},
+
+Your current subscription {{plan_name}} is at {{usage_percent}}% of its limit.
+	•	Used: {{usage_current}} {{usage_metric}}
+	•	Limit: {{usage_limit}} {{usage_metric}}
+
+👉 To avoid interruptions, you may want to review your plan and upgrade if needed.
+
+Manage Plan: {{upgrade_url}}
+
+Thanks,
+The Waymore Team
+
+---
+This email was sent by Waymore Platform. If you have any questions, please contact support.

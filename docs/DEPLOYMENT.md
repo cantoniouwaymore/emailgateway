@@ -96,10 +96,19 @@ cp env.example .env
 # Run migrations
 npm run migrate
 
-# Start development servers
-npm run dev    # Terminal 1
-npm run worker # Terminal 2
+# Start development servers (REQUIRED: Both processes must run)
+# Terminal 1 - API Server (handles HTTP requests, queues emails)
+npm run dev:api
+
+# Terminal 2 - Worker Process (processes queued emails, sends via providers)
+npm run dev:worker
 ```
+
+**⚠️ IMPORTANT**: The Email Gateway requires **TWO processes** to function:
+1. **API Server** - Receives HTTP requests and queues emails
+2. **Worker Process** - Processes queued emails and sends them via providers
+
+Both processes must be running for emails to be sent successfully.
 
 ### Docker Compose
 ```bash
@@ -109,10 +118,12 @@ docker-compose up -d
 # Run migrations
 npm run migrate
 
-# Start application
-npm run dev
-npm run worker
+# Start application (REQUIRED: Both processes)
+npm run dev:api    # Terminal 1 - API Server
+npm run dev:worker # Terminal 2 - Worker Process
 ```
+
+**Note**: The worker process will automatically use a different port (3001) for its health check server to avoid conflicts with the API server (port 3000).
 
 ## Staging Deployment
 
@@ -608,6 +619,31 @@ curl http://localhost:3000/metrics | grep queue_depth
 
 # Restart workers
 kubectl rollout restart deployment/email-gateway-worker
+```
+
+#### Port Conflict Issues
+```bash
+# Error: listen EADDRINUSE: address already in use 0.0.0.0:3000
+```
+
+**Solution**: The worker process tries to start a health check server on port 3000, which conflicts with the API server. Start the worker with a different port:
+
+```bash
+# Use different port for worker health check
+PORT=3001 npm run dev:worker
+
+# Or set in environment
+export PORT=3001
+npm run dev:worker
+```
+
+**Verification**:
+```bash
+# Check API server is running on port 3000
+curl http://localhost:3000/healthz
+
+# Check worker health check on port 3001
+curl http://localhost:3001/healthz
 ```
 
 ### Performance Tuning

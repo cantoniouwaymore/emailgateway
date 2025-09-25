@@ -47,9 +47,9 @@
 ### Prerequisites
 
 - **Node.js** 20+ 
+- **PostgreSQL** 15+ (or Docker)
+- **Redis** 7+ (or Docker)
 - **Docker & Docker Compose** (optional)
-- **PostgreSQL** 15+
-- **Redis** 7+
 
 ### ⚡ 30-Second Setup
 
@@ -409,9 +409,20 @@ Ready-to-use API collection for your team:
 
 ### Development
 ```bash
-npm run dev        # API server
-npm run worker     # Background worker
+# Option 1: Use the automated startup script (recommended)
+./start-dev.sh
+
+# Option 2: Manual startup (requires two terminals)
+# Terminal 1 - API Server
+npm run dev:api
+
+# Terminal 2 - Worker Process  
+PORT=3001 npm run dev:worker
 ```
+
+**⚠️ IMPORTANT**: The Email Gateway requires **BOTH processes** to function:
+- **API Server** (port 3000): Handles HTTP requests and queues emails
+- **Worker Process** (port 3001): Processes queued emails and sends them
 
 ### Production
 ```bash

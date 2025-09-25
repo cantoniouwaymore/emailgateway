@@ -219,16 +219,32 @@ export class RouteeEmailProvider implements EmailProvider {
 
       if (!response.ok) {
         let errorMessage = `Routee API error: ${response.status}`;
+        let errorDetails = '';
         try {
           const errorText = await response.text();
           console.log('Routee API Error Response:', errorText);
+          
           try {
-            const errorData = JSON.parse(errorText) as RouteeErrorResponse;
-            errorMessage = `${errorData.type}: ${errorData.explanation}`;
-          } catch {
+            const errorData = JSON.parse(errorText);
+            console.log('Parsed Routee Error Data:', JSON.stringify(errorData, null, 2));
+            
+            // Handle different Routee error response formats
+            if (errorData.message) {
+              errorMessage = errorData.message;
+              errorDetails = `Error Code: ${errorData.errorCode || 'N/A'}, Service: ${errorData.service || 'N/A'}`;
+            } else if (errorData.type && errorData.explanation) {
+              errorMessage = `${errorData.type}: ${errorData.explanation}`;
+            } else if (errorData.errorCode && errorData.explanation) {
+              errorMessage = `${errorData.errorCode}: ${errorData.explanation}`;
+            } else {
+              errorMessage = `Routee API error: ${response.status} - ${errorText}`;
+            }
+          } catch (parseError) {
+            console.log('Failed to parse Routee error response as JSON:', parseError);
             errorMessage = `Routee API error: ${response.status} - ${errorText}`;
           }
-        } catch {
+        } catch (readError) {
+          console.log('Failed to read Routee error response:', readError);
           errorMessage = `Routee API error: ${response.status} - Failed to read response`;
         }
 
@@ -236,6 +252,7 @@ export class RouteeEmailProvider implements EmailProvider {
           provider: this.name,
           messageId: request.messageId,
           error: errorMessage,
+          errorDetails,
           latency,
           statusCode: response.status
         }, 'Failed to send email via Routee');
@@ -248,6 +265,8 @@ export class RouteeEmailProvider implements EmailProvider {
       }
 
       const responseData = await response.json() as RouteeEmailResponse;
+      
+      console.log('Routee API Success Response:', JSON.stringify(responseData, null, 2));
       
       logger.info({
         provider: this.name,

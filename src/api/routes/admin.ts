@@ -16,4 +16,8 @@ export async function adminRoutes(fastify: FastifyInstance) {
   
   // API endpoint for real-time data
   fastify.get('/admin/api/data', adminController.getApiData.bind(adminController));
+  
+  // Webhook events endpoints
+  fastify.get<{ Params: { messageId: string } }>('/admin/api/webhooks/:messageId', adminController.getWebhookEvents.bind(adminController));
+  fastify.get('/admin/api/webhooks', adminController.getRecentWebhookEvents.bind(adminController));
 }

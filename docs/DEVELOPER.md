@@ -110,12 +110,16 @@ src/
 
 5. **Start development servers:**
    ```bash
-   # Terminal 1 - API Server
-   npm run dev
+   # Terminal 1 - API Server (handles HTTP requests, queues emails)
+   npm run dev:api
    
-   # Terminal 2 - Worker
-   npm run worker
+   # Terminal 2 - Worker Process (processes queued emails, sends via providers)
+   npm run dev:worker
    ```
+
+   **⚠️ CRITICAL**: Both processes must be running for the email gateway to function:
+   - **API Server** (port 3000): Receives HTTP requests and queues emails
+   - **Worker Process** (port 3001): Processes queued emails and sends them
 
 6. **Test the API:**
    ```bash
@@ -795,6 +799,23 @@ Template file not found: notifications/universal-en.mjml
 Error: Invalid JWT token
 ```
 **Solution**: Verify JWT secret and token format.
+
+#### Port Conflict (Worker Won't Start)
+```bash
+Error: listen EADDRINUSE: address already in use 0.0.0.0:3000
+```
+**Solution**: The worker tries to use port 3000 (same as API server). Use a different port:
+```bash
+PORT=3001 npm run dev:worker
+```
+
+#### Emails Stuck in "QUEUED" Status
+**Cause**: Worker process is not running or not processing jobs.
+**Solution**: 
+1. Ensure worker is running: `ps aux | grep worker`
+2. Check worker logs for errors
+3. Verify Redis connection: `redis-cli ping`
+4. Restart worker if needed: `PORT=3001 npm run dev:worker`
 
 ### Debugging
 

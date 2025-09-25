@@ -1,0 +1,32 @@
+{
+  "to": [
+    {
+      "email": "cantoniou@waymore.io",
+      "name": "Antonio"
+    }
+  ],
+  "from": {
+    "email": "marketing@waymore.io",
+    "name": "Waymore Team"
+  },
+  "subject": "[Waymore] You've used 80% of your Pro quota",
+  "template": {
+    "key": "usage-80-threshold",
+    "locale": "en"
+  },
+  "variables": {
+    "workspace_name": "Waymore",
+    "user_firstname": "Antonio",
+    "plan_name": "Pro",
+    "usage_percent": "80",
+    "usage_current": "8,000",
+    "usage_limit": "10,000",
+    "usage_metric": "emails",
+    "upgrade_url": "https://app.waymore.io/billing"
+  },
+  "metadata": {
+    "tenantId": "waymore_test",
+    "eventId": "usage_threshold_test",
+    "notificationType": "usage_warning"
+  }
+}
