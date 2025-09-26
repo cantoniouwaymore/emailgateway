@@ -1,11 +1,18 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { prisma } from '../../db/client';
 import { logger } from '../../utils/logger';
-import { Recipient } from '../../types/email';
+import { generateDashboardHTML } from '../../templates/admin/dashboard.html';
+import { generateMessageDetailsHTML } from '../../templates/admin/message-details.html';
+import { generateSearchResultsHTML } from '../../templates/admin/search-results.html';
 
 export class AdminController {
-  async getDashboardHTML(request: FastifyRequest, reply: FastifyReply) {
+  async getDashboardHTML(request: FastifyRequest<{ Querystring: { page?: string; limit?: string; search?: string; email?: string; searchPage?: string; searchLimit?: string } }>, reply: FastifyReply) {
     try {
+      const { page = '1', limit = '20', search, email, searchPage = '1', searchLimit = '20' } = request.query;
+      const pageNum = parseInt(page, 10);
+      const limitNum = parseInt(limit, 10);
+      const skip = (pageNum - 1) * limitNum;
+
       // Get comprehensive system health
       const healthResponse = await fetch('http://localhost:3000/health');
       const health = await healthResponse.json();
@@ -13,10 +20,15 @@ export class AdminController {
       // Get detailed service health
       const serviceHealth = await this.getDetailedServiceHealth();
 
-      // Get recent messages (last 50)
+      // Get total message count for pagination
+      const totalMessages = await prisma.message.count();
+      const totalPages = Math.ceil(totalMessages / limitNum);
+
+      // Get recent messages with pagination
       const recentMessages = await prisma.message.findMany({
         orderBy: { createdAt: 'desc' },
-        take: 50,
+        skip,
+        take: limitNum,
         select: {
           messageId: true,
           status: true,
@@ -68,7 +80,98 @@ export class AdminController {
         }
       });
 
-      const html = this.generateDashboardHTML({
+      // Handle search functionality if search query is provided
+      let searchResults = null;
+      let searchPagination = null;
+      const searchQuery = search === 'true' ? email : search;
+      if (searchQuery) {
+        const searchPageNum = parseInt(searchPage, 10);
+        const searchLimitNum = parseInt(searchLimit, 10);
+        const searchSkip = (searchPageNum - 1) * searchLimitNum;
+
+        // Get all messages and filter by recipient email
+        const allMessages = await prisma.message.findMany({
+          orderBy: { createdAt: 'desc' },
+          select: {
+            messageId: true,
+            tenantId: true,
+            toJson: true,
+            subject: true,
+            templateKey: true,
+            locale: true,
+            provider: true,
+            providerMessageId: true,
+            status: true,
+            attempts: true,
+            lastError: true,
+            failureReason: true,
+            createdAt: true,
+            updatedAt: true
+          }
+        });
+
+        // Filter messages where the recipient email matches
+        const filteredMessages = allMessages.filter(message => {
+          try {
+            const recipients = typeof message.toJson === 'string' ? JSON.parse(message.toJson) : message.toJson;
+            if (!recipients || !Array.isArray(recipients)) {
+              return false;
+            }
+            return recipients.some((recipient: any) => 
+              recipient.email && recipient.email.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+          } catch {
+            return false;
+          }
+        });
+
+        const searchTotalCount = filteredMessages.length;
+        const searchTotalPages = Math.ceil(searchTotalCount / searchLimitNum);
+        const searchPaginatedMessages = filteredMessages.slice(searchSkip, searchSkip + searchLimitNum);
+
+        // Get webhook events for each search result
+        const searchMessagesWithEvents = await Promise.all(
+          searchPaginatedMessages.map(async (message) => {
+            const latestEvent = await prisma.providerEvent.findFirst({
+              where: { messageId: message.messageId },
+              orderBy: { createdAt: 'desc' },
+              select: {
+                eventType: true,
+                createdAt: true,
+                rawJson: true
+              }
+            });
+
+            return {
+              messageId: message.messageId,
+              tenantId: message.tenantId,
+              toJson: message.toJson,
+              subject: message.subject,
+              templateKey: message.templateKey,
+              locale: message.locale,
+              provider: message.provider,
+              providerMessageId: message.providerMessageId,
+              status: message.status,
+              attempts: message.attempts,
+              lastError: message.lastError,
+              failureReason: message.failureReason,
+              createdAt: message.createdAt,
+              updatedAt: message.updatedAt,
+              latestWebhookEvent: latestEvent
+            };
+          })
+        );
+
+        searchResults = searchMessagesWithEvents;
+        searchPagination = {
+          currentPage: searchPageNum,
+          totalPages: searchTotalPages,
+          totalCount: searchTotalCount,
+          limit: searchLimitNum
+        };
+      }
+
+      const html = generateDashboardHTML({
         health,
         serviceHealth,
         systemMetrics,
@@ -78,7 +181,16 @@ export class AdminController {
         failedCount,
         sentCount,
         totalMessages: recentMessages.length,
-        recentWebhookEvents
+        recentWebhookEvents,
+        pagination: {
+          currentPage: pageNum,
+          totalPages,
+          totalCount: totalMessages,
+          limit: limitNum
+        },
+        searchResults,
+        searchQuery: searchQuery,
+        searchPagination
       });
       
       return reply.type('text/html').send(html);
@@ -123,7 +235,7 @@ export class AdminController {
         return reply.status(404).send({ error: 'Message not found' });
       }
 
-      const html = this.generateMessageDetailsHTML({ 
+      const html = generateMessageDetailsHTML({ 
         message: { ...message, providerEvents } 
       });
       
@@ -275,6 +387,110 @@ export class AdminController {
     } catch (error) {
       logger.error({ error }, 'Recent webhook events error');
       return reply.status(500).send({ error: 'Failed to load recent webhook events' });
+    }
+  }
+
+  async searchByRecipient(request: FastifyRequest<{ Querystring: { email: string; page?: string; limit?: string } }>, reply: FastifyReply) {
+    try {
+      const { email, page = '1', limit = '20' } = request.query;
+      
+      if (!email) {
+        return reply.status(400).send({ error: 'Email parameter is required' });
+      }
+
+      const pageNum = parseInt(page, 10);
+      const limitNum = parseInt(limit, 10);
+      const skip = (pageNum - 1) * limitNum;
+
+      // Get all messages and filter by recipient email
+      // This is not the most efficient approach for large datasets, but it works with the current schema
+      const allMessages = await prisma.message.findMany({
+        orderBy: { createdAt: 'desc' },
+        select: {
+          messageId: true,
+          tenantId: true,
+          toJson: true,
+          subject: true,
+          templateKey: true,
+          locale: true,
+          provider: true,
+          providerMessageId: true,
+          status: true,
+          attempts: true,
+          lastError: true,
+          failureReason: true,
+          createdAt: true,
+          updatedAt: true
+        }
+      });
+
+      // Filter messages where the recipient email matches
+      const filteredMessages = allMessages.filter(message => {
+        try {
+          const recipients = typeof message.toJson === 'string' ? JSON.parse(message.toJson) : message.toJson;
+          if (!recipients || !Array.isArray(recipients)) {
+            return false;
+          }
+          return recipients.some((recipient: any) => 
+            recipient.email && recipient.email.toLowerCase().includes(email.toLowerCase())
+          );
+        } catch {
+          return false;
+        }
+      });
+
+      const totalCount = filteredMessages.length;
+      const totalPages = Math.ceil(totalCount / limitNum);
+      const paginatedMessages = filteredMessages.slice(skip, skip + limitNum);
+
+      // Get webhook events for each message
+      const messagesWithEvents = await Promise.all(
+        paginatedMessages.map(async (message) => {
+          const latestEvent = await prisma.providerEvent.findFirst({
+            where: { messageId: message.messageId },
+            orderBy: { createdAt: 'desc' },
+            select: {
+              eventType: true,
+              createdAt: true,
+              rawJson: true
+            }
+          });
+
+          return {
+            messageId: message.messageId,
+            tenantId: message.tenantId,
+            toJson: message.toJson,
+            subject: message.subject,
+            templateKey: message.templateKey,
+            locale: message.locale,
+            provider: message.provider,
+            providerMessageId: message.providerMessageId,
+            status: message.status,
+            attempts: message.attempts,
+            lastError: message.lastError,
+            failureReason: message.failureReason,
+            createdAt: message.createdAt,
+            updatedAt: message.updatedAt,
+            latestWebhookEvent: latestEvent
+          };
+        })
+      );
+
+      const html = generateSearchResultsHTML({
+        email,
+        messages: messagesWithEvents,
+        pagination: {
+          currentPage: pageNum,
+          totalPages,
+          totalCount,
+          limit: limitNum
+        }
+      });
+
+      return reply.type('text/html').send(html);
+    } catch (error) {
+      logger.error({ error, email: request.query.email }, 'Search by recipient error');
+      return reply.status(500).send({ error: 'Failed to search messages' });
     }
   }
 
@@ -470,599 +686,7 @@ export class AdminController {
     return `${secs}s`;
   }
 
-  private generateDashboardHTML(data: any): string {
-    const { health, serviceHealth, systemMetrics, recentMessages, stats, queueDepth, failedCount, sentCount, recentWebhookEvents } = data;
-    
-    return `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Waymore Transactional Emails Service Admin</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        .status-queued { @apply bg-yellow-100 text-yellow-800; }
-        .status-sent { @apply bg-green-100 text-green-800; }
-        .status-failed { @apply bg-red-100 text-red-800; }
-        .status-delivered { @apply bg-blue-100 text-blue-800; }
-        .status-bounced { @apply bg-orange-100 text-orange-800; }
-        .status-suppressed { @apply bg-gray-100 text-gray-800; }
-    </style>
-</head>
-<body class="bg-gray-50">
-    <nav class="bg-white shadow-sm border-b">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <h1 class="text-xl font-bold text-gray-900">
-                        <i class="fas fa-envelope mr-2"></i>
-                        Waymore Transactional Emails Service Admin
-                    </h1>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <span class="text-sm text-gray-500" id="last-updated">
-                        <i class="fas fa-clock mr-1"></i>
-                        ${new Date().toLocaleTimeString()}
-                    </span>
-                </div>
-            </div>
-        </div>
-    </nav>
 
-    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <!-- Header -->
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900">Waymore Transactional Emails Service Dashboard</h1>
-            <p class="mt-2 text-gray-600">Monitor email delivery status and system health</p>
-        </div>
 
-        <!-- System Health Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <!-- System Status -->
-            <div class="bg-white overflow-hidden shadow rounded-lg">
-                <div class="p-5">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <i class="fas fa-heartbeat text-2xl ${health.status === 'healthy' ? 'text-green-500' : 'text-red-500'}"></i>
-                        </div>
-                        <div class="ml-5 w-0 flex-1">
-                            <dl>
-                                <dt class="text-sm font-medium text-gray-500 truncate">System Status</dt>
-                                <dd class="text-lg font-medium text-gray-900">${health.status || 'Unknown'}</dd>
-                            </dl>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Queue Depth -->
-            <div class="bg-white overflow-hidden shadow rounded-lg">
-                <div class="p-5">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <i class="fas fa-list-ul text-2xl text-blue-500"></i>
-                        </div>
-                        <div class="ml-5 w-0 flex-1">
-                            <dl>
-                                <dt class="text-sm font-medium text-gray-500 truncate">Queue Depth</dt>
-                                <dd class="text-lg font-medium text-gray-900">${queueDepth || 0}</dd>
-                            </dl>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Sent Messages -->
-            <div class="bg-white overflow-hidden shadow rounded-lg">
-                <div class="p-5">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <i class="fas fa-paper-plane text-2xl text-green-500"></i>
-                        </div>
-                        <div class="ml-5 w-0 flex-1">
-                            <dl>
-                                <dt class="text-sm font-medium text-gray-500 truncate">Sent Today</dt>
-                                <dd class="text-lg font-medium text-gray-900">${sentCount || 0}</dd>
-                            </dl>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Failed Messages -->
-            <div class="bg-white overflow-hidden shadow rounded-lg">
-                <div class="p-5">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <i class="fas fa-exclamation-triangle text-2xl text-red-500"></i>
-                        </div>
-                        <div class="ml-5 w-0 flex-1">
-                            <dl>
-                                <dt class="text-sm font-medium text-gray-500 truncate">Failed Today</dt>
-                                <dd class="text-lg font-medium text-gray-900">${failedCount || 0}</dd>
-                            </dl>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Service Health Section -->
-        <div class="mb-8">
-            <h2 class="text-xl font-bold text-gray-900 mb-4">
-                <i class="fas fa-server mr-2"></i>
-                Service Health
-            </h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <!-- Database Health -->
-                <div class="bg-white overflow-hidden shadow rounded-lg">
-                    <div class="p-5">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0">
-                                <i class="fas fa-database text-2xl ${serviceHealth?.database?.healthy ? 'text-green-500' : 'text-red-500'}"></i>
-                            </div>
-                            <div class="ml-5 w-0 flex-1">
-                                <dl>
-                                    <dt class="text-sm font-medium text-gray-500 truncate">Database</dt>
-                                    <dd class="text-lg font-medium text-gray-900">${serviceHealth?.database?.healthy ? 'Healthy' : 'Unhealthy'}</dd>
-                                    <dd class="text-xs text-gray-500">${serviceHealth?.database?.latency ? serviceHealth.database.latency + 'ms' : ''}</dd>
-                                </dl>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Redis Health -->
-                <div class="bg-white overflow-hidden shadow rounded-lg">
-                    <div class="p-5">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0">
-                                <i class="fas fa-memory text-2xl ${serviceHealth?.redis?.healthy ? 'text-green-500' : 'text-red-500'}"></i>
-                            </div>
-                            <div class="ml-5 w-0 flex-1">
-                                <dl>
-                                    <dt class="text-sm font-medium text-gray-500 truncate">Redis</dt>
-                                    <dd class="text-lg font-medium text-gray-900">${serviceHealth?.redis?.healthy ? 'Healthy' : 'Unhealthy'}</dd>
-                                    <dd class="text-xs text-gray-500">${serviceHealth?.redis?.latency ? serviceHealth.redis.latency + 'ms' : ''}</dd>
-                                </dl>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Worker Health -->
-                <div class="bg-white overflow-hidden shadow rounded-lg">
-                    <div class="p-5">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0">
-                                <i class="fas fa-cogs text-2xl ${serviceHealth?.worker?.healthy ? 'text-green-500' : 'text-red-500'}"></i>
-                            </div>
-                            <div class="ml-5 w-0 flex-1">
-                                <dl>
-                                    <dt class="text-sm font-medium text-gray-500 truncate">Worker</dt>
-                                    <dd class="text-lg font-medium text-gray-900">${serviceHealth?.worker?.healthy ? 'Healthy' : 'Unhealthy'}</dd>
-                                    <dd class="text-xs text-gray-500">${serviceHealth?.worker?.details?.stuckMessages ? serviceHealth.worker.details.stuckMessages + ' stuck' : ''}</dd>
-                                </dl>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Provider Health -->
-                <div class="bg-white overflow-hidden shadow rounded-lg">
-                    <div class="p-5">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0">
-                                <i class="fas fa-envelope text-2xl ${serviceHealth?.providers?.healthy ? 'text-green-500' : 'text-red-500'}"></i>
-                            </div>
-                            <div class="ml-5 w-0 flex-1">
-                                <dl>
-                                    <dt class="text-sm font-medium text-gray-500 truncate">Providers</dt>
-                                    <dd class="text-lg font-medium text-gray-900">${serviceHealth?.providers?.healthy ? 'Healthy' : 'Unhealthy'}</dd>
-                                    <dd class="text-xs text-gray-500">${Object.keys(serviceHealth?.providers?.details || {}).length} providers</dd>
-                                </dl>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- System Metrics Section -->
-        <div class="mb-8">
-            <h2 class="text-xl font-bold text-gray-900 mb-4">
-                <i class="fas fa-chart-line mr-2"></i>
-                System Metrics
-            </h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <!-- Memory Usage -->
-                <div class="bg-white overflow-hidden shadow rounded-lg">
-                    <div class="p-5">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0">
-                                <i class="fas fa-memory text-2xl text-blue-500"></i>
-                            </div>
-                            <div class="ml-5 w-0 flex-1">
-                                <dl>
-                                    <dt class="text-sm font-medium text-gray-500 truncate">Memory Usage</dt>
-                                    <dd class="text-lg font-medium text-gray-900">${systemMetrics?.memory?.used || 0} MB</dd>
-                                    <dd class="text-xs text-gray-500">RSS: ${systemMetrics?.memory?.rss || 0} MB</dd>
-                                </dl>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Uptime -->
-                <div class="bg-white overflow-hidden shadow rounded-lg">
-                    <div class="p-5">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0">
-                                <i class="fas fa-clock text-2xl text-green-500"></i>
-                            </div>
-                            <div class="ml-5 w-0 flex-1">
-                                <dl>
-                                    <dt class="text-sm font-medium text-gray-500 truncate">Uptime</dt>
-                                    <dd class="text-lg font-medium text-gray-900">${this.formatUptime(systemMetrics?.uptime || 0)}</dd>
-                                    <dd class="text-xs text-gray-500">${systemMetrics?.serviceMode || 'api'}</dd>
-                                </dl>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Node Version -->
-                <div class="bg-white overflow-hidden shadow rounded-lg">
-                    <div class="p-5">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0">
-                                <i class="fab fa-node-js text-2xl text-green-500"></i>
-                            </div>
-                            <div class="ml-5 w-0 flex-1">
-                                <dl>
-                                    <dt class="text-sm font-medium text-gray-500 truncate">Node Version</dt>
-                                    <dd class="text-lg font-medium text-gray-900">${systemMetrics?.nodeVersion || 'Unknown'}</dd>
-                                    <dd class="text-xs text-gray-500">${systemMetrics?.platform || 'Unknown'}</dd>
-                                </dl>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Last Updated -->
-                <div class="bg-white overflow-hidden shadow rounded-lg">
-                    <div class="p-5">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0">
-                                <i class="fas fa-sync-alt text-2xl text-blue-500"></i>
-                            </div>
-                            <div class="ml-5 w-0 flex-1">
-                                <dl>
-                                    <dt class="text-sm font-medium text-gray-500 truncate">Last Updated</dt>
-                                    <dd class="text-lg font-medium text-gray-900">${new Date().toLocaleTimeString()}</dd>
-                                    <dd class="text-xs text-gray-500">Auto-refresh: 30s</dd>
-                                </dl>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Recent Webhook Events Section -->
-        <div class="mb-8">
-            <h2 class="text-xl font-bold text-gray-900 mb-4">
-                <i class="fas fa-webhook mr-2"></i>
-                Recent Webhook Events
-            </h2>
-            <div class="bg-white shadow overflow-hidden sm:rounded-md">
-                <div class="px-4 py-5 sm:px-6">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900">
-                        <i class="fas fa-bell mr-2"></i>
-                        Provider Status Updates
-                    </h3>
-                    <p class="mt-1 max-w-2xl text-sm text-gray-500">
-                        Latest webhook events from email providers (delivery status, bounces, opens, etc.)
-                    </p>
-                </div>
-                <div class="border-t border-gray-200">
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event Type</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Message ID</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Provider</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Received</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                ${recentWebhookEvents && recentWebhookEvents.length > 0 ? recentWebhookEvents.map((event: any) => `
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${this.getEventTypeClass(event.eventType)}">${event.eventType}</span>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">${event.messageId}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${event.provider}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${new Date(event.createdAt).toLocaleString()}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <a href="/admin/messages/${event.messageId}" class="text-indigo-600 hover:text-indigo-900">
-                                                <i class="fas fa-eye mr-1"></i>
-                                                View Message
-                                            </a>
-                                        </td>
-                                    </tr>
-                                `).join('') : `
-                                    <tr>
-                                        <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
-                                            <i class="fas fa-info-circle mr-2"></i>
-                                            No webhook events received yet. Events will appear here when providers send status updates.
-                                        </td>
-                                    </tr>
-                                `}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Recent Messages Table -->
-        <div class="bg-white shadow overflow-hidden sm:rounded-md">
-            <div class="px-4 py-5 sm:px-6">
-                <h3 class="text-lg leading-6 font-medium text-gray-900">
-                    <i class="fas fa-envelope mr-2"></i>
-                    Recent Messages
-                </h3>
-                <p class="mt-1 max-w-2xl text-sm text-gray-500">
-                    Latest email messages and their delivery status
-                </p>
-            </div>
-            <div class="border-t border-gray-200">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Message ID</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">To</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Provider</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            ${recentMessages.map((message: any) => `
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">${message.messageId}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full status-${message.status.toLowerCase()}">${message.status}</span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${this.getRecipientEmail(message.toJson)}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">${message.subject}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${message.provider || 'N/A'}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${new Date(message.createdAt).toLocaleString()}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <a href="/admin/messages/${message.messageId}" class="text-indigo-600 hover:text-indigo-900">
-                                            <i class="fas fa-eye mr-1"></i>
-                                            View
-                                        </a>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Refresh Button -->
-        <div class="mt-6 flex justify-end">
-            <button onclick="location.reload()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                <i class="fas fa-sync-alt mr-2"></i>
-                Refresh Data
-            </button>
-        </div>
-    </main>
-
-    <script>
-        // Auto-refresh every 30 seconds
-        setInterval(() => {
-            location.reload();
-        }, 30000);
-        
-        // Function to get event type CSS class
-        function getEventTypeClass(eventType) {
-            const classes = {
-                'delivered': 'bg-green-100 text-green-800',
-                'bounce': 'bg-red-100 text-red-800',
-                'open': 'bg-blue-100 text-blue-800',
-                'click': 'bg-purple-100 text-purple-800',
-                'spam': 'bg-orange-100 text-orange-800',
-                'reject': 'bg-gray-100 text-gray-800'
-            };
-            return classes[eventType] || 'bg-gray-100 text-gray-800';
-        }
-    </script>
-</body>
-</html>`;
-  }
-
-  private generateMessageDetailsHTML(data: any): string {
-    const { message } = data;
-    
-    return `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Message Details - Waymore Transactional Emails Service Admin</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        .status-queued { @apply bg-yellow-100 text-yellow-800; }
-        .status-sent { @apply bg-green-100 text-green-800; }
-        .status-failed { @apply bg-red-100 text-red-800; }
-        .status-delivered { @apply bg-blue-100 text-blue-800; }
-        .status-bounced { @apply bg-orange-100 text-orange-800; }
-        .status-suppressed { @apply bg-gray-100 text-gray-800; }
-    </style>
-</head>
-<body class="bg-gray-50">
-    <nav class="bg-white shadow-sm border-b">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <h1 class="text-xl font-bold text-gray-900">
-                        <i class="fas fa-envelope mr-2"></i>
-                        Waymore Transactional Emails Service Admin
-                    </h1>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <a href="/admin" class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
-                        <i class="fas fa-arrow-left mr-1"></i>
-                        Back to Dashboard
-                    </a>
-                </div>
-            </div>
-        </div>
-    </nav>
-
-    <main class="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
-        <!-- Header -->
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900">Message Details</h1>
-            <p class="mt-2 text-gray-600">Detailed information about email message</p>
-        </div>
-
-        <!-- Message Information -->
-        <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
-            <div class="px-4 py-5 sm:px-6">
-                <h3 class="text-lg leading-6 font-medium text-gray-900">
-                    <i class="fas fa-info-circle mr-2"></i>
-                    Message Information
-                </h3>
-            </div>
-            <div class="border-t border-gray-200">
-                <dl>
-                    <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                        <dt class="text-sm font-medium text-gray-500">Message ID</dt>
-                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 font-mono">${message.messageId}</dd>
-                    </div>
-                    <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                        <dt class="text-sm font-medium text-gray-500">Status</dt>
-                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full status-${message.status.toLowerCase()}">${message.status}</span>
-                        </dd>
-                    </div>
-                    <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                        <dt class="text-sm font-medium text-gray-500">Attempts</dt>
-                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">${message.attempts}</dd>
-                    </div>
-                    <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                        <dt class="text-sm font-medium text-gray-500">Provider</dt>
-                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">${message.provider || 'N/A'}</dd>
-                    </div>
-                    <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                        <dt class="text-sm font-medium text-gray-500">Provider Message ID</dt>
-                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 font-mono">${message.providerMessageId || 'N/A'}</dd>
-                    </div>
-                    <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                        <dt class="text-sm font-medium text-gray-500">Created At</dt>
-                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">${new Date(message.createdAt).toLocaleString()}</dd>
-                    </div>
-                    <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                        <dt class="text-sm font-medium text-gray-500">Updated At</dt>
-                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">${new Date(message.updatedAt).toLocaleString()}</dd>
-                    </div>
-                    ${message.lastError ? `
-                    <div class="bg-red-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                        <dt class="text-sm font-medium text-red-500">Last Error</dt>
-                        <dd class="mt-1 text-sm text-red-900 sm:mt-0 sm:col-span-2 font-mono">${message.lastError}</dd>
-                    </div>
-                    ` : ''}
-                </dl>
-            </div>
-        </div>
-
-        <!-- Email Content -->
-        <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
-            <div class="px-4 py-5 sm:px-6">
-                <h3 class="text-lg leading-6 font-medium text-gray-900">
-                    <i class="fas fa-envelope mr-2"></i>
-                    Email Content
-                </h3>
-            </div>
-            <div class="border-t border-gray-200">
-                <dl>
-                    <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                        <dt class="text-sm font-medium text-gray-500">Subject</dt>
-                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">${message.subject}</dd>
-                    </div>
-                    <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                        <dt class="text-sm font-medium text-gray-500">Recipients</dt>
-                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                            ${this.getRecipientsList(message.toJson)}
-                        </dd>
-                    </div>
-                </dl>
-            </div>
-        </div>
-    </main>
-</body>
-</html>`;
-  }
-
-  private getRecipientEmail(toJson: any): string {
-    try {
-      // Handle both string and object formats
-      const recipients = typeof toJson === 'string' ? JSON.parse(toJson) : toJson;
-      
-      if (!recipients || !Array.isArray(recipients)) {
-        return 'N/A';
-      }
-      
-      return recipients[0]?.email || 'N/A';
-    } catch {
-      return 'N/A';
-    }
-  }
-
-  private getRecipientsList(toJson: any): string {
-    try {
-      // Handle both string and object formats
-      const recipients = typeof toJson === 'string' ? JSON.parse(toJson) : toJson;
-      
-      if (!recipients || !Array.isArray(recipients)) {
-        return 'N/A';
-      }
-      
-      return recipients.map((r: Recipient) => `
-        <div class="mb-1">
-          <span class="font-medium">${r.email}</span>
-          ${r.name ? `<span class="text-gray-500">(${r.name})</span>` : ''}
-        </div>
-      `).join('');
-    } catch {
-      return 'N/A';
-    }
-  }
-
-  private getEventTypeClass(eventType: string): string {
-    const classes: Record<string, string> = {
-      'delivered': 'bg-green-100 text-green-800',
-      'bounce': 'bg-red-100 text-red-800',
-      'open': 'bg-blue-100 text-blue-800',
-      'click': 'bg-purple-100 text-purple-800',
-      'spam': 'bg-orange-100 text-orange-800',
-      'reject': 'bg-gray-100 text-gray-800'
-    };
-    return classes[eventType] || 'bg-gray-100 text-gray-800';
-  }
 }

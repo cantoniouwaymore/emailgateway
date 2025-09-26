@@ -31,106 +31,75 @@ export class DatabaseCleanupService {
    * Clean up expired messages
    */
   private async cleanupMessages(cutoffDate: Date): Promise<number> {
-    let totalDeleted = 0;
-    let hasMore = true;
-
-    while (hasMore) {
-      const result = await prisma.message.deleteMany({
-        where: {
-          createdAt: {
-            lt: cutoffDate
-          }
-        },
-        // Limit batch size to avoid memory issues
-        take: this.batchSize
-      });
-
-      totalDeleted += result.count;
-      hasMore = result.count === this.batchSize;
-
-      if (result.count > 0) {
-        logger.info({
-          deletedCount: result.count,
-          totalDeleted,
-          cutoffDate: cutoffDate.toISOString()
-        }, 'Deleted expired messages batch');
+    const result = await prisma.message.deleteMany({
+      where: {
+        createdAt: {
+          lt: cutoffDate
+        }
       }
+    });
+
+    if (result.count > 0) {
+      logger.info({
+        deletedCount: result.count,
+        cutoffDate: cutoffDate.toISOString()
+      }, 'Deleted expired messages');
     }
 
-    return totalDeleted;
+    return result.count;
   }
 
   /**
    * Clean up expired idempotency keys
    */
   private async cleanupIdempotencyKeys(cutoffDate: Date): Promise<number> {
-    let totalDeleted = 0;
-    let hasMore = true;
-
-    while (hasMore) {
-      const result = await prisma.idempotencyKey.deleteMany({
-        where: {
-          OR: [
-            {
-              createdAt: {
-                lt: cutoffDate
-              }
-            },
-            {
-              expiresAt: {
-                lt: new Date() // Also delete already expired keys
-              }
+    const result = await prisma.idempotencyKey.deleteMany({
+      where: {
+        OR: [
+          {
+            createdAt: {
+              lt: cutoffDate
             }
-          ]
-        },
-        take: this.batchSize
-      });
-
-      totalDeleted += result.count;
-      hasMore = result.count === this.batchSize;
-
-      if (result.count > 0) {
-        logger.info({
-          deletedCount: result.count,
-          totalDeleted,
-          cutoffDate: cutoffDate.toISOString()
-        }, 'Deleted expired idempotency keys batch');
+          },
+          {
+            expiresAt: {
+              lt: new Date() // Also delete already expired keys
+            }
+          }
+        ]
       }
+    });
+
+    if (result.count > 0) {
+      logger.info({
+        deletedCount: result.count,
+        cutoffDate: cutoffDate.toISOString()
+      }, 'Deleted expired idempotency keys');
     }
 
-    return totalDeleted;
+    return result.count;
   }
 
   /**
    * Clean up expired provider events
    */
   private async cleanupProviderEvents(cutoffDate: Date): Promise<number> {
-    let totalDeleted = 0;
-    let hasMore = true;
-
-    while (hasMore) {
-      const result = await prisma.providerEvent.deleteMany({
-        where: {
-          createdAt: {
-            lt: cutoffDate
-          }
-        },
-        take: this.batchSize
-      });
-
-      totalDeleted += result.count;
-      hasMore = result.count === this.batchSize;
-
-      if (result.count > 0) {
-        logger.info({
-          deletedCount: result.count,
-          totalDeleted,
-          cutoffDate: cutoffDate.toISOString()
-        }, 'Deleted expired provider events batch');
+    const result = await prisma.providerEvent.deleteMany({
+      where: {
+        createdAt: {
+          lt: cutoffDate
+        }
       }
+    });
+
+    if (result.count > 0) {
+      logger.info({
+        deletedCount: result.count,
+        cutoffDate: cutoffDate.toISOString()
+      }, 'Deleted expired provider events');
     }
 
-    return totalDeleted;
+    return result.count;
   }
 
   /**
