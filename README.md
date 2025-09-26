@@ -12,7 +12,7 @@
 
 ### 🚀 Core Capabilities
 - **RESTful API**: Standardized POST /v1/emails endpoint with full validation.
-- **Template Engine**: MJML + Handlebars with localization support.
+- **Enhanced Universal Template**: Advanced MJML template with multi-button support, social media integration, custom themes, multi-language support, and dynamic images.
 - **Queue System**: BullMQ (Redis) for reliable background job processing.
 - **Provider Abstraction**: Pluggable email providers (Routee, SES, SendGrid).
 - **Idempotency**: Exactly-once intake with Idempotency-Key header.
@@ -129,6 +129,58 @@ npm run worker
 
 </details>
 
+## 🎨 Universal Template Features
+
+The Email Gateway now features a powerful universal template with advanced capabilities:
+
+### ✨ Template Capabilities
+
+| Feature | Description | Example |
+|---------|-------------|---------|
+| **Multi-Button Support** | Side-by-side primary and secondary buttons with tight spacing | Login + Sign Up buttons |
+| **Social Media Integration** | Built-in social media links (Twitter, LinkedIn, GitHub, Facebook, Instagram) | Company social profiles |
+| **Custom Themes** | Complete theme customization including colors, fonts, and styling | Brand colors, custom fonts |
+| **Multi-Language Support** | Dynamic content based on locale with fallback support | English, Spanish, French, German |
+| **Dynamic Images** | Support for custom images with fallback to default logo | Product images, illustrations |
+| **Facts Table** | Structured data display with key-value pairs | Account details, order info |
+| **Dark Mode Ready** | Theme-driven styling for proper dark mode rendering | Automatic dark/light themes |
+
+### 🎯 Template Variables
+
+```json
+{
+  "workspace_name": "Your Company",
+  "user_firstname": "John",
+  "product_name": "Your Product",
+  "support_email": "support@company.com",
+  "email_title": "Welcome!",
+  "custom_content": "Your HTML content here...",
+  "image_url": "https://example.com/image.png",
+  "image_alt": "Image description",
+  "facts": [
+    {"label": "Account Type", "value": "Premium"},
+    {"label": "Created", "value": "2024-01-01"}
+  ],
+  "cta_primary": {"label": "Get Started", "url": "https://app.com"},
+  "cta_secondary": {"label": "Learn More", "url": "https://docs.com"},
+  "social_links": [
+    {"platform": "twitter", "url": "https://twitter.com/company"},
+    {"platform": "linkedin", "url": "https://linkedin.com/company/company"}
+  ],
+  "theme": {
+    "font_family": "'Roboto', Arial, sans-serif",
+    "text_color": "#2c3e50",
+    "primary_button_color": "#007bff",
+    "background_color": "#ffffff"
+  },
+  "content": {
+    "en": "English content",
+    "es": "Contenido en español",
+    "fr": "Contenu français"
+  }
+}
+```
+
 ## 📡 API Reference
 
 ### 🔗 Endpoints
@@ -163,9 +215,14 @@ curl -X POST http://localhost:3000/api/v1/emails \
     "to": [{"email": "user@example.com", "name": "John Doe"}],
     "from": {"email": "no-reply@waymore.io", "name": "Waymore"},
     "subject": "Welcome to Waymore!",
-    "template": {"key": "notifications/universal", "locale": "en"},
+    "template": {"key": "universal", "locale": "en"},
     "variables": {
+      "workspace_name": "Waymore",
+      "user_firstname": "John",
+      "product_name": "Waymore Platform",
+      "support_email": "support@waymore.io",
       "email_title": "Welcome to Waymore!",
+      "custom_content": "Hello John,<br><br>Welcome to our platform!",
       "facts": [
         {"label": "Account Type", "value": "Premium"},
         {"label": "Created", "value": "2024-01-01"}
@@ -173,6 +230,18 @@ curl -X POST http://localhost:3000/api/v1/emails \
       "cta_primary": {
         "label": "Get Started",
         "url": "https://app.waymore.io"
+      },
+      "cta_secondary": {
+        "label": "Learn More",
+        "url": "https://docs.waymore.io"
+      },
+      "social_links": [
+        {"platform": "twitter", "url": "https://twitter.com/waymore_io"},
+        {"platform": "linkedin", "url": "https://linkedin.com/company/waymore"}
+      ],
+      "theme": {
+        "primary_button_color": "#28a745",
+        "text_color": "#2c3e50"
       }
     },
     "metadata": {"tenantId": "wm_123", "eventId": "evt_789"}
@@ -479,9 +548,18 @@ npm run type-check   # TypeScript type checking
 
 ## 📚 Documentation
 
+### 📖 Core Documentation
 - **[Developer Guide](docs/DEVELOPER.md)** - Comprehensive development documentation
 - **[API Reference](docs/API.md)** - Complete API documentation
 - **[Architecture](docs/ARCHITECTURE.md)** - System design and patterns
+- **[Deployment Guide](docs/DEPLOYMENT.md)** - Production deployment instructions
+
+### 🔧 Integration Guides
+- **[Routee Integration](docs/ROUTEE_INTEGRATION.md)** - Routee email provider setup and webhook configuration
+- **[Universal Template Guide](docs/UNIVERSAL_TEMPLATE_GUIDE.md)** - Template system documentation
+
+### 📦 Package Documentation
+- **[Single-Email Package](Single-Email%20package%20notifications/README.md)** - Enhanced notification templates with Routee integration
 
 ## 🤝 Contributing
 

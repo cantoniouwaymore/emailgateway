@@ -3,21 +3,25 @@
     <mj-title>{{email_title}}</mj-title>
     <mj-preview>{{email_title}}</mj-preview>
     <mj-attributes>
-      <mj-all font-family="'Helvetica Neue', Helvetica, Arial, sans-serif"></mj-all>
-      <mj-text font-size="16px" color="#555555" line-height="24px"></mj-text>
-      <mj-section background-color="#ffffff"></mj-section>
+      <mj-all font-family="{{#if theme.font_family}}{{theme.font_family}}{{else}}'Helvetica Neue', Helvetica, Arial, sans-serif{{/if}}"></mj-all>
+      <mj-text font-size="{{#if theme.font_size}}{{theme.font_size}}{{else}}16px{{/if}}" color="{{#if theme.text_color}}{{theme.text_color}}{{else}}#555555{{/if}}" line-height="{{#if theme.line_height}}{{theme.line_height}}{{else}}24px{{/if}}"></mj-text>
+      <mj-section background-color="{{#if theme.background_color}}{{theme.background_color}}{{else}}#ffffff{{/if}}"></mj-section>
     </mj-attributes>
   </mj-head>
-  <mj-body background-color="#f4f4f4">
+  <mj-body background-color="{{#if theme.body_background}}{{theme.body_background}}{{else}}#f4f4f4{{/if}}">
     <mj-section>
       <mj-column>
-        <mj-image width="200px" src="https://media.licdn.com/dms/image/v2/C4D0BAQF9pjdTxYZJMQ/company-logo_200_200/company-logo_200_200/0/1630516721465/waymore_io_logo?e=2147483647&v=beta&t=dt8RXeKs_QA8edLDzSmWitYbsI-qjATPpZfYkFFEu3I" alt="Waymore"></mj-image>
+        {{#if image_url}}
+        <mj-image width="200px" src="{{image_url}}" alt="{{image_alt}}"></mj-image>
+        {{else}}
+        <mj-image width="200px" src="https://i.ibb.co/8LfvqPk7/Waymore-logo-Colour.png" alt="Waymore"></mj-image>
+        {{/if}}
       </mj-column>
     </mj-section>
     
     <mj-section>
       <mj-column>
-        <mj-text font-size="24px" font-weight="bold" color="#333333" align="center">
+        <mj-text font-size="24px" font-weight="bold" color="{{#if theme.heading_color}}{{theme.heading_color}}{{else}}#333333{{/if}}" align="center">
           {{email_title}}
         </mj-text>
       </mj-column>
@@ -27,8 +31,8 @@
     {{#if custom_content}}
     <mj-section>
       <mj-column>
-        <mj-text font-size="16px" line-height="24px" color="#555555">
-          {{{custom_content}}}
+        <mj-text font-size="16px" line-height="24px" color="{{#if theme.text_color}}{{theme.text_color}}{{else}}#555555{{/if}}">
+          {{#if content.[locale]}}{{{content.[locale]}}}{{else}}{{{custom_content}}}{{/if}}
         </mj-text>
       </mj-column>
     </mj-section>
@@ -38,14 +42,14 @@
     <mj-section>
       <mj-column>
         <mj-table>
-          <tr style="border-bottom:1px solid #e0e0e0;">
-            <td style="padding: 10px 0; font-weight: bold; color: #333;">Label</td>
-            <td style="padding: 10px 0; font-weight: bold; color: #333;">Value</td>
+          <tr style="border-bottom:1px solid {{#if theme.border_color}}{{theme.border_color}}{{else}}#e0e0e0{{/if}};">
+            <td style="padding: 10px 0; font-weight: bold; color: {{#if theme.heading_color}}{{theme.heading_color}}{{else}}#cccccc{{/if}};">Label</td>
+            <td style="padding: 10px 0; font-weight: bold; color: {{#if theme.heading_color}}{{theme.heading_color}}{{else}}#cccccc{{/if}};">Value</td>
           </tr>
           {{#each facts}}
-          <tr style="border-bottom:1px solid #e0e0e0;">
-            <td style="padding: 10px 0;">{{label}}</td>
-            <td style="padding: 10px 0;">{{value}}</td>
+          <tr style="border-bottom:1px solid {{#if ../../theme.border_color}}{{../../theme.border_color}}{{else}}#e0e0e0{{/if}};">
+            <td style="padding: 10px 0; color: {{#if ../../theme.text_color}}{{../../theme.text_color}}{{else}}#555555{{/if}};">{{label}}</td>
+            <td style="padding: 10px 0; color: {{#if ../../theme.text_color}}{{../../theme.text_color}}{{else}}#555555{{/if}};">{{value}}</td>
           </tr>
           {{/each}}
         </mj-table>
@@ -54,19 +58,58 @@
     {{/if}}
 
     {{#if cta_primary}}
+      {{#if cta_secondary}}
+      <mj-section padding="0px">
+        <mj-column width="50%" vertical-align="middle" padding="0px" padding-right="6px">
+          <mj-button width="100%" background-color="{{#if theme.primary_button_color}}{{theme.primary_button_color}}{{else}}#007bff{{/if}}" color="{{#if theme.primary_button_text_color}}{{theme.primary_button_text_color}}{{else}}#ffffff{{/if}}" href="{{cta_primary.url}}" font-size="16px" font-weight="bold">
+            {{cta_primary.label}}
+          </mj-button>
+        </mj-column>
+        <mj-column width="50%" vertical-align="middle" padding="0px" padding-left="6px">
+          <mj-button width="100%" background-color="{{#if theme.secondary_button_color}}{{theme.secondary_button_color}}{{else}}#6c757d{{/if}}" color="{{#if theme.secondary_button_text_color}}{{theme.secondary_button_text_color}}{{else}}#ffffff{{/if}}" href="{{cta_secondary.url}}" font-size="16px" font-weight="bold">
+            {{cta_secondary.label}}
+          </mj-button>
+        </mj-column>
+      </mj-section>
+      {{else}}
+      <mj-section>
+        <mj-column>
+          <mj-button background-color="{{#if theme.primary_button_color}}{{theme.primary_button_color}}{{else}}#007bff{{/if}}" color="{{#if theme.primary_button_text_color}}{{theme.primary_button_text_color}}{{else}}#ffffff{{/if}}" href="{{cta_primary.url}}" font-size="16px" font-weight="bold">
+            {{cta_primary.label}}
+          </mj-button>
+        </mj-column>
+      </mj-section>
+      {{/if}}
+    {{/if}}
+
+    {{#if cta_secondary}}
+      {{#unless cta_primary}}
+      <mj-section>
+        <mj-column>
+          <mj-button background-color="{{#if theme.secondary_button_color}}{{theme.secondary_button_color}}{{else}}#6c757d{{/if}}" color="{{#if theme.secondary_button_text_color}}{{theme.secondary_button_text_color}}{{else}}#ffffff{{/if}}" href="{{cta_secondary.url}}" font-size="16px" font-weight="bold">
+            {{cta_secondary.label}}
+          </mj-button>
+        </mj-column>
+      </mj-section>
+      {{/unless}}
+    {{/if}}
+
+    {{#if social_links}}
     <mj-section>
       <mj-column>
-        <mj-button background-color="#007bff" color="#ffffff" href="{{cta_primary.url}}" font-size="16px" font-weight="bold">
-          {{cta_primary.label}}
-        </mj-button>
+        <mj-social>
+          {{#each social_links}}
+          <mj-social-element name="{{platform}}" href="{{url}}" />
+          {{/each}}
+        </mj-social>
       </mj-column>
     </mj-section>
     {{/if}}
 
     <mj-section>
       <mj-column>
-        <mj-text font-size="12px" color="#888888" align="center">
-          This email was sent by {{workspace_name}}. If you have any questions, please contact <a href="mailto:{{support_email}}" style="color: #888888;">{{support_email}}</a>.
+        <mj-text font-size="12px" color="{{#if theme.muted_text_color}}{{theme.muted_text_color}}{{else}}#888888{{/if}}" align="center">
+          This email was sent by {{workspace_name}}. If you have any questions, please contact <a href="mailto:{{support_email}}" style="color: {{#if theme.muted_text_color}}{{theme.muted_text_color}}{{else}}#888888{{/if}};">{{support_email}}</a>.
         </mj-text>
       </mj-column>
     </mj-section>

@@ -21,6 +21,8 @@
     "support_email": "support@waymore.io",
     "email_title": "Welcome to Waymore!",
     "custom_content": "Hello {{user_firstname}},<br><br>🎉 <strong>Welcome to {{product_name}}!</strong><br><br>We're excited to have you on board. Here are some quick tips to get you started:<br><br>• <strong>Explore the dashboard</strong> to see your workspace overview<br>• <strong>Invite team members</strong> to collaborate on your projects<br>• <strong>Check out our documentation</strong> for detailed guides<br><br>If you have any questions, don't hesitate to reach out to our support team.",
+    "image_url": "https://i.ibb.co/8LfvqPk7/Waymore-logo-Colour.png",
+    "image_alt": "Waymore Logo",
     "facts": [
       {"label": "Account Type:", "value": "Pro Plan"},
       {"label": "Workspace:", "value": "Waymore"},
@@ -33,6 +35,32 @@
     "cta_secondary": {
       "label": "View Documentation",
       "url": "https://docs.waymore.io"
+    },
+    "social_links": [
+      {"platform": "twitter", "url": "https://twitter.com/waymore_io"},
+      {"platform": "linkedin", "url": "https://linkedin.com/company/waymore"},
+      {"platform": "github", "url": "https://github.com/waymore"},
+      {"platform": "facebook", "url": "https://facebook.com/waymore"},
+      {"platform": "instagram", "url": "https://instagram.com/waymore"}
+    ],
+    "theme": {
+      "font_family": "'Inter', 'Helvetica Neue', Arial, sans-serif",
+      "text_color": "#2c3e50",
+      "heading_color": "#1a1a1a",
+      "primary_button_color": "#007bff",
+      "primary_button_text_color": "#ffffff",
+      "secondary_button_color": "#6c757d",
+      "secondary_button_text_color": "#ffffff",
+      "background_color": "#ffffff",
+      "body_background": "#f8f9fa"
+    },
+    "content": {
+      "en": "Welcome to Waymore! We're excited to have you on board.",
+      "es": "¡Bienvenido a Waymore! Estamos emocionados de tenerte a bordo.",
+      "fr": "Bienvenue chez Waymore! Nous sommes ravis de vous avoir à bord.",
+      "de": "Willkommen bei Waymore! Wir freuen uns, Sie an Bord zu haben.",
+      "it": "Benvenuto in Waymore! Siamo entusiasti di averti a bordo.",
+      "pt": "Bem-vindo ao Waymore! Estamos animados em tê-lo a bordo."
     }
   },
   "metadata": {

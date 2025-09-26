@@ -18,17 +18,17 @@
     "workspace_name": "Waymore",
     "user_firstname": "Antonio",
     "product_name": "Waymore Platform",
+    "support_email": "support@waymore.io",
+    "email_title": "Payment Failed - Action Required",
     "plan_name": "Pro",
     "payment_date": "01 Oct 2025",
     "amount_attempted": "70.00",
     "currency": "EUR",
     "failure_reason": "Insufficient funds",
     "next_retry_date": "03 Oct 2025",
-    "payment_update_url": "https://app.waymore.io/billing/payment-methods",
-    "billing_url": "https://app.waymore.io/billing",
-    "support_email": "support@waymore.io",
-    "email_title": "Payment Failed - Action Required",
     "custom_content": "Hello {{user_firstname}},<br><br>⚠️ <strong>Payment Failed</strong> - We tried to process your payment for <strong>{{plan_name}}</strong>, but it failed on <strong>{{payment_date}}</strong>.<br><br>💰 <strong>Amount:</strong> {{amount_attempted}} {{currency}}<br>❌ <strong>Reason:</strong> {{failure_reason}}<br>🔄 <strong>Next retry attempt:</strong> {{next_retry_date}}<br><br>Please update your payment details to ensure your subscription continues without interruption.",
+    "image_url": "https://i.ibb.co/8LfvqPk7/Waymore-logo-Colour.png",
+    "image_alt": "Waymore Logo",
     "facts": [
       {"label": "Plan:", "value": "Pro"},
       {"label": "Payment Date:", "value": "01 Oct 2025"},
@@ -44,6 +44,27 @@
     "cta_secondary": {
       "label": "Manage Billing",
       "url": "https://app.waymore.io/billing"
+    },
+    "social_links": [
+      {"platform": "twitter", "url": "https://twitter.com/waymore_io"},
+      {"platform": "linkedin", "url": "https://linkedin.com/company/waymore"},
+      {"platform": "github", "url": "https://github.com/waymore"}
+    ],
+    "theme": {
+      "font_family": "'Inter', 'Helvetica Neue', Arial, sans-serif",
+      "text_color": "#2c3e50",
+      "heading_color": "#1a1a1a",
+      "primary_button_color": "#ffc107",
+      "primary_button_text_color": "#000000",
+      "secondary_button_color": "#6c757d",
+      "secondary_button_text_color": "#ffffff",
+      "background_color": "#ffffff",
+      "body_background": "#fff3cd"
+    },
+    "content": {
+      "en": "Payment Failed - Action Required. Please update your payment details.",
+      "es": "Pago Fallido - Acción Requerida. Por favor actualice sus datos de pago.",
+      "fr": "Paiement Échoué - Action Requise. Veuillez mettre à jour vos informations de paiement."
     }
   },
   "metadata": {

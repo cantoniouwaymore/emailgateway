@@ -86,13 +86,18 @@ POST /api/v1/emails
   },
   "subject": "Welcome to Waymore!",
   "template": {
-    "key": "notifications/universal",
-    "locale": "en",
-    "version": "v2"
+    "key": "universal",
+    "locale": "en"
   },
   "variables": {
+    "workspace_name": "Waymore",
+    "user_firstname": "John",
+    "product_name": "Waymore Platform",
+    "support_email": "support@waymore.io",
     "email_title": "Welcome to Waymore!",
-    "user_name": "John",
+    "custom_content": "Hello {{user_firstname}},<br><br>Welcome to {{product_name}}! Your account is ready to use.",
+    "image_url": "https://example.com/welcome-image.png",
+    "image_alt": "Welcome Illustration",
     "facts": [
       {
         "label": "Account Type",
@@ -110,6 +115,35 @@ POST /api/v1/emails
     "cta_secondary": {
       "label": "Learn More",
       "url": "https://docs.waymore.io"
+    },
+    "social_links": [
+      {
+        "platform": "twitter",
+        "url": "https://twitter.com/waymore_io"
+      },
+      {
+        "platform": "linkedin",
+        "url": "https://linkedin.com/company/waymore"
+      }
+    ],
+    "theme": {
+      "font_family": "'Roboto', 'Helvetica Neue', Arial, sans-serif",
+      "font_size": "16px",
+      "text_color": "#2c3e50",
+      "heading_color": "#1a1a1a",
+      "background_color": "#ffffff",
+      "body_background": "#f4f4f4",
+      "muted_text_color": "#888888",
+      "border_color": "#e0e0e0",
+      "primary_button_color": "#007bff",
+      "primary_button_text_color": "#ffffff",
+      "secondary_button_color": "#6c757d",
+      "secondary_button_text_color": "#ffffff"
+    },
+    "content": {
+      "en": "This is English content!",
+      "es": "¡Este es contenido en español!",
+      "fr": "Ceci est du contenu français!"
     }
   },
   "attachments": [
@@ -149,9 +183,108 @@ POST /api/v1/emails
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `key` | string | Yes | Template identifier |
-| `locale` | string | Yes | Language/locale (e.g., "en", "el") |
-| `version` | string | No | Template version |
+| `key` | string | Yes | Template identifier (currently only "universal" supported) |
+| `locale` | string | Yes | Language/locale (e.g., "en", "es", "fr") |
+
+#### Template Variables
+
+The universal template supports the following variables:
+
+##### Core Variables
+
+| Variable | Type | Required | Description |
+|----------|------|----------|-------------|
+| `workspace_name` | string | Yes | Your workspace/company name |
+| `user_firstname` | string | Yes | Recipient's first name |
+| `product_name` | string | Yes | Your product/service name |
+| `support_email` | string | Yes | Support contact email |
+| `email_title` | string | Yes | Main email heading |
+| `custom_content` | string | No | HTML content for the email body |
+
+##### Image Variables
+
+| Variable | Type | Required | Description |
+|----------|------|----------|-------------|
+| `image_url` | string | No | Custom image URL (PNG/JPG recommended) |
+| `image_alt` | string | No | Alt text for the image |
+
+##### Content Variables
+
+| Variable | Type | Required | Description |
+|----------|------|----------|-------------|
+| `facts` | array | No | Key-value pairs displayed in a table |
+| `content` | object | No | Multi-language content object |
+
+##### Call-to-Action Variables
+
+| Variable | Type | Required | Description |
+|----------|------|----------|-------------|
+| `cta_primary` | object | No | Primary button (label + url) |
+| `cta_secondary` | object | No | Secondary button (label + url) |
+
+##### Social Media Variables
+
+| Variable | Type | Required | Description |
+|----------|------|----------|-------------|
+| `social_links` | array | No | Social media links array |
+
+##### Theme Variables
+
+| Variable | Type | Required | Description |
+|----------|------|----------|-------------|
+| `theme` | object | No | Complete theme customization object |
+
+#### Theme Object
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `font_family` | string | "Helvetica Neue, Helvetica, Arial, sans-serif" | Font family for all text |
+| `font_size` | string | "16px" | Base font size |
+| `text_color` | string | "#555555" | Main text color |
+| `heading_color` | string | "#333333" | Heading text color |
+| `background_color` | string | "#ffffff" | Section background color |
+| `body_background` | string | "#f4f4f4" | Email body background color |
+| `muted_text_color` | string | "#888888" | Footer and muted text color |
+| `border_color` | string | "#e0e0e0" | Table and divider border color |
+| `primary_button_color` | string | "#007bff" | Primary button background |
+| `primary_button_text_color` | string | "#ffffff" | Primary button text color |
+| `secondary_button_color` | string | "#6c757d" | Secondary button background |
+| `secondary_button_text_color` | string | "#ffffff" | Secondary button text color |
+
+#### Facts Array
+
+Each fact object should contain:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `label` | string | Yes | Fact label (left column) |
+| `value` | string | Yes | Fact value (right column) |
+
+#### Social Links Array
+
+Each social link object should contain:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `platform` | string | Yes | Platform name (twitter, linkedin, github, facebook, instagram) |
+| `url` | string | Yes | Link URL |
+
+#### Multi-Language Content
+
+The `content` object supports multiple languages:
+
+```json
+{
+  "content": {
+    "en": "This is English content!",
+    "es": "¡Este es contenido en español!",
+    "fr": "Ceci est du contenu français!",
+    "de": "Dies ist deutscher Inhalt!"
+  }
+}
+```
+
+If no matching locale is found, falls back to `custom_content`.
 
 #### Recipient Object
 
@@ -595,10 +728,22 @@ const result = await client.sendEmail({
   to: [{ email: 'user@example.com', name: 'John Doe' }],
   from: { email: 'no-reply@waymore.io', name: 'Waymore' },
   subject: 'Welcome!',
-  template: { key: 'notifications/universal', locale: 'en' },
+  template: { key: 'universal', locale: 'en' },
   variables: {
+    workspace_name: 'Waymore',
+    user_firstname: 'John',
+    product_name: 'Waymore Platform',
+    support_email: 'support@waymore.io',
     email_title: 'Welcome to Waymore!',
-    user_name: 'John'
+    custom_content: 'Hello John,<br><br>Welcome to our platform!',
+    cta_primary: {
+      label: 'Get Started',
+      url: 'https://app.waymore.io/dashboard'
+    },
+    theme: {
+      primary_button_color: '#28a745',
+      text_color: '#2c3e50'
+    }
   }
 });
 
@@ -652,10 +797,18 @@ curl -X POST https://api.waymore.io/email-gateway/api/v1/emails \
     "to": [{"email": "user@example.com", "name": "John Doe"}],
     "from": {"email": "no-reply@waymore.io", "name": "Waymore"},
     "subject": "Welcome to Waymore!",
-    "template": {"key": "notifications/universal", "locale": "en"},
+    "template": {"key": "universal", "locale": "en"},
     "variables": {
+      "workspace_name": "Waymore",
+      "user_firstname": "John",
+      "product_name": "Waymore Platform",
+      "support_email": "support@waymore.io",
       "email_title": "Welcome to Waymore!",
-      "user_name": "John"
+      "custom_content": "Hello John,<br><br>Welcome to our platform!",
+      "cta_primary": {
+        "label": "Get Started",
+        "url": "https://app.waymore.io/dashboard"
+      }
     }
   }'
 ```
@@ -667,6 +820,18 @@ curl -H "Authorization: Bearer your-jwt-token" \
 ```
 
 ## Changelog
+
+### v1.1.0 (2025-09-26)
+- **Enhanced Universal Template**: Complete redesign with advanced features
+- **Multi-Button Support**: Side-by-side primary and secondary buttons with tight spacing
+- **Social Media Integration**: Built-in social media links (Twitter, LinkedIn, GitHub, Facebook, Instagram)
+- **Custom Themes**: Complete theme customization including colors, fonts, and styling
+- **Multi-Language Support**: Dynamic content based on locale with fallback support
+- **Dynamic Images**: Support for custom images with fallback to default logo
+- **Facts Table**: Structured data display with key-value pairs
+- **Dark Mode Ready**: Theme-driven styling for proper dark mode rendering
+- **Template Cleanup**: Removed legacy templates, keeping only the enhanced universal template
+- **Improved Documentation**: Comprehensive API documentation with all new features
 
 ### v1.0.0 (2024-01-01)
 - Initial release
@@ -765,17 +930,14 @@ X-Routee-Timestamp: <timestamp> (optional)
 **Request Body**:
 ```json
 {
-  "events": [
-    {
-      "trackingId": "3160db7c-591d-4693-a407-675dad16b09a",
-      "eventType": "delivered",
-      "timestamp": "2025-09-25T16:30:00Z",
-      "details": {
-        "recipient": "user@example.com",
-        "deliveryTime": "2025-09-25T16:30:00Z"
-      }
-    }
-  ]
+  "trackingId": "0bd5d38d-3c8e-4c4f-8bc5-3bac1457f07d",
+  "status": {
+    "id": 2,
+    "name": "send",
+    "dateTime": 1757482432,
+    "final": false,
+    "delivered": false
+  }
 }
 ```
 
@@ -790,9 +952,11 @@ X-Routee-Timestamp: <timestamp> (optional)
 
 ### Webhook Event Types
 
-| Event Type | Status Update | Description |
-|------------|---------------|-------------|
+| Status Name | Status Update | Description |
+|-------------|---------------|-------------|
+| `send` | `SENT` | Email sent to provider |
 | `delivered` | `DELIVERED` | Email successfully delivered |
+| `opened` | `DELIVERED` | Email opened (tracked but status remains delivered) |
 | `bounce` | `BOUNCED` | Email bounced back |
 | `failed` | `BOUNCED` | Email delivery failed |
 | `dropped` | `BOUNCED` | Email dropped by provider |
@@ -801,17 +965,55 @@ X-Routee-Timestamp: <timestamp> (optional)
 
 ### Webhook Security
 
-Optional webhook signature validation:
+**Note**: Routee webhooks do not support signature validation by default. The webhook endpoint is configured to accept Routee callbacks without signature verification for optimal compatibility.
+
+Optional webhook signature validation (disabled for Routee):
 
 ```bash
-# Set webhook secret
+# Webhook secret (currently disabled for Routee compatibility)
 ROUTEE_WEBHOOK_SECRET=your-webhook-secret
 ```
 
-The webhook endpoint validates the signature using HMAC-SHA256:
+### Routee Callback Configuration
 
+The Routee provider is configured with comprehensive callback support:
+
+```json
+{
+  "callback": {
+    "statusCallback": {
+      "strategy": "OnChange",
+      "url": "https://your-domain.com/webhooks/routee"
+    },
+    "eventCallback": {
+      "onClick": "https://your-domain.com/webhooks/routee",
+      "onOpen": "https://your-domain.com/webhooks/routee"
+    }
+  }
+}
 ```
-signature = HMAC-SHA256(timestamp + payload, secret)
+
+**Callback Types:**
+- **`statusCallback`**: Receives status updates (sent, delivered, bounced, etc.)
+- **`eventCallback`**: Receives event updates (opens, clicks, etc.)
+- **`strategy: "OnChange"`**: Callbacks sent whenever status changes
+
+### Webhook Setup for Development
+
+For local development, use ngrok to create a public webhook URL:
+
+```bash
+# Install ngrok
+brew install ngrok
+
+# Configure with your auth token
+ngrok config add-authtoken YOUR_TOKEN
+
+# Start tunnel
+ngrok http 3000
+
+# Update environment
+echo 'WEBHOOK_BASE_URL="https://your-ngrok-url.ngrok.io"' >> .env
 ```
 
 ## Team Integration

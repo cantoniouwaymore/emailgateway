@@ -18,14 +18,11 @@
     "workspace_name": "Waymore",
     "user_firstname": "Antonio",
     "product_name": "Waymore Platform",
-    "plan_name": "Pro",
-    "renewal_date": "01 Oct 2025",
-    "next_charge_amount": "70.00",
-    "currency": "EUR",
-    "billing_url": "https://app.waymore.io/billing",
     "support_email": "support@waymore.io",
     "email_title": "Final Reminder: Pro renews tomorrow",
     "custom_content": "Hello {{user_firstname}},<br><br>This is a friendly reminder that your <strong>{{plan_name}}</strong> subscription for <strong>{{workspace_name}}</strong> renews on <strong>{{renewal_date}}</strong>.<br><br>💰 <strong>Upcoming charge:</strong> {{next_charge_amount}} {{currency}}<br><br>⚠️ <strong>Please confirm your payment details</strong> to avoid service interruption.",
+    "image_url": "https://i.ibb.co/8LfvqPk7/Waymore-logo-Colour.png",
+    "image_alt": "Waymore Logo",
     "facts": [
       {"label": "Plan:", "value": "Pro"},
       {"label": "Renewal Date:", "value": "01 Oct 2025"},
@@ -35,6 +32,31 @@
     "cta_primary": {
       "label": "Manage Billing",
       "url": "https://app.waymore.io/billing"
+    },
+    "cta_secondary": {
+      "label": "Update Payment",
+      "url": "https://app.waymore.io/billing/payment-methods"
+    },
+    "social_links": [
+      {"platform": "twitter", "url": "https://twitter.com/waymore_io"},
+      {"platform": "linkedin", "url": "https://linkedin.com/company/waymore"},
+      {"platform": "github", "url": "https://github.com/waymore"}
+    ],
+    "theme": {
+      "font_family": "'Inter', 'Helvetica Neue', Arial, sans-serif",
+      "text_color": "#2c3e50",
+      "heading_color": "#1a1a1a",
+      "primary_button_color": "#ffc107",
+      "primary_button_text_color": "#000000",
+      "secondary_button_color": "#6c757d",
+      "secondary_button_text_color": "#ffffff",
+      "background_color": "#ffffff",
+      "body_background": "#fff3cd"
+    },
+    "content": {
+      "en": "Final reminder: Your subscription renews tomorrow. Please confirm your payment details.",
+      "es": "Recordatorio final: Su suscripción se renueva mañana. Por favor confirme sus datos de pago.",
+      "fr": "Rappel final: Votre abonnement se renouvelle demain. Veuillez confirmer vos informations de paiement."
     }
   },
   "metadata": {

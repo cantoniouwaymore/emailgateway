@@ -151,8 +151,8 @@ export class RouteeEmailProvider implements EmailProvider {
         content: {
           html: request.html
         },
-        ttl: 60, // 1 hour default (30-4320 minutes)
-        maxAttempts: 3,
+        ttl: 4320, // 3 days default (30-4320 minutes) - matching working example
+        maxAttempts: 10, // matching working example
         label: request.metadata?.tenantId as string || 'email-gateway'
       };
 
@@ -186,10 +186,17 @@ export class RouteeEmailProvider implements EmailProvider {
         }));
       }
 
-      // Add callback URL for webhook notifications
+      // Add callback URL for webhook notifications - using the working format
       const webhookUrl = process.env.WEBHOOK_BASE_URL || process.env.BASE_URL || 'http://localhost:3000';
-      routeeRequest.eventCallback = {
-        url: `${webhookUrl}/webhooks/routee`
+      routeeRequest.callback = {
+        statusCallback: {
+          strategy: "OnChange",
+          url: `${webhookUrl}/webhooks/routee`
+        },
+        eventCallback: {
+          onClick: `${webhookUrl}/webhooks/routee`,
+          onOpen: `${webhookUrl}/webhooks/routee`
+        }
       };
 
       // Debug: Log the request being sent
@@ -308,24 +315,26 @@ export class RouteeEmailProvider implements EmailProvider {
     try {
       logger.info({ provider: this.name }, 'Parsing Routee webhook');
       
-      // Routee webhook payload structure (this would need to be updated based on actual Routee webhook format)
+      // Routee webhook payload structure - updated to match actual format
       const routeePayload = payload as any;
       
-      if (!routeePayload || !Array.isArray(routeePayload.events)) {
+      if (!routeePayload || !routeePayload.trackingId || !routeePayload.status) {
         return [];
       }
 
-      return routeePayload.events.map((event: any) => ({
-        messageId: event.messageId || event.trackingId,
-        eventType: this.mapRouteeEventType(event.eventType),
+      return [{
+        messageId: routeePayload.trackingId,
+        eventType: this.mapRouteeEventType(routeePayload.status.name),
         provider: this.name,
-        timestamp: event.timestamp || new Date().toISOString(),
+        timestamp: new Date(routeePayload.status.dateTime * 1000).toISOString(),
         details: {
-          routeeEventType: event.eventType,
-          routeeTrackingId: event.trackingId,
-          ...event.details
+          routeeEventType: routeePayload.status.name,
+          routeeTrackingId: routeePayload.trackingId,
+          statusId: routeePayload.status.id,
+          final: routeePayload.status.final,
+          delivered: routeePayload.status.delivered
         }
-      }));
+      }];
     } catch (error) {
       logger.error({ 
         provider: this.name, 
@@ -337,9 +346,10 @@ export class RouteeEmailProvider implements EmailProvider {
 
   private mapRouteeEventType(routeeEventType: string): 'delivered' | 'bounce' | 'open' | 'click' | 'spam' | 'reject' {
     const eventTypeMap: Record<string, 'delivered' | 'bounce' | 'open' | 'click' | 'spam' | 'reject'> = {
+      'send': 'delivered', // Send event maps to delivered for tracking
       'delivered': 'delivered',
+      'opened': 'open',
       'bounce': 'bounce',
-      'open': 'open',
       'click': 'click',
       'spam': 'spam',
       'reject': 'reject',

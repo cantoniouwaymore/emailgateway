@@ -1,125 +1,164 @@
-# Email Gateway Documentation
+# 📚 Email Gateway Documentation
 
-Welcome to the Email Gateway documentation. This directory contains comprehensive documentation for developers, operators, and users of the Email Gateway microservice.
-
-## 📚 Documentation Index
-
-### Getting Started
-- **[README](../README.md)** - Project overview and quick start guide
-- **[Developer Guide](DEVELOPER.md)** - Comprehensive development documentation
-- **[API Reference](API.md)** - Complete API documentation with examples
-
-### Architecture & Design
-- **[Architecture Guide](ARCHITECTURE.md)** - System design and architectural patterns
-- **[Database Schema](DATABASE.md)** - Database design and migrations
-- **[Template System](TEMPLATES.md)** - MJML and Handlebars template guide
-
-### Operations
-- **[Deployment Guide](DEPLOYMENT.md)** - Production deployment instructions
-- **[Monitoring](MONITORING.md)** - Observability and monitoring setup
-- **[Troubleshooting](TROUBLESHOOTING.md)** - Common issues and solutions
-
-### Development
-- **[Contributing Guide](CONTRIBUTING.md)** - How to contribute to the project
-- **[Code Style](CODE_STYLE.md)** - Coding standards and conventions
-- **[Testing Guide](TESTING.md)** - Testing strategies and best practices
-
-## 🚀 Quick Links
-
-### For Developers
-- [Setup Development Environment](DEVELOPER.md#development-setup)
-- [API Usage Examples](API.md#example-usage)
-- [Template Development](TEMPLATES.md)
-- [Adding New Providers](DEVELOPER.md#adding-a-new-provider)
-
-### For DevOps
-- [Production Deployment](DEPLOYMENT.md)
-- [Monitoring Setup](MONITORING.md)
-- [Health Checks](API.md#health-check-endpoints)
-- [Troubleshooting](TROUBLESHOOTING.md)
-
-### For API Users
-- [Authentication](API.md#authentication)
-- [Send Email](API.md#send-email)
-- [Check Status](API.md#get-message-status)
-- [Error Handling](API.md#error-handling)
+Welcome to the Email Gateway documentation! This guide provides comprehensive information about the email microservice architecture, API usage, and integration guides.
 
 ## 📖 Documentation Structure
 
+### 🏗️ Core Documentation
+
+| Document | Description | Audience |
+|----------|-------------|----------|
+| **[API Reference](./API.md)** | Complete API documentation with examples, endpoints, and request/response schemas | Developers, Integrators |
+| **[Architecture Guide](./ARCHITECTURE.md)** | System design, components, data flow, and architectural decisions | Developers, DevOps |
+| **[Developer Guide](./DEVELOPER.md)** | Development setup, coding standards, testing, and contribution guidelines | Developers |
+| **[Deployment Guide](./DEPLOYMENT.md)** | Production deployment, environment configuration, and monitoring | DevOps, SRE |
+
+### 🔧 Integration Guides
+
+| Document | Description | Audience |
+|----------|-------------|----------|
+| **[Routee Integration](./ROUTEE_INTEGRATION.md)** | Routee email provider setup, webhook configuration, and callback handling | Developers, Integrators |
+| **[Universal Template Guide](./UNIVERSAL_TEMPLATE_GUIDE.md)** | Template system, MJML usage, and responsive email design | Developers, Designers |
+
+### 📦 Package Documentation
+
+| Document | Description | Audience |
+|----------|-------------|----------|
+| **[Single-Email Package](../Single-Email%20package%20notifications/README.md)** | Enhanced notification templates with Routee integration | Developers, Product Teams |
+
+## 🚀 Quick Navigation
+
+### For Developers
+- **Getting Started**: [Developer Guide](./DEVELOPER.md#quick-start)
+- **API Usage**: [API Reference](./API.md#endpoints)
+- **Template Development**: [Universal Template Guide](./UNIVERSAL_TEMPLATE_GUIDE.md)
+
+### For DevOps
+- **Deployment**: [Deployment Guide](./DEPLOYMENT.md)
+- **Architecture**: [Architecture Guide](./ARCHITECTURE.md)
+- **Monitoring**: [Developer Guide](./DEVELOPER.md#monitoring)
+
+### For Integrators
+- **API Integration**: [API Reference](./API.md)
+- **Routee Setup**: [Routee Integration](./ROUTEE_INTEGRATION.md)
+- **Template Usage**: [Universal Template Guide](./UNIVERSAL_TEMPLATE_GUIDE.md)
+
+## 🎯 Key Features
+
+### 📧 Email Processing
+- **Multi-Provider Support**: Routee, SendGrid, SES
+- **Template System**: MJML-based responsive templates
+- **Queue Processing**: Reliable background job processing
+- **Webhook Integration**: Real-time delivery tracking
+
+### 🔧 Technical Features
+- **RESTful API**: Standardized HTTP endpoints
+- **Idempotency**: Exactly-once processing
+- **Authentication**: JWT-based security
+- **Monitoring**: Prometheus metrics and structured logging
+
+### 📊 Observability
+- **Health Checks**: System status monitoring
+- **Metrics**: Performance and usage metrics
+- **Logging**: Structured logging with trace IDs
+- **Admin Dashboard**: Real-time monitoring interface
+
+## 🔍 Common Use Cases
+
+### 1. Sending Transactional Emails
+```bash
+curl -X POST /api/v1/emails \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "to": [{"email": "user@example.com", "name": "User"}],
+    "from": {"email": "no-reply@company.com", "name": "Company"},
+    "subject": "Welcome!",
+    "template": {"key": "welcome", "locale": "en"},
+    "variables": {"user_name": "John"}
+  }'
 ```
-docs/
-├── README.md           # This file - documentation index
-├── DEVELOPER.md        # Developer guide and setup
-├── API.md             # API reference and examples
-├── ARCHITECTURE.md    # System architecture and design
-├── DATABASE.md        # Database schema and migrations
-├── TEMPLATES.md       # Template system guide
-├── DEPLOYMENT.md      # Deployment instructions
-├── MONITORING.md      # Monitoring and observability
-├── TROUBLESHOOTING.md # Common issues and solutions
-├── CONTRIBUTING.md    # Contribution guidelines
-├── CODE_STYLE.md      # Coding standards
-└── TESTING.md         # Testing strategies
+
+### 2. Webhook Integration
+```bash
+# Configure webhook URL
+WEBHOOK_BASE_URL="https://your-domain.com"
+
+# Routee will send callbacks to:
+# https://your-domain.com/webhooks/routee
 ```
 
-## 🎯 Documentation Goals
+### 3. Template Development
+```mjml
+<mjml>
+  <mj-body>
+    <mj-section>
+      <mj-column>
+        <mj-text>{{email_title}}</mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
+```
 
-Our documentation aims to:
+## 🛠️ Development Workflow
 
-1. **Enable Quick Onboarding** - Get developers productive in minutes
-2. **Provide Complete References** - Comprehensive API and architecture docs
-3. **Support Operations** - Clear deployment and monitoring guides
-4. **Facilitate Contributions** - Guidelines for contributing to the project
-5. **Ensure Reliability** - Troubleshooting and best practices
+### 1. Local Setup
+```bash
+# Clone repository
+git clone <repository-url>
+cd emailgateway
 
-## 📝 Contributing to Documentation
+# Install dependencies
+npm install
 
-We welcome contributions to improve our documentation:
+# Setup environment
+cp env.example .env
+# Edit .env with your configuration
 
-1. **Report Issues** - Found an error or missing information?
-2. **Suggest Improvements** - Have ideas for better documentation?
-3. **Submit PRs** - Fix typos, add examples, or improve clarity
-4. **Share Feedback** - Let us know what's working and what isn't
+# Start services
+npm run dev:api
+npm run dev:worker
+```
 
-### Documentation Standards
+### 2. Testing
+```bash
+# Run tests
+npm test
 
-- **Clear and Concise** - Write for your audience
-- **Examples Included** - Show, don't just tell
-- **Up-to-Date** - Keep docs current with code changes
-- **Consistent Format** - Follow our documentation style guide
+# Test API endpoints
+npm run test:api
 
-## 🔗 External Resources
+# Test templates
+npm run test:templates
+```
 
-### Related Projects
-- [Waymore Platform](https://github.com/waymore/platform) - Main platform repository
-- [Email Templates](https://github.com/waymore/email-templates) - Shared template library
-- [SDK Libraries](https://github.com/waymore/sdks) - Client SDKs for various languages
+### 3. Deployment
+```bash
+# Build for production
+npm run build
 
-### Tools and Services
-- [Fastify Documentation](https://www.fastify.io/docs/latest/) - Web framework docs
-- [Prisma Documentation](https://www.prisma.io/docs) - Database ORM docs
-- [BullMQ Documentation](https://docs.bullmq.io/) - Queue system docs
-- [MJML Documentation](https://mjml.io/documentation/) - Email framework docs
+# Deploy with Docker
+docker-compose up -d
 
-### Monitoring and Observability
-- [Prometheus](https://prometheus.io/docs/) - Metrics collection
-- [Grafana](https://grafana.com/docs/) - Metrics visualization
-- [Pino](https://getpino.io/#/docs/api) - Logging library
+# Or deploy to cloud platform
+npm run deploy
+```
 
 ## 📞 Support
 
-Need help? Here are your options:
+### Getting Help
+- **Documentation**: Check the relevant guide above
+- **Issues**: Create a [GitHub issue](https://github.com/your-org/emailgateway/issues)
+- **Discussions**: Use [GitHub Discussions](https://github.com/your-org/emailgateway/discussions)
 
-1. **Documentation** - Check the relevant guide above
-2. **GitHub Issues** - Report bugs or request features
-3. **GitHub Discussions** - Ask questions or share ideas
-4. **Email Support** - Contact the platform team directly
-
-## 📄 License
-
-This documentation is licensed under the same MIT License as the project itself.
+### Contributing
+- **Code**: Follow the [Developer Guide](./DEVELOPER.md#contributing)
+- **Documentation**: Update relevant guides
+- **Testing**: Add tests for new features
 
 ---
 
-**Last Updated**: September 2024  
-**Documentation Version**: 1.0.0
+**Last Updated**: September 2025  
+**Version**: 1.0.0  
+**Maintainer**: Waymore Platform Team

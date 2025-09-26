@@ -18,17 +18,11 @@
     "workspace_name": "Waymore",
     "user_firstname": "Antonio",
     "product_name": "Waymore Platform",
-    "plan_name": "Pro",
-    "renewal_date": "01 Oct 2025",
-    "period_start": "01 Oct 2025",
-    "period_end": "31 Oct 2025",
-    "amount_charged": "70.00",
-    "currency": "EUR",
-    "invoice_url": "https://app.waymore.io/invoices/inv_123",
-    "billing_url": "https://app.waymore.io/billing",
     "support_email": "support@waymore.io",
     "email_title": "Renewal Successful",
     "custom_content": "Hello {{user_firstname}},<br><br>🎉 <strong>Great news!</strong> Your <strong>{{plan_name}}</strong> subscription for <strong>{{workspace_name}}</strong> renewed successfully on <strong>{{renewal_date}}</strong>.<br><br>✅ <strong>Billing period:</strong> {{period_start}} → {{period_end}}<br>💰 <strong>Charged:</strong> {{amount_charged}} {{currency}}<br>📄 <strong>Invoice:</strong> <a href=\"{{invoice_url}}\" style=\"color: #007bff;\">View invoice</a><br><br>You're all set for the new period!",
+    "image_url": "https://i.ibb.co/8LfvqPk7/Waymore-logo-Colour.png",
+    "image_alt": "Waymore Logo",
     "facts": [
       {"label": "Plan:", "value": "Pro"},
       {"label": "Renewal Date:", "value": "01 Oct 2025"},
@@ -43,6 +37,26 @@
     "cta_secondary": {
       "label": "View Invoice",
       "url": "https://app.waymore.io/invoices/inv_123"
+    },
+    "social_links": [
+      {"platform": "twitter", "url": "https://twitter.com/waymore_io"},
+      {"platform": "linkedin", "url": "https://linkedin.com/company/waymore"},
+      {"platform": "github", "url": "https://github.com/waymore"}
+    ],
+    "theme": {
+      "font_family": "'Inter', 'Helvetica Neue', Arial, sans-serif",
+      "text_color": "#2c3e50",
+      "heading_color": "#1a1a1a",
+      "primary_button_color": "#28a745",
+      "primary_button_text_color": "#ffffff",
+      "secondary_button_text_color": "#ffffff",
+      "background_color": "#ffffff",
+      "body_background": "#d4edda"
+    },
+    "content": {
+      "en": "Renewal Successful - Your subscription has been renewed for the new period.",
+      "es": "Renovación Exitosa - Su suscripción ha sido renovada para el nuevo período.",
+      "fr": "Renouvellement Réussi - Votre abonnement a été renouvelé pour la nouvelle période."
     }
   },
   "metadata": {

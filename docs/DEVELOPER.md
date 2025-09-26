@@ -34,7 +34,7 @@ The Email Gateway is a stateless microservice that provides a standardized inter
 
 ### Key Features
 - **Idempotency**: Exactly-once intake with `Idempotency-Key` header
-- **Template Engine**: MJML + Handlebars with localization support
+- **Enhanced Universal Template**: Advanced MJML template with multi-button support, social media integration, custom themes, multi-language support, and dynamic images
 - **Queue Processing**: Reliable background job processing with BullMQ
 - **Provider Abstraction**: Pluggable email providers (Routee, SES, SendGrid)
 - **Observability**: Structured logging, metrics, and health checks
@@ -125,6 +125,48 @@ src/
    ```bash
    node test-api.js
    ```
+
+### Webhook Development Setup
+
+For local development with webhook callbacks, use ngrok to create a public webhook URL:
+
+#### 1. Install ngrok
+
+```bash
+# macOS
+brew install ngrok
+
+# Or download from https://ngrok.com/download
+```
+
+#### 2. Configure ngrok
+
+```bash
+# Sign up for free account at https://dashboard.ngrok.com/signup
+# Get your auth token from https://dashboard.ngrok.com/get-started/your-authtoken
+ngrok config add-authtoken YOUR_AUTH_TOKEN
+```
+
+#### 3. Start ngrok tunnel
+
+```bash
+# Start tunnel on port 3000
+ngrok http 3000
+```
+
+#### 4. Update environment
+
+```bash
+# Copy the https URL from ngrok output
+# Update your .env file
+echo 'WEBHOOK_BASE_URL="https://your-ngrok-url.ngrok.io"' >> .env
+```
+
+#### 5. Monitor webhooks
+
+- **ngrok Dashboard**: http://localhost:4040
+- **Webhook URL**: `https://your-ngrok-url.ngrok.io/webhooks/routee`
+- **Test webhook**: Use the ngrok dashboard to inspect incoming requests
 
 ### Manual Service Installation
 
@@ -305,25 +347,33 @@ CREATE TYPE MessageStatus AS ENUM (
 
 ## Template System
 
-The template system uses MJML for responsive email design and Handlebars for dynamic content.
+The template system uses MJML for responsive email design and Handlebars for dynamic content. The system now features a single, powerful universal template with advanced capabilities.
 
 ### Template Structure
 
-Templates are organized by category and locale:
+The current template structure is simplified to focus on the enhanced universal template:
 ```
 src/templates/
-├── notifications/
-│   ├── universal-en.mjml
-│   ├── universal-en.txt
-│   └── universal-el.mjml
-└── marketing/
-    ├── newsletter-en.mjml
-    └── newsletter-el.mjml
+├── universal-en.mjml      # Enhanced universal template (MJML)
+├── universal-en.txt       # Plain text version
+└── engine.ts              # Template engine
 ```
 
+### Universal Template Features
+
+The universal template supports:
+
+- **Multi-Button Support**: Side-by-side primary and secondary buttons
+- **Social Media Integration**: Built-in social media links
+- **Custom Themes**: Complete theme customization
+- **Multi-Language Support**: Dynamic content based on locale
+- **Dynamic Images**: Custom images with fallback to default logo
+- **Facts Table**: Structured data display
+- **Dark Mode Ready**: Theme-driven styling
+
 ### Template Naming Convention
-- `{category}-{locale}.mjml` - Main HTML template
-- `{category}-{locale}.txt` - Plain text version (optional)
+- `universal-en.mjml` - Main HTML template
+- `universal-en.txt` - Plain text version
 - `{category}-{locale}.subject` - Subject template (optional)
 
 ### MJML Template Example
@@ -364,11 +414,18 @@ Available helpers:
 
 ### Template Variables
 
-Common variable structure:
+The universal template supports comprehensive variable structure:
+
 ```json
 {
+  "workspace_name": "Waymore",
+  "user_firstname": "John",
+  "product_name": "Waymore Platform",
+  "support_email": "support@waymore.io",
   "email_title": "Welcome to Waymore!",
-  "user_name": "John Doe",
+  "custom_content": "Hello John,<br><br>Welcome to our platform!",
+  "image_url": "https://example.com/logo.png",
+  "image_alt": "Company Logo",
   "facts": [
     {"label": "Account Type", "value": "Premium"},
     {"label": "Created", "value": "2024-01-01"}
@@ -376,9 +433,36 @@ Common variable structure:
   "cta_primary": {
     "label": "Get Started",
     "url": "https://app.waymore.io"
+  },
+  "cta_secondary": {
+    "label": "Learn More",
+    "url": "https://docs.waymore.io"
+  },
+  "social_links": [
+    {"platform": "twitter", "url": "https://twitter.com/waymore_io"},
+    {"platform": "linkedin", "url": "https://linkedin.com/company/waymore"}
+  ],
+  "theme": {
+    "font_family": "'Roboto', Arial, sans-serif",
+    "text_color": "#2c3e50",
+    "primary_button_color": "#007bff"
+  },
+  "content": {
+    "en": "English content",
+    "es": "Contenido en español",
+    "fr": "Contenu français"
   }
 }
 ```
+
+### Variable Categories
+
+- **Core Variables**: `workspace_name`, `user_firstname`, `product_name`, `support_email`, `email_title`, `custom_content`
+- **Image Variables**: `image_url`, `image_alt`
+- **Content Variables**: `facts`, `content` (multi-language)
+- **CTA Variables**: `cta_primary`, `cta_secondary`
+- **Social Variables**: `social_links`
+- **Theme Variables**: `theme` (complete customization)
 
 ## Queue System
 
