@@ -14,6 +14,52 @@ export function generateTemplatesSection(data: any): string {
       ${generateTemplateOverview()}
       ${generateTemplateExamples()}
       
+      <style>
+        .status-message {
+          padding: 8px 12px;
+          border-radius: 6px;
+          font-size: 14px;
+          font-weight: 500;
+          margin-top: 8px;
+          display: none;
+        }
+        .status-success {
+          background: #d4edda;
+          color: #155724;
+          border: 1px solid #c3e6cb;
+        }
+        .status-error {
+          background: #f8d7da;
+          color: #721c24;
+          border: 1px solid #f5c6cb;
+        }
+        .form-group {
+          margin-bottom: 12px;
+        }
+        .form-group label {
+          display: block;
+          font-size: 12px;
+          font-weight: 600;
+          color: #555;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          margin-bottom: 4px;
+        }
+        .form-group input {
+          width: 100%;
+          padding: 8px 12px;
+          border: 1px solid #ddd;
+          border-radius: 6px;
+          font-size: 14px;
+          transition: border-color 0.2s;
+        }
+        .form-group input:focus {
+          outline: none;
+          border-color: #007bff;
+          box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+        }
+      </style>
+      
       <script>
         // Template examples data
         const templateExamples = {
@@ -46,12 +92,105 @@ export function generateTemplatesSection(data: any): string {
             title: 'Payment Failure',
             description: 'Failed payment with retry information',
             json: ${JSON.stringify(getPaymentFailureExample(), null, 2)}
+          },
+          'renewal-confirmation': {
+            title: 'Renewal Confirmation',
+            description: 'Successful renewal with billing details',
+            json: ${JSON.stringify(getRenewalConfirmationExample(), null, 2)}
+          },
+          'downgrade': {
+            title: 'Downgrade Confirmation',
+            description: 'Plan downgrade with new limits',
+            json: ${JSON.stringify(getDowngradeExample(), null, 2)}
+          },
+          'payment-failure-final': {
+            title: 'Payment Failure Final',
+            description: 'Final suspension warning for failed payments',
+            json: ${JSON.stringify(getPaymentFailureFinalExample(), null, 2)}
+          },
+          'usage-100': {
+            title: 'Usage Limit Reached',
+            description: '100% usage reached with urgent upgrade',
+            json: ${JSON.stringify(getUsage100Example(), null, 2)}
+          },
+          'renewal-7-days': {
+            title: 'Renewal 7 Days',
+            description: 'Early renewal reminder with billing tips',
+            json: ${JSON.stringify(getRenewal7DaysExample(), null, 2)}
           }
         };
         
-        function loadExample(key) {
-          // Open email preview in a new tab
-          window.open(\`/admin/email-preview/\${key}\`, '_blank');
+        async function sendTestEmail(key) {
+          const emailInput = document.getElementById(\`email-\${key}\`);
+          const sendBtn = document.getElementById(\`send-btn-\${key}\`);
+          const statusDiv = document.getElementById(\`status-\${key}\`);
+          
+          const email = emailInput.value.trim();
+          if (!email) {
+            showStatus(key, 'Please enter your email address', 'error');
+            return;
+          }
+          
+          if (!isValidEmail(email)) {
+            showStatus(key, 'Please enter a valid email address', 'error');
+            return;
+          }
+          
+          // Update button state
+          sendBtn.disabled = true;
+          sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+          
+          try {
+            const example = templateExamples[key];
+            const emailData = {
+              ...example.json,
+              to: [{
+                email: email,
+                name: email.split('@')[0]
+              }]
+            };
+            
+            const response = await fetch('/admin/send-test-email', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(emailData)
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+              showStatus(key, '✅ Test email sent successfully! Check your inbox.', 'success');
+            } else {
+              showStatus(key, '❌ Failed to send email: ' + (result.error || 'Unknown error'), 'error');
+            }
+          } catch (error) {
+            showStatus(key, '❌ Error sending email: ' + error.message, 'error');
+          } finally {
+            // Reset button state
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Test Email';
+          }
+        }
+        
+        function showStatus(key, message, type) {
+          const statusDiv = document.getElementById(\`status-\${key}\`);
+          statusDiv.textContent = message;
+          statusDiv.className = 'status-message status-' + type;
+          statusDiv.style.display = 'block';
+          
+          // Auto-hide success messages after 5 seconds
+          if (type === 'success') {
+            setTimeout(() => {
+              statusDiv.style.display = 'none';
+            }, 5000);
+          }
+        }
+        
+        function isValidEmail(email) {
+          const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
+          return emailRegex.test(email);
         }
         
         function copyExample(key) {
@@ -124,13 +263,18 @@ function generateTemplateExamples(): string {
         Template Examples
       </h3>
       
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
         ${generateExampleCard('Welcome Email', 'welcome', 'Basic welcome email with primary CTA', 'fas fa-handshake', 'bg-green-100', 'text-green-600')}
         ${generateExampleCard('Payment Success', 'payment-success', 'Transaction confirmation with facts table', 'fas fa-credit-card', 'bg-blue-100', 'text-blue-600')}
         ${generateExampleCard('Renewal Reminder', 'renewal-7', 'Subscription renewal with dual CTAs', 'fas fa-calendar', 'bg-yellow-100', 'text-yellow-600')}
         ${generateExampleCard('Usage Alert', 'usage-80', 'Usage notification with social links', 'fas fa-chart-line', 'bg-purple-100', 'text-purple-600')}
         ${generateExampleCard('Upgrade Confirmation', 'upgrade', 'Plan upgrade with custom theme', 'fas fa-arrow-up', 'bg-indigo-100', 'text-indigo-600')}
         ${generateExampleCard('Payment Failure', 'payment-failure', 'Failed payment with retry options', 'fas fa-exclamation-triangle', 'bg-red-100', 'text-red-600')}
+        ${generateExampleCard('Renewal Confirmation', 'renewal-confirmation', 'Successful renewal with billing details', 'fas fa-check-circle', 'bg-green-100', 'text-green-600')}
+        ${generateExampleCard('Downgrade Confirmation', 'downgrade', 'Plan downgrade with new limits', 'fas fa-arrow-down', 'bg-orange-100', 'text-orange-600')}
+        ${generateExampleCard('Payment Failure Final', 'payment-failure-final', 'Final suspension warning for failed payments', 'fas fa-ban', 'bg-red-100', 'text-red-600')}
+        ${generateExampleCard('Usage Limit Reached', 'usage-100', '100% usage reached with urgent upgrade', 'fas fa-exclamation-circle', 'bg-red-100', 'text-red-600')}
+        ${generateExampleCard('Renewal 7 Days', 'renewal-7-days', 'Early renewal reminder with billing tips', 'fas fa-clock', 'bg-yellow-100', 'text-yellow-600')}
       </div>
     </div>`;
 }
@@ -150,11 +294,23 @@ function generateExampleCard(title: string, key: string, description: string, ic
         </div>
         
         <div class="space-y-3">
-          <button onclick="loadExample('${key}')" 
-                  class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-md">
-            <i class="fas fa-play mr-2"></i>
-            View Example
+          <div class="form-group">
+            <label for="email-${key}" class="block text-sm font-medium text-gray-700 mb-1">Your Email Address</label>
+            <input type="email" 
+                   id="email-${key}" 
+                   placeholder="your-email@example.com" 
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                   required>
+          </div>
+          
+          <button onclick="sendTestEmail('${key}')" 
+                  id="send-btn-${key}"
+                  class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
+            <i class="fas fa-paper-plane mr-2"></i>
+            Send Test Email
           </button>
+          
+          <div id="status-${key}" class="status-message" style="display: none;"></div>
           
           <button onclick="copyExample('${key}')" 
                   class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors duration-200">
@@ -193,7 +349,7 @@ function getWelcomeExample() {
       "product_name": "Waymore Platform",
       "support_email": "support@waymore.io",
       "email_title": "Welcome to Waymore!",
-      "custom_content": "Hello {{user_firstname}},\\n\\n🎉 <strong>Welcome to {{product_name}}!</strong>\\n\\nWe're excited to have you on board. Here are some quick tips to get you started:\\n\\n• <strong>Explore the dashboard</strong> to see your workspace overview\\n• <strong>Invite team members</strong> to collaborate on your projects\\n• <strong>Check out our documentation</strong> for detailed guides\\n\\nIf you have any questions, don't hesitate to reach out to our support team.",
+            "custom_content": "Hello {{user_firstname}},<br><br>🎉 <strong>Welcome to {{product_name}}!</strong><br><br>We're excited to have you on board. Here are some quick tips to get you started:<br><br>• <strong>Explore the dashboard</strong> to see your workspace overview<br>• <strong>Invite team members</strong> to collaborate on your projects<br>• <strong>Check out our documentation</strong> for detailed guides<br><br>If you have any questions, don't hesitate to reach out to our support team.",
       "facts": [
         {"label": "Account Type:", "value": "Pro Plan"},
         {"label": "Workspace:", "value": "Acme Corp"},
@@ -245,7 +401,7 @@ function getPaymentSuccessExample() {
       "billing_url": "https://go.waymore.io/settings/account-billing",
       "support_email": "support@waymore.io",
       "email_title": "Payment Successful",
-      "custom_content": "Hello {{user_firstname}},\\n\\n✅ <strong>Payment Confirmed!</strong> We've successfully processed your payment for <strong>{{plan_name}}</strong> on <strong>{{payment_date}}</strong>.\\n\\n💰 <strong>Amount charged:</strong> {{amount_charged}} {{currency}}\\n📄 <strong>Invoice:</strong> Your invoice will be available soon. You'll receive a separate email with your subscription confirmation and invoice link.\\n\\nThank you for keeping your subscription active!",
+            "custom_content": "Hello {{user_firstname}},<br><br>✅ <strong>Payment Confirmed!</strong> We've successfully processed your payment for <strong>{{plan_name}}</strong> on <strong>{{payment_date}}</strong>.<br><br>💰 <strong>Amount charged:</strong> {{amount_charged}} {{currency}}<br>📄 <strong>Invoice:</strong> Your invoice will be available soon. You'll receive a separate email with your subscription confirmation and invoice link.<br><br>Thank you for keeping your subscription active!",
       "facts": [
         {"label": "Plan:", "value": "Pro"},
         {"label": "Payment Date:", "value": "01 Oct 2025"},
@@ -294,7 +450,7 @@ function getRenewalExample() {
       "billing_url": "https://go.waymore.io/settings/account-billing",
       "support_email": "support@waymore.io",
       "email_title": "Final Reminder: Pro renews tomorrow",
-      "custom_content": "Hello {{user_firstname}},\\n\\nThis is a friendly reminder that your <strong>{{plan_name}}</strong> subscription for <strong>{{workspace_name}}</strong> renews on <strong>{{renewal_date}}</strong>.\\n\\n💰 <strong>Upcoming charge:</strong> {{next_charge_amount}} {{currency}}\\n\\n⚠️ <strong>Please confirm your payment details</strong> to avoid service interruption.",
+            "custom_content": "Hello {{user_firstname}},<br><br>This is a friendly reminder that your <strong>{{plan_name}}</strong> subscription for <strong>{{workspace_name}}</strong> renews on <strong>{{renewal_date}}</strong>.<br><br>💰 <strong>Upcoming charge:</strong> {{next_charge_amount}} {{currency}}<br><br>⚠️ <strong>Please confirm your payment details</strong> to avoid service interruption.",
       "facts": [
         {"label": "Plan:", "value": "Pro"},
         {"label": "Renewal Date:", "value": "01 Oct 2025"},
@@ -344,7 +500,7 @@ function getUsageExample() {
       "upgrade_url": "https://go.waymore.io/settings/account-billing",
       "support_email": "support@waymore.io",
       "email_title": "Usage Threshold Warning",
-      "custom_content": "Hello {{user_firstname}},\\n\\nYour current <strong>{{product_name}}</strong> subscription <strong>{{plan_name}}</strong> is at <strong>{{usage_percent}}%</strong> of its limit.\\n\\n👉 <strong>To avoid interruptions</strong>, you may want to review your plan and upgrade if needed.",
+            "custom_content": "Hello {{user_firstname}},<br><br>Your current <strong>{{product_name}}</strong> subscription <strong>{{plan_name}}</strong> is at <strong>{{usage_percent}}%</strong> of its limit.<br><br>👉 <strong>To avoid interruptions</strong>, you may want to review your plan and upgrade if needed.",
       "facts": [
         {"label": "Used:", "value": "24,000 contacts"},
         {"label": "Limit:", "value": "30,000 contacts"},
@@ -451,7 +607,7 @@ function getPaymentFailureExample() {
       "billing_url": "https://go.waymore.io/settings/account-billing",
       "support_email": "support@waymore.io",
       "email_title": "Payment Failed - Action Required",
-      "custom_content": "Hello {{user_firstname}},\\n\\n⚠️ <strong>Payment Failed</strong> - We tried to process your payment for <strong>{{plan_name}}</strong>, but it failed on <strong>{{payment_date}}</strong>.\\n\\n💰 <strong>Amount:</strong> {{amount_attempted}} {{currency}}\\n❌ <strong>Reason:</strong> {{failure_reason}}\\n🔄 <strong>Next retry attempt:</strong> {{next_retry_date}}\\n\\nPlease update your payment details to ensure your subscription continues without interruption.",
+      "custom_content": "Hello {{user_firstname}},<br><br>⚠️ <strong>Payment Failed</strong> - We tried to process your payment for <strong>{{plan_name}}</strong>, but it failed on <strong>{{payment_date}}</strong>.<br><br>💰 <strong>Amount:</strong> {{amount_attempted}} {{currency}}<br>❌ <strong>Reason:</strong> {{failure_reason}}<br>🔄 <strong>Next retry attempt:</strong> {{next_retry_date}}<br><br>Please update your payment details to ensure your subscription continues without interruption.",
       "facts": [
         {"label": "Plan:", "value": "Pro"},
         {"label": "Payment Date:", "value": "01 Oct 2025"},
@@ -473,6 +629,273 @@ function getPaymentFailureExample() {
       "tenantId": "acme_corp",
       "eventId": "payment_failure_attempt_1",
       "notificationType": "payment_failure"
+    }
+  };
+}
+
+function getRenewalConfirmationExample() {
+  return {
+    "from": {
+      "email": "marketing@waymore.io",
+      "name": "Waymore Team"
+    },
+    "subject": "Your Pro plan has been renewed for Acme Corp",
+    "template": {
+      "key": "universal",
+      "locale": "en"
+    },
+    "to": [
+      {
+        "email": "user@example.com",
+        "name": "John Doe"
+      }
+    ],
+    "webhookUrl": "https://your-ngrok-url.ngrok.io/webhooks/routee",
+    "variables": {
+      "workspace_name": "Acme Corp",
+      "user_firstname": "John",
+      "product_name": "Waymore Platform",
+      "plan_name": "Pro",
+      "renewal_date": "01 Oct 2025",
+      "period_start": "01 Oct 2025",
+      "period_end": "31 Oct 2025",
+      "amount_charged": "70.00",
+      "currency": "EUR",
+      "invoice_url": "https://go.waymore.io/settings/account-billing/invoices/inv_123",
+      "billing_url": "https://go.waymore.io/settings/account-billing",
+      "support_email": "support@waymore.io",
+      "email_title": "Renewal Successful",
+      "custom_content": "Hello {{user_firstname}},<br><br>🎉 <strong>Great news!</strong> Your <strong>{{plan_name}}</strong> subscription for <strong>{{workspace_name}}</strong> renewed successfully on <strong>{{renewal_date}}</strong>.<br><br>✅ <strong>Billing period:</strong> {{period_start}} → {{period_end}}<br>💰 <strong>Charged:</strong> {{amount_charged}} {{currency}}<br>📄 <strong>Invoice:</strong> <a href=\"{{invoice_url}}\" style=\"color: #007bff;\">View invoice</a><br><br>You're all set for the new period!",
+      "facts": [
+        {"label": "Plan:", "value": "Pro"},
+        {"label": "Renewal Date:", "value": "01 Oct 2025"},
+        {"label": "Billing Period:", "value": "01 Oct 2025 → 31 Oct 2025"},
+        {"label": "Amount Charged:", "value": "70.00 EUR"},
+        {"label": "Workspace:", "value": "Acme Corp"}
+      ],
+      "cta_primary": {
+        "label": "Manage Billing",
+        "url": "https://go.waymore.io/settings/account-billing"
+      },
+      "cta_secondary": {
+        "label": "View Invoice",
+        "url": "https://go.waymore.io/settings/account-billing/invoices/inv_123"
+      }
+    },
+    "metadata": {
+      "tenantId": "acme_corp",
+      "eventId": "renewal_confirmation_success",
+      "notificationType": "renewal_confirmation"
+    }
+  };
+}
+
+function getDowngradeExample() {
+  return {
+    "from": {
+      "email": "marketing@waymore.io",
+      "name": "Waymore Team"
+    },
+    "subject": "Your subscription has been downgraded to Basic",
+    "template": {
+      "key": "universal",
+      "locale": "en"
+    },
+    "to": [
+      {
+        "email": "user@example.com",
+        "name": "John Doe"
+      }
+    ],
+    "webhookUrl": "https://your-ngrok-url.ngrok.io/webhooks/routee",
+    "variables": {
+      "workspace_name": "Acme Corp",
+      "user_firstname": "John",
+      "product_name": "Waymore Platform",
+      "old_plan_name": "Advanced",
+      "new_plan_name": "Basic",
+      "downgrade_date": "15 Oct 2025",
+      "new_limits": "10,000 contacts, 1GB storage, Basic analytics",
+      "billing_change": "Lower monthly charge €12 from next cycle",
+      "billing_url": "https://go.waymore.io/settings/account-billing",
+      "support_email": "support@waymore.io",
+      "email_title": "Plan Change Confirmed",
+      "custom_content": "Hello {{user_firstname}},<br><br>📋 <strong>Plan Change Confirmed</strong> - Your subscription for <strong>{{workspace_name}}</strong> has been successfully changed.<br><br>📉 <strong>Plan Change:</strong> {{old_plan_name}} → {{new_plan_name}}<br>📅 <strong>Effective from:</strong> {{downgrade_date}}<br>📊 <strong>New limits:</strong> {{new_limits}}<br>💰 <strong>Billing update:</strong> {{billing_change}}<br><br>Please review your new plan limits to ensure they meet your needs.",
+      "facts": [
+        {"label": "Previous Plan:", "value": "Advanced"},
+        {"label": "New Plan:", "value": "Basic"},
+        {"label": "Effective Date:", "value": "15 Oct 2025"},
+        {"label": "New Limits:", "value": "10,000 contacts, 1GB storage, Basic analytics"},
+        {"label": "Billing Update:", "value": "Lower monthly charge €12 from next cycle"},
+        {"label": "Workspace:", "value": "Acme Corp"}
+      ],
+      "cta_primary": {
+        "label": "Manage Plan",
+        "url": "https://go.waymore.io/settings/account-billing"
+      },
+      "cta_secondary": {
+        "label": "View Current Usage",
+        "url": "https://go.waymore.io/usage"
+      }
+    },
+    "metadata": {
+      "tenantId": "acme_corp",
+      "eventId": "downgrade_confirmation_success",
+      "notificationType": "downgrade_confirmation"
+    }
+  };
+}
+
+function getPaymentFailureFinalExample() {
+  return {
+    "from": {
+      "email": "marketing@waymore.io",
+      "name": "Waymore Team"
+    },
+    "subject": "URGENT: Service suspension pending - Payment failed",
+    "template": {
+      "key": "universal",
+      "locale": "en"
+    },
+    "to": [
+      {
+        "email": "user@example.com",
+        "name": "John Doe"
+      }
+    ],
+    "webhookUrl": "https://your-ngrok-url.ngrok.io/webhooks/routee",
+    "variables": {
+      "workspace_name": "Acme Corp",
+      "user_firstname": "John",
+      "product_name": "Waymore Platform",
+      "plan_name": "Pro",
+      "payment_date": "01 Oct 2025",
+      "amount_attempted": "70.00",
+      "currency": "EUR",
+      "failure_reason": "Insufficient funds",
+      "suspension_date": "05 Oct 2025",
+      "payment_update_url": "https://go.waymore.io/settings/account-billing/payment-methods",
+      "support_url": "https://go.waymore.io/support",
+      "billing_url": "https://go.waymore.io/settings/account-billing",
+      "support_email": "support@waymore.io",
+      "email_title": "URGENT: Service Suspension Pending",
+      "custom_content": "Hello {{user_firstname}},<br><br>🚨 <strong>URGENT ACTION REQUIRED</strong> - Your <strong>{{plan_name}}</strong> subscription for <strong>{{workspace_name}}</strong> is at risk of suspension.<br><br>❌ <strong>Payment Status:</strong> All retry attempts have failed<br>💰 <strong>Amount:</strong> {{amount_attempted}} {{currency}}<br>📅 <strong>Suspension Date:</strong> {{suspension_date}}<br>⚠️ <strong>Consequence:</strong> Service will be suspended and data access will be limited<br><br><strong>IMMEDIATE ACTION REQUIRED:</strong> Update your payment method now to prevent service interruption.",
+      "facts": [
+        {"label": "Plan:", "value": "Pro"},
+        {"label": "Payment Date:", "value": "01 Oct 2025"},
+        {"label": "Amount Attempted:", "value": "70.00 EUR"},
+        {"label": "Failure Reason:", "value": "Insufficient funds"},
+        {"label": "Suspension Date:", "value": "05 Oct 2025"},
+        {"label": "Workspace:", "value": "Acme Corp"}
+      ],
+      "cta_primary": {
+        "label": "Fix Payment Now",
+        "url": "https://go.waymore.io/settings/account-billing/payment-methods"
+      },
+      "cta_secondary": {
+        "label": "Contact Support",
+        "url": "https://go.waymore.io/support"
+      }
+    },
+    "metadata": {
+      "tenantId": "acme_corp",
+      "eventId": "payment_failure_final_suspension",
+      "notificationType": "payment_failure_final"
+    }
+  };
+}
+
+function getUsage100Example() {
+  return {
+    "from": {
+      "email": "marketing@waymore.io",
+      "name": "Waymore Team"
+    },
+    "subject": "Usage Limit Reached",
+    "template": {
+      "key": "universal",
+      "locale": "en"
+    },
+    "to": [
+      {
+        "email": "user@example.com",
+        "name": "John Doe"
+      }
+    ],
+    "webhookUrl": "https://your-ngrok-url.ngrok.io/webhooks/routee",
+    "variables": {
+      "workspace_name": "Acme Corp",
+      "user_firstname": "John",
+      "product_name": "Waymore Platform",
+      "plan_name": "Advanced",
+      "usage_percent": "100",
+      "usage_current": "30,000",
+      "usage_limit": "30,000",
+      "usage_metric": "contacts",
+      "upgrade_url": "https://go.waymore.io/settings/account-billing",
+      "support_email": "support@waymore.io",
+      "email_title": "Usage Limit Reached",
+      "custom_content": "Hello {{user_firstname}},<br><br>🚨 <strong>URGENT:</strong> Your {{product_name}} subscription has reached its limit!<br><br>Your <strong>{{plan_name}}</strong> plan is now <strong>blocked</strong> until you upgrade.<br><br>⚠️ <strong>Action Required:</strong> Upgrade your plan immediately to restore service.",
+      "facts": [
+        {"label": "Used:", "value": "30,000 contacts"},
+        {"label": "Limit:", "value": "30,000 contacts"},
+        {"label": "Status:", "value": "100% - Blocked"}
+      ],
+      "cta_primary": {
+        "label": "Upgrade Plan",
+        "url": "https://go.waymore.io/settings/account-billing"
+      }
+    },
+    "metadata": {
+      "tenantId": "acme_corp",
+      "eventId": "usage_100_reached",
+      "notificationType": "usage_limit_reached"
+    }
+  };
+}
+
+function getRenewal7DaysExample() {
+  return {
+    "from": {
+      "email": "marketing@waymore.io",
+      "name": "Waymore Team"
+    },
+    "subject": "Renewal Reminder",
+    "template": {
+      "key": "universal",
+      "locale": "en"
+    },
+    "to": [
+      {
+        "email": "user@example.com",
+        "name": "John Doe"
+      }
+    ],
+    "webhookUrl": "https://your-ngrok-url.ngrok.io/webhooks/routee",
+    "variables": {
+      "workspace_name": "Acme Corp",
+      "user_firstname": "John",
+      "product_name": "Waymore Platform",
+      "plan_name": "Advanced",
+      "renewal_date": "01 Oct 2025",
+      "billing_url": "https://go.waymore.io/settings/account-billing",
+      "support_email": "support@waymore.io",
+      "email_title": "Renewal Reminder",
+      "custom_content": "Hello {{user_firstname}},<br><br>Your <strong>{{plan_name}}</strong> plan will renew on <strong>{{renewal_date}}</strong>.<br><br>💡 <strong>Tip:</strong> Make sure your payment method is up to date to avoid any service interruptions.",
+      "facts": [
+        {"label": "Plan:", "value": "Advanced"},
+        {"label": "Renewal Date:", "value": "01 Oct 2025"},
+        {"label": "Workspace:", "value": "Acme Corp"}
+      ],
+      "cta_primary": {
+        "label": "Manage Billing",
+        "url": "https://go.waymore.io/settings/account-billing"
+      }
+    },
+    "metadata": {
+      "tenantId": "acme_corp",
+      "eventId": "renewal_7_days",
+      "notificationType": "renewal_reminder"
     }
   };
 }

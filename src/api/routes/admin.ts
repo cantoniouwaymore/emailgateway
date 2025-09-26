@@ -1,6 +1,5 @@
 import { FastifyInstance } from 'fastify';
 import { AdminController } from '../controllers/admin';
-import { generateEmailPreviewPage } from '../../templates/admin/components/email-renderer.html';
 
 // Markdown viewer function
 function generateMarkdownViewer(filename: string, content: string): string {
@@ -364,118 +363,66 @@ export async function adminRoutes(fastify: FastifyInstance) {
   // Search by recipient endpoint
   fastify.get<{ Querystring: { email: string; page?: string; limit?: string } }>('/admin/search', adminController.searchByRecipient.bind(adminController));
   
-  // Email preview endpoint
-  fastify.get<{ Params: { template: string } }>('/admin/email-preview/:template', async (request, reply) => {
-    const { template } = request.params as { template: string };
-    
-    // Template examples data
-    const templateExamples = {
-      'welcome': {
-        title: 'Welcome Email',
-        description: 'Complete onboarding with tips and CTAs',
-        json: {
-          "from": {
-            "email": "marketing@waymore.io",
-            "name": "Waymore Team"
-          },
-          "subject": "Welcome to Waymore!",
-          "template": {
-            "key": "universal",
-            "locale": "en"
-          },
-          "to": [
-            {
-              "email": "user@example.com",
-              "name": "John Doe"
-            }
-          ],
-          "webhookUrl": "https://your-ngrok-url.ngrok.io/webhooks/routee",
-          "variables": {
-            "workspace_name": "Acme Corp",
-            "user_firstname": "John",
-            "product_name": "Waymore Platform",
-            "support_email": "support@waymore.io",
-            "email_title": "Welcome to Waymore!",
-            "custom_content": "Hello {{user_firstname}},\\n\\n🎉 <strong>Welcome to {{product_name}}!</strong>\\n\\nWe're excited to have you on board. Here are some quick tips to get you started:\\n\\n• <strong>Explore the dashboard</strong> to see your workspace overview\\n• <strong>Invite team members</strong> to collaborate on your projects\\n• <strong>Check out our documentation</strong> for detailed guides\\n\\nIf you have any questions, don't hesitate to reach out to our support team.",
-            "facts": [
-              {"label": "Account Type:", "value": "Pro Plan"},
-              {"label": "Workspace:", "value": "Acme Corp"},
-              {"label": "Setup Status:", "value": "Complete"}
-            ],
-            "cta_primary": {
-              "label": "Get Started",
-              "url": "https://go.waymore.io/dashboard"
-            },
-            "cta_secondary": {
-              "label": "View Documentation",
-              "url": "https://docs.waymore.io"
-            }
-          },
-          "metadata": {
-            "tenantId": "acme_corp",
-            "eventId": "welcome_user",
-            "notificationType": "welcome"
-          }
-        }
-      },
-      'payment-success': {
-        title: 'Payment Success',
-        description: 'Transaction confirmation with billing details',
-        json: {
-          "from": {
-            "email": "marketing@waymore.io",
-            "name": "Waymore Team"
-          },
-          "subject": "Payment received for your Pro plan – Acme Corp",
-          "template": {
-            "key": "universal",
-            "locale": "en"
-          },
-          "to": [
-            {
-              "email": "user@example.com",
-              "name": "John Doe"
-            }
-          ],
-          "webhookUrl": "https://your-ngrok-url.ngrok.io/webhooks/routee",
-          "variables": {
-            "workspace_name": "Acme Corp",
-            "user_firstname": "John",
-            "product_name": "Waymore Platform",
-            "plan_name": "Pro",
-            "payment_date": "01 Oct 2025",
-            "amount_charged": "70.00",
-            "currency": "EUR",
-            "billing_url": "https://go.waymore.io/settings/account-billing",
-            "support_email": "support@waymore.io",
-            "email_title": "Payment Successful",
-            "custom_content": "Hello {{user_firstname}},\\n\\n✅ <strong>Payment Confirmed!</strong> We've successfully processed your payment for <strong>{{plan_name}}</strong> on <strong>{{payment_date}}</strong>.\\n\\n💰 <strong>Amount charged:</strong> {{amount_charged}} {{currency}}\\n📄 <strong>Invoice:</strong> Your invoice will be available soon. You'll receive a separate email with your subscription confirmation and invoice link.\\n\\nThank you for keeping your subscription active!",
-            "facts": [
-              {"label": "Plan:", "value": "Pro"},
-              {"label": "Payment Date:", "value": "01 Oct 2025"},
-              {"label": "Amount Charged:", "value": "70.00 EUR"},
-              {"label": "Workspace:", "value": "Acme Corp"}
-            ],
-            "cta_primary": {
-              "label": "Manage Billing",
-              "url": "https://go.waymore.io/settings/account-billing"
-            }
-          },
-          "metadata": {
-            "tenantId": "acme_corp",
-            "eventId": "payment_success_generic",
-            "notificationType": "payment_confirmation"
-          }
-        }
+
+  // Send test email endpoint (no authentication required for admin testing)
+  fastify.post('/admin/send-test-email', async (request, reply) => {
+    try {
+      const emailData = request.body as any;
+      
+      // Validate required fields
+      if (!emailData.to || !Array.isArray(emailData.to) || emailData.to.length === 0) {
+        return reply.code(400).send({ error: 'Missing or invalid "to" field' });
       }
-    };
-    
-    const example = templateExamples[template as keyof typeof templateExamples];
-    if (!example) {
-      return reply.code(404).send('Template not found');
+      
+      if (!emailData.subject) {
+        return reply.code(400).send({ error: 'Missing "subject" field' });
+      }
+      
+      if (!emailData.template) {
+        return reply.code(400).send({ error: 'Missing "template" field' });
+      }
+      
+      // Import the email controller to use the queue
+      const { EmailQueueProducer } = await import('../../queue/producer');
+      const queueProducer = new EmailQueueProducer();
+      
+      // Generate a unique message ID for the test email
+      const messageId = `test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Transform data to match EmailJobData interface
+      const testEmailData = {
+        messageId,
+        templateKey: emailData.template.key,
+        locale: emailData.template.locale,
+        version: emailData.template.version,
+        variables: emailData.variables || {},
+        to: emailData.to,
+        cc: emailData.cc,
+        bcc: emailData.bcc,
+        from: emailData.from,
+        replyTo: emailData.replyTo,
+        subject: emailData.subject,
+        attachments: emailData.attachments,
+        webhookUrl: emailData.webhookUrl,
+        tenantId: emailData.metadata?.tenantId,
+        attempts: 3
+      };
+      
+      // Send to queue
+      await queueProducer.addEmailJob(testEmailData);
+      
+      return reply.send({ 
+        success: true, 
+        messageId,
+        message: 'Test email queued successfully' 
+      });
+      
+    } catch (error) {
+      console.error('Error sending test email:', error);
+      return reply.code(500).send({ 
+        error: 'Failed to send test email',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
-    
-    const html = generateEmailPreviewPage(example);
-    return reply.type('text/html').send(html);
   });
 }
