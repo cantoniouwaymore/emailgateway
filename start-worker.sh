@@ -15,5 +15,5 @@ done
 echo "Database is ready - running migrations..."
 npx prisma migrate deploy
 
-echo "Starting email worker..."
-exec node dist/queue/worker.js
+echo "Starting email worker on port 3001..."
+PORT=3001 exec node dist/queue/worker.js

@@ -15,5 +15,5 @@ done
 echo "Database is ready - running migrations..."
 npx prisma migrate deploy
 
-echo "Starting API server..."
-exec node dist/index.js
+echo "Starting API server on port 3000..."
+PORT=3000 exec node dist/index.js

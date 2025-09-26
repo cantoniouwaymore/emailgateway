@@ -64,8 +64,13 @@ npm install
 
 # 3. Setup and start
 ./setup-local.sh
-npm run dev    # Terminal 1
-npm run worker # Terminal 2
+
+# Option A: Start both services together (recommended)
+npm run dev:all
+
+# Option B: Start services separately
+npm run dev:api    # Terminal 1 (API on port 3000)
+npm run dev:worker # Terminal 2 (Worker on port 3001)
 
 # 4. Test it works
 node test-api.js
@@ -74,15 +79,14 @@ node test-api.js
 ### 🐳 Docker Setup (Alternative)
 
 ```bash
-# Start all services with Docker
+# Start all services with Docker (API + Worker + Database + Redis)
 docker-compose up -d
 
 # Run migrations
 npm run migrate
 
-# Start the application
-npm run dev
-npm run worker
+# Start the application (both API and Worker)
+npm run dev:all
 ```
 
 ### 📋 Manual Setup
@@ -539,7 +543,11 @@ npm run dev:worker   # Development worker only
 npm run build        # Build TypeScript to JavaScript
 npm run start:api    # Start production API server
 npm run start:worker # Start production worker
+npm run start:cleanup # Start production cleanup worker
 npm run worker       # Run worker in development mode
+npm run cleanup      # Run cleanup worker in development mode
+npm run cleanup:once # Run one-time cleanup
+npm run cleanup:dry-run # Run cleanup dry run (preview)
 npm run migrate      # Run database migrations
 npm run generate     # Generate Prisma client
 npm run lint         # Run ESLint
@@ -557,6 +565,7 @@ npm run type-check   # TypeScript type checking
 ### 🔧 Integration Guides
 - **[Routee Integration](docs/ROUTEE_INTEGRATION.md)** - Routee email provider setup and webhook configuration
 - **[Universal Template Guide](docs/UNIVERSAL_TEMPLATE_GUIDE.md)** - Template system documentation
+- **[Database Cleanup](docs/CLEANUP.md)** - Automatic data cleanup system for maintaining performance
 
 ### 📦 Package Documentation
 - **[Single-Email Package](Single-Email%20package%20notifications/README.md)** - Enhanced notification templates with Routee integration

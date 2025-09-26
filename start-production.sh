@@ -1,35 +1,28 @@
 #!/bin/sh
 
-# Development startup script for Waymore Transactional Emails Service
+# Production startup script for Waymore Transactional Emails Service
 # This script starts both the API server and worker with proper port separation
 
-echo "🚀 Starting Waymore Transactional Emails Service in Development Mode..."
+echo "🚀 Starting Waymore Transactional Emails Service in Production Mode..."
 
-# Check if required services are running
-echo "Checking dependencies..."
+# Wait for database to be ready
+echo "Waiting for database to be ready..."
+until npx prisma db push --accept-data-loss; do
+  echo "Database is unavailable - sleeping"
+  sleep 2
+done
 
-# Check if Redis is running
-if ! redis-cli ping > /dev/null 2>&1; then
-    echo "❌ Redis is not running. Please start Redis first."
-    echo "   You can start it with: redis-server"
-    exit 1
-fi
-
-# Check if PostgreSQL is running (if using local DB)
-if ! pg_isready > /dev/null 2>&1; then
-    echo "⚠️  PostgreSQL is not running. Make sure your database is accessible."
-fi
-
-echo "✅ Dependencies checked"
+echo "Database is ready - running migrations..."
+npx prisma migrate deploy
 
 # Start API server in background
 echo "🌐 Starting API server on port 3000..."
-PORT=3000 npm run dev:api &
+PORT=3000 npm run start:api &
 API_PID=$!
 
-# Start worker in background  
+# Start worker in background
 echo "⚙️  Starting email worker on port 3001..."
-PORT=3001 npm run dev:worker &
+PORT=3001 npm run start:worker &
 WORKER_PID=$!
 
 # Function to handle cleanup on exit
