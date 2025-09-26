@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Email Gateway Local Development Setup"
+echo "🚀 Waymore Transactional Emails Service Local Development Setup"
 echo "========================================"
 
 # Check if .env exists

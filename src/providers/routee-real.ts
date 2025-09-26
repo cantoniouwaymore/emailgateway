@@ -153,7 +153,7 @@ export class RouteeEmailProvider implements EmailProvider {
         },
         ttl: 4320, // 3 days default (30-4320 minutes) - matching working example
         maxAttempts: 10, // matching working example
-        label: request.metadata?.tenantId as string || 'email-gateway'
+        label: request.metadata?.tenantId as string || 'waymore-transactional-emails-service'
       };
 
       // Add optional fields if present

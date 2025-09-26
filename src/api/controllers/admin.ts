@@ -93,7 +93,25 @@ export class AdminController {
       const { messageId } = request.params;
       
       const message = await prisma.message.findUnique({
-        where: { messageId }
+        where: { messageId },
+        select: {
+          messageId: true,
+          tenantId: true,
+          toJson: true,
+          subject: true,
+          templateKey: true,
+          locale: true,
+          variablesJson: true,
+          provider: true,
+          providerMessageId: true,
+          status: true,
+          attempts: true,
+          lastError: true,
+          failureReason: true,
+          webhookUrl: true,
+          createdAt: true,
+          updatedAt: true
+        }
       });
 
       const providerEvents = await prisma.providerEvent.findMany({
@@ -125,7 +143,7 @@ export class AdminController {
       // Get detailed service health
       const serviceHealth = await this.getDetailedServiceHealth();
 
-      // Get recent messages
+      // Get recent messages with latest webhook events
       const recentMessages = await prisma.message.findMany({
         orderBy: { createdAt: 'desc' },
         take: 20,
@@ -134,6 +152,7 @@ export class AdminController {
           status: true,
           attempts: true,
           lastError: true,
+          failureReason: true,
           createdAt: true,
           updatedAt: true,
           provider: true,
@@ -142,6 +161,26 @@ export class AdminController {
           subject: true
         }
       });
+
+      // Get latest webhook event for each message
+      const messagesWithLatestEvents = await Promise.all(
+        recentMessages.map(async (message) => {
+          const latestEvent = await prisma.providerEvent.findFirst({
+            where: { messageId: message.messageId },
+            orderBy: { createdAt: 'desc' },
+            select: {
+              eventType: true,
+              createdAt: true,
+              rawJson: true
+            }
+          });
+
+          return {
+            ...message,
+            latestWebhookEvent: latestEvent
+          };
+        })
+      );
 
       // Get statistics
       const stats = await prisma.message.groupBy({
@@ -159,13 +198,14 @@ export class AdminController {
       // Get recent webhook events
       const recentWebhookEvents = await prisma.providerEvent.findMany({
         orderBy: { createdAt: 'desc' },
-        take: 10,
+        take: 20,
         select: {
           id: true,
           messageId: true,
           eventType: true,
           provider: true,
-          createdAt: true
+          createdAt: true,
+          rawJson: true
         }
       });
 
@@ -173,7 +213,7 @@ export class AdminController {
         health,
         serviceHealth,
         systemMetrics,
-        recentMessages,
+        recentMessages: messagesWithLatestEvents,
         stats,
         queueDepth,
         recentWebhookEvents,
@@ -439,7 +479,7 @@ export class AdminController {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Email Gateway Admin</title>
+    <title>Waymore Transactional Emails Service Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -459,7 +499,7 @@ export class AdminController {
                 <div class="flex items-center">
                     <h1 class="text-xl font-bold text-gray-900">
                         <i class="fas fa-envelope mr-2"></i>
-                        Email Gateway Admin
+                        Waymore Transactional Emails Service Admin
                     </h1>
                 </div>
                 <div class="flex items-center space-x-4">
@@ -475,7 +515,7 @@ export class AdminController {
     <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <!-- Header -->
         <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900">Email Gateway Dashboard</h1>
+            <h1 class="text-3xl font-bold text-gray-900">Waymore Transactional Emails Service Dashboard</h1>
             <p class="mt-2 text-gray-600">Monitor email delivery status and system health</p>
         </div>
 
@@ -862,7 +902,7 @@ export class AdminController {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Message Details - Email Gateway Admin</title>
+    <title>Message Details - Waymore Transactional Emails Service Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -881,7 +921,7 @@ export class AdminController {
                 <div class="flex items-center">
                     <h1 class="text-xl font-bold text-gray-900">
                         <i class="fas fa-envelope mr-2"></i>
-                        Email Gateway Admin
+                        Waymore Transactional Emails Service Admin
                     </h1>
                 </div>
                 <div class="flex items-center space-x-4">
@@ -979,18 +1019,30 @@ export class AdminController {
 </html>`;
   }
 
-  private getRecipientEmail(toJson: string): string {
+  private getRecipientEmail(toJson: any): string {
     try {
-      const recipients = JSON.parse(toJson);
+      // Handle both string and object formats
+      const recipients = typeof toJson === 'string' ? JSON.parse(toJson) : toJson;
+      
+      if (!recipients || !Array.isArray(recipients)) {
+        return 'N/A';
+      }
+      
       return recipients[0]?.email || 'N/A';
     } catch {
       return 'N/A';
     }
   }
 
-  private getRecipientsList(toJson: string): string {
+  private getRecipientsList(toJson: any): string {
     try {
-      const recipients = JSON.parse(toJson);
+      // Handle both string and object formats
+      const recipients = typeof toJson === 'string' ? JSON.parse(toJson) : toJson;
+      
+      if (!recipients || !Array.isArray(recipients)) {
+        return 'N/A';
+      }
+      
       return recipients.map((r: Recipient) => `
         <div class="mb-1">
           <span class="font-medium">${r.email}</span>

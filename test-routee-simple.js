@@ -162,7 +162,7 @@ async function main() {
       console.log('✅ Sender verification: Working');
       console.log('✅ Template rendering: Working');
       console.log('✅ Queue processing: Working');
-      console.log('\n🎯 Your Email Gateway is production-ready!');
+      console.log('\n🎯 Your Waymore Transactional Emails Service is production-ready!');
     } else {
       console.log('⚠️  Routee integration has issues:');
       console.log('✅ Authentication: Working');

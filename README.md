@@ -1,4 +1,4 @@
-# 📧 Email Gateway Microservice
+# 📧 Waymore Transactional Emails Service
 
 > A production-ready, stateless HTTP → Email dispatcher with templating, queueing, provider adapters, idempotency, and delivery tracking for the Waymore platform.
 
@@ -131,7 +131,7 @@ npm run worker
 
 ## 🎨 Universal Template Features
 
-The Email Gateway now features a powerful universal template with advanced capabilities:
+The Waymore Transactional Emails Service now features a powerful universal template with advanced capabilities:
 
 ### ✨ Template Capabilities
 
@@ -424,7 +424,7 @@ Access the admin dashboard at `http://localhost:3000/admin` for:
 ## 🔗 Webhook Integration
 
 ### Real-time Status Updates
-The email gateway receives webhook events from email providers:
+The Waymore Transactional Emails Service receives webhook events from email providers:
 
 - **Routee Webhook** - `/webhooks/routee`
 - **Status Mapping** - Automatic status updates (delivered, bounced, failed)
@@ -489,7 +489,7 @@ npm run dev:api
 PORT=3001 npm run dev:worker
 ```
 
-**⚠️ IMPORTANT**: The Email Gateway requires **BOTH processes** to function:
+**⚠️ IMPORTANT**: The Waymore Transactional Emails Service requires **BOTH processes** to function:
 - **API Server** (port 3000): Handles HTTP requests and queues emails
 - **Worker Process** (port 3001): Processes queued emails and sends them
 

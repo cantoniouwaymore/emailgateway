@@ -83,7 +83,7 @@ async function buildServer() {
 
     fastify.get('/', async (request, reply) => {
       return {
-        service: 'Email Gateway API',
+        service: 'Waymore Transactional Emails Service API',
         version: '1.0.0',
         status: 'running',
         endpoints: {
@@ -118,7 +118,7 @@ async function start() {
       port: PORT,
       host: HOST,
       environment: NODE_ENV
-    }, 'Email Gateway API server started');
+    }, 'Waymore Transactional Emails Service API server started');
 
     // Graceful shutdown
     const gracefulShutdown = async (signal: string) => {

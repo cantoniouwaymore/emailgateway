@@ -1,9 +1,9 @@
 #!/bin/sh
 
-# Production startup script for Email Gateway Worker Service
+# Production startup script for Waymore Transactional Emails Service Worker
 # This script runs the email worker
 
-echo "🚀 Starting Email Gateway Worker..."
+echo "🚀 Starting Waymore Transactional Emails Service Worker..."
 
 # Wait for database to be ready
 echo "Waiting for database to be ready..."

@@ -12,7 +12,7 @@ async function start() {
     // Start the email worker
     const worker = new EmailWorker();
     
-    logger.info('Email Gateway Worker started');
+    logger.info('Waymore Transactional Emails Service Worker started');
 
     // Graceful shutdown
     const gracefulShutdown = async (signal: string) => {

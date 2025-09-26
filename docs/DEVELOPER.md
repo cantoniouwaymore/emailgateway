@@ -1,4 +1,4 @@
-# Email Gateway - Developer Documentation
+# Waymore Transactional Emails Service - Developer Documentation
 
 ## Table of Contents
 1. [Architecture Overview](#architecture-overview)
@@ -15,7 +15,7 @@
 
 ## Architecture Overview
 
-The Email Gateway is a stateless microservice that provides a standardized interface for sending emails across the Waymore platform. It follows a clean architecture pattern with clear separation of concerns.
+The Waymore Transactional Emails Service is a stateless microservice that provides a standardized interface for sending emails across the Waymore platform. It follows a clean architecture pattern with clear separation of concerns.
 
 ### Core Components
 

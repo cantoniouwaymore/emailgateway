@@ -1,8 +1,8 @@
-# Email Gateway API Reference
+# Waymore Transactional Emails Service API Reference
 
 ## Overview
 
-The Email Gateway API provides a standardized interface for sending emails through the Waymore platform. All endpoints require JWT authentication and follow RESTful conventions.
+The Waymore Transactional Emails Service API provides a standardized interface for sending emails through the Waymore platform. All endpoints require JWT authentication and follow RESTful conventions.
 
 **Base URL**: `https://api.waymore.io/email-gateway`  
 **Version**: `v1`  

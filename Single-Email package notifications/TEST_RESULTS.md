@@ -114,7 +114,7 @@
 ## 🔍 Test Environment
 
 ### 🛠️ Services Running
-- ✅ **Email Gateway API**: Port 3000
+- ✅ **Waymore Transactional Emails Service API**: Port 3000
 - ✅ **Worker Process**: Background processing
 - ✅ **ngrok Tunnel**: Public webhook access
 - ✅ **Database**: PostgreSQL with Prisma

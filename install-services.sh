@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "📦 Installing Required Services for Email Gateway"
+echo "📦 Installing Required Services for Waymore Transactional Emails Service"
 echo "================================================"
 
 # Check if Homebrew is installed

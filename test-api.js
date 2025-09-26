@@ -3,7 +3,7 @@
 const http = require('http');
 
 async function testAPI() {
-  console.log('🧪 Testing Email Gateway API...\n');
+  console.log('🧪 Testing Waymore Transactional Emails Service API...\n');
 
   // Test 1: Get test token
   console.log('1️⃣ Getting test token...');
@@ -63,7 +63,7 @@ async function testAPI() {
     const healthResult = JSON.parse(healthResponse);
     console.log('✅ Health check:', healthResult.status);
 
-    console.log('\n🎉 All tests passed! Email Gateway is working correctly.');
+    console.log('\n🎉 All tests passed! Waymore Transactional Emails Service is working correctly.');
 
   } catch (error) {
     console.error('❌ Test failed:', error.message);

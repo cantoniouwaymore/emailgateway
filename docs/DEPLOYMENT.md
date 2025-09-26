@@ -1,8 +1,8 @@
-# Email Gateway Deployment Guide
+# Waymore Transactional Emails Service Deployment Guide
 
 ## Overview
 
-This guide covers deploying the Email Gateway microservice in various environments, from local development to production Kubernetes clusters.
+This guide covers deploying the Waymore Transactional Emails Service microservice in various environments, from local development to production Kubernetes clusters.
 
 ## Prerequisites
 

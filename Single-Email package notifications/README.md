@@ -72,7 +72,7 @@ This package contains 11 comprehensive email notification templates that showcas
 
 ### Prerequisites
 
-Before sending emails, ensure your email gateway is configured with Routee:
+Before sending emails, ensure your Waymore Transactional Emails Service is configured with Routee:
 
 1. **Set up Routee credentials** in your `.env` file:
    ```bash
@@ -87,7 +87,7 @@ Before sending emails, ensure your email gateway is configured with Routee:
    WEBHOOK_BASE_URL="https://your-ngrok-url.ngrok.io"
    ```
 
-3. **Start your email gateway**:
+3. **Start your Waymore Transactional Emails Service**:
    ```bash
    # Terminal 1 - API Server
    npm run dev:api
@@ -150,7 +150,7 @@ node monitor-callbacks.js
 ```
 
 This script will:
-- ✅ Check email gateway health
+- ✅ Check Waymore Transactional Emails Service health
 - ✅ Verify ngrok tunnel status
 - ✅ Monitor webhook callbacks from Routee
 - ✅ Display callback events with timestamps
@@ -253,7 +253,7 @@ To use a specific language, set the `locale` in the template:
 
 ### Webhook Setup for Development
 
-The email gateway is configured with comprehensive Routee callback support:
+The Waymore Transactional Emails Service is configured with comprehensive Routee callback support:
 
 ```typescript
 {

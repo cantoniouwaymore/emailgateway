@@ -1,6 +1,6 @@
-# 📚 Email Gateway Documentation
+# 📚 Waymore Transactional Emails Service Documentation
 
-Welcome to the Email Gateway documentation! This guide provides comprehensive information about the email microservice architecture, API usage, and integration guides.
+Welcome to the Waymore Transactional Emails Service documentation! This guide provides comprehensive information about the email microservice architecture, API usage, and integration guides.
 
 ## 📖 Documentation Structure
 

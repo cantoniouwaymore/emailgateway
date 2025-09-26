@@ -20,7 +20,7 @@ const isWorkerMode =
   process.env.RAILWAY_START_COMMAND === 'npm run worker';
 
 if (isWorkerMode) {
-  console.log('🚀 Starting Email Gateway Worker...');
+  console.log('🚀 Starting Waymore Transactional Emails Service Worker...');
   
   // Start the worker
   const workerPath = join(__dirname, 'queue', 'worker.js');
@@ -40,7 +40,7 @@ if (isWorkerMode) {
   });
   
 } else {
-  console.log('🌐 Starting Email Gateway API Server...');
+  console.log('🌐 Starting Waymore Transactional Emails Service API Server...');
   
   // Start the API server
   const serverPath = join(__dirname, 'index.js');

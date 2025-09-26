@@ -1,7 +1,7 @@
 /**
- * Email Gateway API Usage Examples
+ * Waymore Transactional Emails Service API Usage Examples
  * 
- * This file demonstrates how to use the Email Gateway API programmatically.
+ * This file demonstrates how to use the Waymore Transactional Emails Service API programmatically.
  * Copy and modify these examples for your application.
  */
 

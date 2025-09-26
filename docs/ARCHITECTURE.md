@@ -1,8 +1,8 @@
-# Email Gateway Architecture
+# Waymore Transactional Emails Service Architecture
 
 ## System Overview
 
-The Email Gateway is a stateless microservice designed to provide a standardized, reliable interface for sending emails across the Waymore platform. It follows clean architecture principles with clear separation of concerns and high testability.
+The Waymore Transactional Emails Service is a stateless microservice designed to provide a standardized, reliable interface for sending emails across the Waymore platform. It follows clean architecture principles with clear separation of concerns and high testability.
 
 ## Architecture Principles
 

@@ -18,7 +18,7 @@ if (process.env.RAILWAY_SERVICE_NAME === 'email-gateway-worker') {
 }
 
 if (isWorkerMode) {
-  console.log('🚀 Starting Email Gateway Worker...');
+  console.log('🚀 Starting Waymore Transactional Emails Service Worker...');
   
   // Import and start the worker
   import('./queue/worker').then(() => {
@@ -28,7 +28,7 @@ if (isWorkerMode) {
     process.exit(1);
   });
 } else {
-  console.log('🌐 Starting Email Gateway API Server...');
+  console.log('🌐 Starting Waymore Transactional Emails Service API Server...');
 }
 
 import Fastify from 'fastify';
@@ -114,7 +114,7 @@ async function buildServer() {
 
     fastify.get('/', async (request, reply) => {
       return {
-        service: 'Email Gateway',
+        service: 'Waymore Transactional Emails Service',
         version: '1.0.0',
         status: 'running',
         endpoints: {
@@ -149,7 +149,7 @@ async function start() {
       port: PORT,
       host: HOST,
       environment: NODE_ENV
-    }, 'Email Gateway server started');
+    }, 'Waymore Transactional Emails Service server started');
 
     // Graceful shutdown
     const gracefulShutdown = async (signal: string) => {

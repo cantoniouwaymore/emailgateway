@@ -1,9 +1,9 @@
 #!/bin/sh
 
-# Production startup script for Email Gateway API Service
+# Production startup script for Waymore Transactional Emails Service API
 # This script runs the web server
 
-echo "🚀 Starting Email Gateway API Server..."
+echo "🚀 Starting Waymore Transactional Emails Service API Server..."
 
 # Wait for database to be ready
 echo "Waiting for database to be ready..."

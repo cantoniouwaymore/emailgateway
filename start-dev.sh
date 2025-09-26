@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Email Gateway Development Startup Script
+# Waymore Transactional Emails Service Development Startup Script
 # This script starts both the API server and worker process
 
-echo "🚀 Starting Email Gateway Development Environment..."
+echo "🚀 Starting Waymore Transactional Emails Service Development Environment..."
 
 # Check if required services are running
 echo "📋 Checking prerequisites..."
@@ -40,7 +40,7 @@ PORT=3001 npm run dev:worker &
 WORKER_PID=$!
 
 echo ""
-echo "🎉 Email Gateway is starting up!"
+echo "🎉 Waymore Transactional Emails Service is starting up!"
 echo ""
 echo "📊 Services:"
 echo "   API Server:  http://localhost:3000"
@@ -57,7 +57,7 @@ echo "   Worker PID: $WORKER_PID"
 echo ""
 echo "🛑 To stop both processes:"
 echo "   kill $API_PID $WORKER_PID"
-echo "   or: pkill -f 'tsx.*emailgateway'"
+echo "   or: pkill -f 'tsx.*waymore-transactional-emails-service'"
 echo ""
 
 # Wait for both processes

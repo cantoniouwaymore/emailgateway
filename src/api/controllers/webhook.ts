@@ -250,10 +250,17 @@ export class WebhookController {
     // Update message status based on status name
     const newStatus = this.mapStatusNameToStatus(status.name);
     if (newStatus) {
+      // Determine failure reason for bounced/failed messages
+      let failureReason = null;
+      if (newStatus === MessageStatus.BOUNCED || newStatus === MessageStatus.FAILED) {
+        failureReason = this.getFailureReason(status.name, payload);
+      }
+
       await prisma.message.update({
         where: { messageId: message.messageId },
         data: {
           status: newStatus,
+          failureReason: failureReason,
           updatedAt: new Date()
         }
       });
@@ -282,8 +289,8 @@ export class WebhookController {
       
       // Success states
       'delivered': MessageStatus.DELIVERED,
-      'opened': MessageStatus.DELIVERED, // Opened is still delivered status
-      'clicked': MessageStatus.DELIVERED, // Clicked is still delivered status
+      'opened': MessageStatus.OPENED, // Specific status for opened emails
+      'clicked': MessageStatus.CLICKED, // Specific status for clicked emails
       
       // Failure states
       'bounced': MessageStatus.BOUNCED,
@@ -302,6 +309,30 @@ export class WebhookController {
     };
 
     return statusMap[statusName] || null;
+  }
+
+  private getFailureReason(statusName: string, payload: any): string {
+    // Map specific failure reasons based on status and payload
+    const failureReasons: Record<string, string> = {
+      'bounced': 'Email bounced - recipient mailbox does not exist or is full',
+      'undelivered': 'Email undelivered - temporary delivery failure',
+      'differed': 'Email deferred - delivery delayed by recipient server',
+      'bounce': 'Email bounced - permanent delivery failure',
+      'failed': 'Email failed - delivery attempt failed',
+      'dropped': 'Email dropped - rejected by recipient server',
+      'reject': 'Email rejected - recipient server rejected the message',
+      'spam': 'Email marked as spam - recipient server flagged as spam'
+    };
+
+    // Get base reason from status name
+    let reason = failureReasons[statusName] || `Email ${statusName} - delivery failure`;
+
+    // Add additional context from payload if available
+    if (payload.status && payload.status.id) {
+      reason += ` (Status ID: ${payload.status.id})`;
+    }
+
+    return reason;
   }
 
   private async notifyClientWebhook(message: any, payload: { trackingId: string; status: { name: string; id?: number; dateTime?: number; final?: boolean; delivered?: boolean } }, newStatus: MessageStatus): Promise<void> {
@@ -326,7 +357,7 @@ export class WebhookController {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'User-Agent': 'EmailGateway/1.0'
+          'User-Agent': 'WaymoreTransactionalEmailsService/1.0'
         },
         body: JSON.stringify(webhookPayload),
         // timeout: 10000 // 10 second timeout - removed due to TypeScript error

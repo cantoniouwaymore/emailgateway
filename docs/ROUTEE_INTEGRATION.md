@@ -2,7 +2,7 @@
 
 ## 🎯 Overview
 
-The Email Gateway provides comprehensive integration with Routee's email service, including real-time webhook callbacks for delivery tracking and user engagement analytics.
+The Waymore Transactional Emails Service provides comprehensive integration with Routee's email service, including real-time webhook callbacks for delivery tracking and user engagement analytics.
 
 ## 🔧 Configuration
 

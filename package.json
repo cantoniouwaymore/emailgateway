@@ -1,7 +1,7 @@
 {
-  "name": "email-gateway",
+  "name": "waymore-transactional-emails-service",
   "version": "1.0.0",
-  "description": "Email Gateway Microservice - Stateless HTTP → Email dispatcher with templating, queueing, provider adapters, idempotency, and delivery tracking",
+  "description": "Waymore Transactional Emails Service - Stateless HTTP → Email dispatcher with templating, queueing, provider adapters, idempotency, and delivery tracking",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",

@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import { FastifyRequest } from 'fastify';
 
 const JWT_SECRET = process.env['JWT_SECRET'] || 'default-secret';
-const JWT_ISSUER = process.env['JWT_ISSUER'] || 'email-gateway';
+const JWT_ISSUER = process.env['JWT_ISSUER'] || 'waymore-transactional-emails-service';
 const JWT_AUDIENCE = process.env['JWT_AUDIENCE'] || 'waymore-platform';
 
 export interface JWTPayload {

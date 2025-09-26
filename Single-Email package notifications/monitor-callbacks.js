@@ -43,14 +43,14 @@ async function checkWebhookEndpoint() {
     const health = await response.json();
     
     if (health.checks?.providers?.status === 'ok') {
-      log('✅ Email Gateway is running and healthy', 'green');
+      log('✅ Waymore Transactional Emails Service is running and healthy', 'green');
       return true;
     } else {
-      log('❌ Email Gateway is not healthy', 'red');
+      log('❌ Waymore Transactional Emails Service is not healthy', 'red');
       return false;
     }
   } catch (error) {
-    log('❌ Cannot connect to Email Gateway', 'red');
+    log('❌ Cannot connect to Waymore Transactional Emails Service', 'red');
     log(`   Make sure the API server is running on port 3000`, 'yellow');
     return false;
   }

@@ -60,7 +60,7 @@ async function start() {
       }, 'Email job completed in worker');
     });
 
-    logger.info('Email Gateway Worker started');
+    logger.info('Waymore Transactional Emails Service Worker started');
 
     // Graceful shutdown
     const gracefulShutdown = async (signal: string) => {
