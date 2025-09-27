@@ -1,10 +1,10 @@
 # 📧 Single-Email Package Notifications
 
-> Enhanced email notification templates using the universal template system with advanced features.
+> Enhanced email notification templates using the transactional template system with advanced features.
 
 ## 🎯 Overview
 
-This package contains 11 comprehensive email notification templates that showcase the full capabilities of the enhanced universal template system. Each template demonstrates different use cases and features.
+This package contains 11 comprehensive email notification templates that showcase the full capabilities of the enhanced transactional template system. Each template demonstrates different use cases and features.
 
 ## ✨ Enhanced Features Used
 
@@ -25,17 +25,17 @@ This package contains 11 comprehensive email notification templates that showcas
 
 | File | Notification Type | Theme Color | Features |
 |------|------------------|-------------|----------|
-| `test-universal-enhanced-downgrade-confirmation.json` | Plan Downgrade | Red | Multi-button, Facts table, Warning theme |
-| `test-universal-enhanced-payment-failure-attempt-1.json` | Payment Failure (1st) | Yellow | Multi-button, Facts table, Warning theme |
-| `test-universal-enhanced-payment-failure-final.json` | Payment Failure (Final) | Red | Multi-button, Facts table, Urgent theme |
-| `test-universal-enhanced-payment-success.json` | Payment Success | Green | Multi-button, Facts table, Success theme |
-| `test-universal-enhanced-renewal-1-day.json` | Renewal Reminder (1 day) | Yellow | Multi-button, Facts table, Warning theme |
-| `test-universal-enhanced-renewal-7.json` | Renewal Reminder (7 days) | Blue | Multi-button, Facts table, Info theme |
-| `test-universal-enhanced-renewal-confirmation.json` | Renewal Confirmation | Green | Multi-button, Facts table, Success theme |
-| `test-universal-enhanced-upgrade-confirmation.json` | Plan Upgrade | Green | Multi-button, Facts table, Success theme |
-| `test-universal-enhanced-usage-80.json` | Usage Warning (80%) | Yellow | Multi-button, Facts table, Warning theme |
-| `test-universal-enhanced-usage-100.json` | Usage Limit Reached | Red | Multi-button, Facts table, Urgent theme |
-| `test-universal-enhanced-welcome.json` | Welcome | Blue | Multi-button, Facts table, All social links |
+| `test-transactional-enhanced-downgrade-confirmation.json` | Plan Downgrade | Red | Multi-button, Facts table, Warning theme |
+| `test-transactional-enhanced-payment-failure-attempt-1.json` | Payment Failure (1st) | Yellow | Multi-button, Facts table, Warning theme |
+| `test-transactional-enhanced-payment-failure-final.json` | Payment Failure (Final) | Red | Multi-button, Facts table, Urgent theme |
+| `test-transactional-enhanced-payment-success.json` | Payment Success | Green | Multi-button, Facts table, Success theme |
+| `test-transactional-enhanced-renewal-1-day.json` | Renewal Reminder (1 day) | Yellow | Multi-button, Facts table, Warning theme |
+| `test-transactional-enhanced-renewal-7.json` | Renewal Reminder (7 days) | Blue | Multi-button, Facts table, Info theme |
+| `test-transactional-enhanced-renewal-confirmation.json` | Renewal Confirmation | Green | Multi-button, Facts table, Success theme |
+| `test-transactional-enhanced-upgrade-confirmation.json` | Plan Upgrade | Green | Multi-button, Facts table, Success theme |
+| `test-transactional-enhanced-usage-80.json` | Usage Warning (80%) | Yellow | Multi-button, Facts table, Warning theme |
+| `test-transactional-enhanced-usage-100.json` | Usage Limit Reached | Red | Multi-button, Facts table, Urgent theme |
+| `test-transactional-enhanced-welcome.json` | Welcome | Blue | Multi-button, Facts table, All social links |
 
 ## 🛠️ Utility Scripts
 
@@ -102,7 +102,7 @@ curl -X POST http://localhost:3000/api/v1/emails \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: welcome-$(date +%s)" \
-  -d @test-universal-enhanced-welcome.json
+  -d @test-transactional-enhanced-welcome.json
 ```
 
 ### Send a Payment Success Email
@@ -111,7 +111,7 @@ curl -X POST http://localhost:3000/api/v1/emails \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: payment-success-$(date +%s)" \
-  -d @test-universal-enhanced-payment-success.json
+  -d @test-transactional-enhanced-payment-success.json
 ```
 
 ### Send All Notifications
@@ -120,7 +120,7 @@ curl -X POST http://localhost:3000/api/v1/emails \
 TOKEN=$(curl -s http://localhost:3000/test-token | jq -r '.token')
 
 # Send all notifications
-for file in test-universal-enhanced-*.json; do
+for file in test-transactional-enhanced-*.json; do
   echo "Sending $file..."
   curl -X POST http://localhost:3000/api/v1/emails \
     -H "Authorization: Bearer $TOKEN" \
@@ -223,7 +223,7 @@ To use a specific language, set the `locale` in the template:
 ```json
 {
   "template": {
-    "key": "universal",
+    "key": "transactional",
     "locale": "es"
   }
 }
@@ -318,7 +318,7 @@ The Waymore Transactional Emails Service is configured with comprehensive Routee
 
 ### Common Issues
 
-1. **Template Not Found**: Ensure template key is "universal"
+1. **Template Not Found**: Ensure template key is "transactional"
 2. **Images Not Loading**: Use PNG/JPG format, avoid SVG
 3. **Buttons Not Side-by-Side**: Ensure both cta_primary and cta_secondary are provided
 4. **Theme Not Applying**: Check theme object structure and color values

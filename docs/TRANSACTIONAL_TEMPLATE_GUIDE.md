@@ -1,6 +1,6 @@
-# 🎨 Universal Template Guide
+# 🎨 Transactional Template Guide
 
-> Complete guide to the enhanced universal email template with advanced features, customization options, and best practices.
+> Complete guide to the enhanced transactional email template with advanced features, customization options, and best practices.
 
 ## 📋 Table of Contents
 
@@ -15,7 +15,7 @@
 
 ## 🎯 Overview
 
-The Universal Template is a powerful, feature-rich email template built with MJML and Handlebars. It provides:
+The Transactional Template is a powerful, feature-rich email template built with MJML and Handlebars. It provides:
 
 - **Responsive Design**: Works across all email clients and devices
 - **Dynamic Content**: Support for custom HTML content and multi-language
@@ -92,6 +92,14 @@ The Universal Template is a powerful, feature-rich email template built with MJM
 | Variable | Type | Required | Description | Example |
 |----------|------|----------|-------------|---------|
 | `theme` | object | ❌ | Complete theme customization | See [Theme Object](#theme-object) |
+
+### 🦶 Footer Variables
+
+| Variable | Type | Required | Description | Example |
+|----------|------|----------|-------------|---------|
+| `footer_text` | string | ❌ | Custom footer text (HTML supported) | `"Questions? Contact us at <a href='mailto:support@example.com'>support@example.com</a>"` |
+| `footer_links` | array | ❌ | Footer links (privacy, terms, unsubscribe) | See [Footer Links Array](#footer-links-array) |
+| `copyright_text` | string | ❌ | Custom copyright text (HTML supported) | `"© 2024 My Company. All rights reserved."` |
 
 ## 🎨 Theme Customization
 
@@ -187,7 +195,7 @@ The template automatically selects content based on the `locale` parameter:
 ```json
 {
   "template": {
-    "key": "universal",
+    "key": "transactional",
     "locale": "es"
   },
   "variables": {
@@ -262,6 +270,31 @@ Add social media links to the email footer:
 
 **Supported Platforms**: `twitter`, `linkedin`, `github`, `facebook`, `instagram`
 
+### Footer Links Array
+
+Add footer links for privacy policy, terms of service, and unsubscribe:
+
+```json
+{
+  "footer_links": [
+    {
+      "label": "Privacy Policy",
+      "url": "https://example.com/privacy"
+    },
+    {
+      "label": "Terms of Service",
+      "url": "https://example.com/terms"
+    },
+    {
+      "label": "Unsubscribe",
+      "url": "https://example.com/unsubscribe?token=abc123"
+    }
+  ]
+}
+```
+
+**Note**: Footer links are displayed horizontally with bullet separators (•) between them.
+
 ## 💡 Examples
 
 ### Basic Welcome Email
@@ -271,7 +304,7 @@ Add social media links to the email footer:
   "to": [{"email": "user@example.com", "name": "John Doe"}],
   "from": {"email": "no-reply@waymore.io", "name": "Waymore"},
   "subject": "Welcome to Waymore!",
-  "template": {"key": "universal", "locale": "en"},
+  "template": {"key": "transactional", "locale": "en"},
   "variables": {
     "workspace_name": "Waymore",
     "user_firstname": "John",
@@ -291,7 +324,7 @@ Add social media links to the email footer:
 
 ```json
 {
-  "template": {"key": "universal", "locale": "en"},
+  "template": {"key": "transactional", "locale": "en"},
   "variables": {
     "workspace_name": "Waymore",
     "user_firstname": "John",
@@ -315,7 +348,7 @@ Add social media links to the email footer:
 
 ```json
 {
-  "template": {"key": "universal", "locale": "en"},
+  "template": {"key": "transactional", "locale": "en"},
   "variables": {
     "workspace_name": "Waymore",
     "user_firstname": "John",
@@ -343,7 +376,7 @@ Add social media links to the email footer:
 
 ```json
 {
-  "template": {"key": "universal", "locale": "es"},
+  "template": {"key": "transactional", "locale": "es"},
   "variables": {
     "workspace_name": "Waymore",
     "user_firstname": "Juan",
@@ -367,7 +400,7 @@ Add social media links to the email footer:
 
 ```json
 {
-  "template": {"key": "universal", "locale": "en"},
+  "template": {"key": "transactional", "locale": "en"},
   "variables": {
     "workspace_name": "Waymore",
     "user_firstname": "John",
@@ -384,6 +417,29 @@ Add social media links to the email footer:
 }
 ```
 
+### Custom Footer Email
+
+```json
+{
+  "template": {"key": "transactional", "locale": "en"},
+  "variables": {
+    "workspace_name": "Waymore",
+    "user_firstname": "John",
+    "product_name": "Waymore Platform",
+    "support_email": "support@waymore.io",
+    "email_title": "Welcome to Waymore!",
+    "custom_content": "Hello John,<br><br>Welcome to our platform!",
+    "footer_text": "Questions? Contact us at <a href='mailto:support@waymore.io'>support@waymore.io</a> or visit our <a href='https://help.waymore.io'>help center</a>.",
+    "footer_links": [
+      {"label": "Privacy Policy", "url": "https://waymore.io/privacy"},
+      {"label": "Terms of Service", "url": "https://waymore.io/terms"},
+      {"label": "Unsubscribe", "url": "https://waymore.io/unsubscribe?token=abc123"}
+    ],
+    "copyright_text": "© 2024 Waymore Technologies Inc. All rights reserved. | <a href='https://waymore.io'>waymore.io</a>"
+  }
+}
+```
+
 ## 🎯 Best Practices
 
 ### ✅ Do's
@@ -396,6 +452,8 @@ Add social media links to the email footer:
 6. **Use consistent branding**: Apply your brand colors and fonts
 7. **Test multi-language content**: Verify all supported locales
 8. **Provide fallbacks**: Always have fallback content for missing variables
+9. **Include footer links**: Add privacy policy, terms, and unsubscribe links
+10. **Customize footer text**: Use `footer_text` for personalized support information
 
 ### ❌ Don'ts
 
@@ -407,6 +465,8 @@ Add social media links to the email footer:
 6. **Don't use long URLs**: Shorten URLs for better display
 7. **Don't forget mobile**: Test on mobile devices
 8. **Don't use too many social links**: 3-5 links maximum
+9. **Don't forget footer links**: Include unsubscribe and privacy policy links
+10. **Don't use too many footer links**: 3-4 links maximum for better readability
 
 ### 🎨 Design Guidelines
 
@@ -465,6 +525,16 @@ Add social media links to the email footer:
 - Ensure social_links array is properly formatted
 - Test with a single social link first
 
+#### Footer Customization Not Working
+
+**Problem**: Custom footer text or links not displaying
+**Solutions**:
+- Check `footer_text` contains valid HTML
+- Verify `footer_links` array has correct structure with `label` and `url`
+- Ensure `copyright_text` is properly formatted
+- Test with simple footer text first
+- Check that footer variables are properly nested in variables object
+
 ### Debug Steps
 
 1. **Check API Response**: Verify the email was queued successfully
@@ -486,4 +556,4 @@ If you encounter issues:
 ---
 
 **Last Updated**: September 2025  
-**Template Version**: Universal v1.1.0
+**Template Version**: Transactional v1.1.0

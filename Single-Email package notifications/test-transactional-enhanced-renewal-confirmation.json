@@ -11,7 +11,7 @@
   },
   "subject": "Your Pro plan has been renewed for Waymore",
   "template": {
-    "key": "universal",
+    "key": "transactional",
     "locale": "en"
   },
   "variables": {

@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { AdminController } from '../controllers/admin';
+import { AIController } from '../controllers/ai';
 
 // Markdown viewer function
 function generateMarkdownViewer(filename: string, content: string): string {
@@ -16,6 +17,7 @@ function generateMarkdownViewer(filename: string, content: string): string {
     <link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -31,9 +33,26 @@ function generateMarkdownViewer(filename: string, content: string): string {
         }
         
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
+            display: flex;
+            gap: 20px;
+        }
+        
+        .sidebar {
+            width: 280px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 20px;
+            height: fit-content;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+        
+        .main-content {
+            flex: 1;
+            min-width: 0;
         }
         
         .header {
@@ -166,6 +185,70 @@ function generateMarkdownViewer(filename: string, content: string): string {
             border-radius: 4px;
         }
         
+        .markdown-body .mermaid {
+            text-align: center;
+            margin: 2rem 0;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .code-block-wrapper {
+            position: relative;
+            margin: 1.5rem 0;
+        }
+        
+        .code-block-header {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        
+        .code-block-wrapper:hover .code-block-header {
+            opacity: 1;
+        }
+        
+        .copy-button {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+            padding: 6px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .copy-button:hover {
+            background: rgba(255, 255, 255, 1);
+            border-color: rgba(0, 0, 0, 0.2);
+            color: #333;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+        
+        .copy-button.copied {
+            background: rgba(34, 197, 94, 0.1);
+            border-color: rgba(34, 197, 94, 0.3);
+            color: #16a34a;
+        }
+        
+        .copy-button i {
+            font-size: 14px;
+        }
+        
+        .code-block-wrapper pre {
+            margin: 0;
+            border-radius: 6px;
+        }
+        
         .back-button {
             display: inline-flex;
             align-items: center;
@@ -190,41 +273,138 @@ function generateMarkdownViewer(filename: string, content: string): string {
         }
         
         .toc {
-            background: #f8f9fa;
+            background: white;
             border: 1px solid #e9ecef;
-            border-radius: 6px;
+            border-radius: 8px;
             padding: 20px;
-            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
         .toc h3 {
             margin-top: 0;
-            color: #495057;
+            margin-bottom: 16px;
+            color: #2c3e50;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-bottom: 1px solid #e9ecef;
+            padding-bottom: 8px;
         }
         
         .toc ul {
             list-style: none;
             padding-left: 0;
+            margin: 0;
         }
         
         .toc li {
-            margin: 0.5rem 0;
+            margin: 0;
         }
         
         .toc a {
+            display: block;
             color: #6c757d;
             text-decoration: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            transition: all 0.2s ease;
         }
         
         .toc a:hover {
             color: #007bff;
+            background: #f8f9fa;
         }
         
-        @media (max-width: 768px) {
+        .toc a.active {
+            color: #007bff;
+            background: #e3f2fd;
+            font-weight: 500;
+        }
+        
+        .toc .toc-level-1 a {
+            padding-left: 12px;
+            font-weight: 500;
+        }
+        
+        .toc .toc-level-2 a {
+            padding-left: 24px;
+            font-size: 0.85rem;
+        }
+        
+        .toc .toc-level-3 a {
+            padding-left: 36px;
+            font-size: 0.8rem;
+        }
+        
+        .toc .toc-level-4 a {
+            padding-left: 48px;
+            font-size: 0.8rem;
+        }
+        
+        .toc-toggle {
+            background: none;
+            border: none;
+            color: #6c757d;
+            cursor: pointer;
+            padding: 2px 4px;
+            margin-right: 4px;
+            font-size: 0.8rem;
+            transition: transform 0.2s ease;
+        }
+        
+        .toc-toggle:hover {
+            color: #007bff;
+        }
+        
+        .toc-toggle.collapsed {
+            transform: rotate(-90deg);
+        }
+        
+        .toc-section {
+            transition: all 0.3s ease;
+        }
+        
+        .toc-section.collapsed {
+            display: none;
+        }
+        
+        .toc-section-header {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .toc-section-header:hover {
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        
+        .toc-section-header a {
+            flex: 1;
+        }
+        
+        @media (max-width: 1024px) {
             .container {
+                flex-direction: column;
                 padding: 10px;
             }
             
+            .sidebar {
+                width: 100%;
+                position: static;
+                max-height: none;
+                margin-bottom: 20px;
+            }
+            
+            .toc {
+                position: sticky;
+                top: 10px;
+            }
+        }
+        
+        @media (max-width: 768px) {
             .content {
                 padding: 20px;
             }
@@ -232,16 +412,31 @@ function generateMarkdownViewer(filename: string, content: string): string {
             .markdown-body {
                 font-size: 14px;
             }
+            
+            .toc {
+                padding: 15px;
+            }
+            
+            .toc h3 {
+                font-size: 1rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <a href="/admin" class="back-button">
-            <i class="fas fa-arrow-left"></i>
-            Back to Admin Panel
-        </a>
+        <div class="sidebar">
+            <div id="table-of-contents" class="toc">
+                <h3><i class="fas fa-list"></i> Table of Contents</h3>
+                <a href="/admin#documentation" class="back-button" style="margin-bottom: 16px; display: inline-flex; align-items: center; padding: 8px 16px; background: #007bff; color: white; text-decoration: none; border-radius: 6px; font-size: 0.9rem; transition: background 0.2s;">
+                    <i class="fas fa-arrow-left" style="margin-right: 8px;"></i>
+                    Back to Documentation
+                </a>
+                <ul id="toc-list"></ul>
+            </div>
+        </div>
         
+        <div class="main-content">
         <div class="header">
             <h1>${title}</h1>
             <div class="meta">
@@ -252,68 +447,526 @@ function generateMarkdownViewer(filename: string, content: string): string {
         
         <div class="content">
             <div id="markdown-content" class="markdown-body"></div>
+            </div>
         </div>
     </div>
     
     <script>
-        // Configure marked options
-        marked.setOptions({
-            highlight: function(code, lang) {
-                if (lang && hljs.getLanguage(lang)) {
-                    try {
-                        return hljs.highlight(code, { language: lang }).value;
-                    } catch (err) {}
+        // Initialize Mermaid
+        mermaid.initialize({
+            startOnLoad: false,
+            theme: 'default',
+            securityLevel: 'loose',
+            fontFamily: 'inherit'
+        });
+        
+        // Configure marked options with custom renderer for Mermaid
+        const renderer = new marked.Renderer();
+        
+        // Override code block rendering to handle Mermaid and add copy buttons
+        renderer.code = function(code, language) {
+            if (language === 'mermaid') {
+                // Generate unique ID for this diagram
+                const id = 'mermaid-' + Math.random().toString(36).substr(2, 9);
+                return \`<div class="mermaid" id="\${id}">\${code}</div>\`;
+            }
+            
+            // Generate unique ID for copy button
+            const copyId = 'copy-' + Math.random().toString(36).substr(2, 9);
+            const lang = language || 'text';
+            
+            // Default code highlighting for other languages
+            let highlightedCode;
+            if (language && hljs.getLanguage(language)) {
+                try {
+                    highlightedCode = hljs.highlight(code, { language: language }).value;
+                } catch (err) {
+                    highlightedCode = hljs.highlightAuto(code).value;
                 }
-                return hljs.highlightAuto(code).value;
-            },
+            } else {
+                highlightedCode = hljs.highlightAuto(code).value;
+            }
+            
+            return \`
+                <div class="code-block-wrapper">
+                    <div class="code-block-header">
+                        <button class="copy-button" onclick="copyCode('\${copyId}')" data-copy-id="\${copyId}">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    <pre><code class="hljs language-\${lang}" id="\${copyId}">\${highlightedCode}</code></pre>
+                </div>
+            \`;
+        };
+        
+        marked.setOptions({
+            renderer: renderer,
             breaks: true,
             gfm: true
         });
         
         // Render markdown
-        const markdownContent = \`${content.replace(/`/g, '\\`')}\`;
+        const markdownContent = ${JSON.stringify(content)};
         const htmlContent = marked.parse(markdownContent);
         document.getElementById('markdown-content').innerHTML = htmlContent;
+        
+        // Render Mermaid diagrams after markdown is processed
+        mermaid.run();
+        
+        // Copy code functionality
+        window.copyCode = function(copyId) {
+            const codeElement = document.getElementById(copyId);
+            if (!codeElement) return;
+            
+            // Get the raw text content (without HTML tags)
+            const text = codeElement.textContent || codeElement.innerText;
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(text).then(function() {
+                // Find the copy button and update its state
+                const copyButton = document.querySelector(\`[data-copy-id="\${copyId}"]\`);
+                if (copyButton) {
+                    const icon = copyButton.querySelector('i');
+                    
+                    // Update button appearance
+                    copyButton.classList.add('copied');
+                    if (icon) icon.className = 'fas fa-check';
+                    
+                    // Reset after 2 seconds
+                    setTimeout(function() {
+                        copyButton.classList.remove('copied');
+                        if (icon) icon.className = 'fas fa-copy';
+                    }, 2000);
+                }
+            }).catch(function(err) {
+                console.error('Failed to copy text: ', err);
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    // Show success feedback even for fallback
+                    const copyButton = document.querySelector(\`[data-copy-id="\${copyId}"]\`);
+                    if (copyButton) {
+                        const icon = copyButton.querySelector('i');
+                        copyButton.classList.add('copied');
+                        if (icon) icon.className = 'fas fa-check';
+                        setTimeout(function() {
+                            copyButton.classList.remove('copied');
+                            if (icon) icon.className = 'fas fa-copy';
+                        }, 2000);
+                    }
+                } catch (fallbackErr) {
+                    console.error('Fallback copy failed: ', fallbackErr);
+                }
+                document.body.removeChild(textArea);
+            });
+        };
         
         // Generate table of contents
         function generateTOC() {
             const headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
             if (headings.length === 0) return;
             
-            const toc = document.createElement('div');
-            toc.className = 'toc';
-            toc.innerHTML = '<h3><i class="fas fa-list"></i> Table of Contents</h3><ul></ul>';
-            const tocList = toc.querySelector('ul');
+            const tocList = document.getElementById('toc-list');
+            if (!tocList) return;
+            
+            // Group headings by sections (H1 and H2 create new sections)
+            const sections = [];
+            let currentSection = null;
             
             headings.forEach((heading, index) => {
-                const id = 'heading-' + index;
-                heading.id = id;
+                // Generate ID from heading text (convert to lowercase, replace spaces with hyphens, remove special chars)
+                const text = heading.textContent || '';
+                let id = text.toLowerCase()
+                    .replace(/[^a-z0-9\s-]/g, '') // Remove special characters except letters, numbers, spaces and hyphens
+                    .replace(/\s+/g, '-') // Replace spaces with hyphens
+                    .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+                    .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
                 
-                const li = document.createElement('li');
-                const a = document.createElement('a');
-                a.href = '#' + id;
-                a.textContent = heading.textContent;
-                a.style.paddingLeft = (parseInt(heading.tagName.charAt(1)) - 1) * 20 + 'px';
-                li.appendChild(a);
-                tocList.appendChild(li);
+                // Special handling for common patterns
+                if (id === 'dk-andexample') {
+                    id = 'sdks-and-examples';
+                } else if (id === 'endemail') {
+                    id = 'send-email';
+                } else if (id === 'getme-age-tatu') {
+                    id = 'get-message-status';
+                } else if (id === 'reque-tbody') {
+                    id = 'request-body';
+                } else if (id === 'reque-t-chema') {
+                    id = 'request-schema';
+                } else if (id === 'templateobject') {
+                    id = 'template-object';
+                } else if (id === 'templatevariable') {
+                    id = 'template-variables';
+                } else if (id === 'corevariable') {
+                    id = 'core-variables';
+                } else if (id === 'imagevariable') {
+                    id = 'image-variables';
+                } else if (id === 'contentvariable') {
+                    id = 'content-variables';
+                } else if (id === 'call-to-actionvariable') {
+                    id = 'call-to-action-variables';
+                } else if (id === 'ocialmediavariable') {
+                    id = 'social-media-variables';
+                } else if (id === 'themevariable') {
+                    id = 'theme-variables';
+                } else if (id === 'themeobject') {
+                    id = 'theme-object';
+                } else if (id === 'fact-array') {
+                    id = 'facts-array';
+                } else if (id === 'ociallink-array') {
+                    id = 'social-links-array';
+                } else if (id === 'multi-languagecontent') {
+                    id = 'multi-language-content';
+                } else if (id === 'recipientobject') {
+                    id = 'recipient-object';
+                } else if (id === 'attachmentobject') {
+                    id = 'attachment-object';
+                } else if (id === 'ucce-re-pon-e202') {
+                    id = 'success-response-202';
+                } else if (id === 'errorre-pon-e') {
+                    id = 'error-responses';
+                } else if (id === '400badreque-t') {
+                    id = '400-bad-request';
+                } else if (id === '401unauthorized') {
+                    id = '401-unauthorized';
+                } else if (id === '409conflictidempotency') {
+                    id = '409-conflict-idempotency';
+                } else if (id === '429ratelimited') {
+                    id = '429-rate-limited';
+                } else if (id === 'getme-age-tatu') {
+                    id = 'get-message-status';
+                } else if (id === 'pathparameter') {
+                    id = 'path-parameters';
+                } else if (id === 'ucce-re-pon-e200') {
+                    id = 'success-response-200';
+                } else if (id === 'me-age-tatu-value') {
+                    id = 'message-status-values';
+                } else if (id === '404notfound') {
+                    id = '404-not-found';
+                } else if (id === 'healthcheckendpoint') {
+                    id = 'health-check-endpoints';
+                } else if (id === 'livene-probe') {
+                    id = 'liveness-probe';
+                } else if (id === 'readine-probe') {
+                    id = 'readiness-probe';
+                } else if (id === 'detailedhealthcheck') {
+                    id = 'detailed-health-check';
+                } else if (id === 'metric-endpoint') {
+                    id = 'metrics-endpoint';
+                } else if (id === 'errorhandling') {
+                    id = 'error-handling';
+                } else if (id === 'errorre-pon-eformat') {
+                    id = 'error-response-format';
+                } else if (id === 'errorcode') {
+                    id = 'error-codes';
+                } else if (id === 'ratelimiting') {
+                    id = 'rate-limiting';
+                } else if (id === 'idempotency') {
+                    id = 'idempotency';
+                } else if (id === 'example') {
+                    id = 'example';
+                } else if (id === 'webhook') {
+                    id = 'webhooks';
+                } else if (id === 'clientwebhook-outgoing') {
+                    id = 'client-webhooks-outgoing';
+                } else if (id === 'webhookpayload') {
+                    id = 'webhook-payload';
+                } else if (id === 'eventtype') {
+                    id = 'event-types';
+                } else if (id === 'providerwebhook-incoming') {
+                    id = 'provider-webhooks-incoming';
+                } else if (id === 'routeewebhookendpoint') {
+                    id = 'routee-webhook-endpoint';
+                } else if (id === 'webhook-ecurity') {
+                    id = 'webhook-security';
+                } else if (id === 'java-criptnodej') {
+                    id = 'javascript-nodejs';
+                } else if (id === 'python') {
+                    id = 'python';
+                } else if (id === 'curlexample') {
+                    id = 'curl-examples';
+                } else if (id === 'changelog') {
+                    id = 'changelog';
+                } else if (id === 'v1102025-09-26') {
+                    id = 'v1-1-0-2025-09-26';
+                } else if (id === 'v1002024-01-01') {
+                    id = 'v1-0-0-2024-01-01';
+                } else if (id === 'adminda-hboard') {
+                    id = 'admin-dashboard';
+                } else if (id === 'webinterface') {
+                    id = 'web-interface';
+                } else if (id === 'adminapidata') {
+                    id = 'admin-api-data';
+                } else if (id === 'webhookintegration') {
+                    id = 'webhook-integration';
+                } else if (id === 'routeewebhook') {
+                    id = 'routee-webhook';
+                } else if (id === 'webhookeventtype') {
+                    id = 'webhook-event-types';
+                } else if (id === 'routeecallbackconfiguration') {
+                    id = 'routee-callback-configuration';
+                } else if (id === 'webhook-etupfordevelopment') {
+                    id = 'webhook-setup-for-development';
+                } else if (id === 'teamintegration') {
+                    id = 'team-integration';
+                } else if (id === 'po-tmancollection') {
+                    id = 'postman-collection';
+                } else if (id === 'u-ageexample') {
+                    id = 'usage-examples';
+                }
+                
+                // If ID is empty or too short, use index-based fallback
+                if (!id || id.length < 2) {
+                    id = 'heading-' + index;
+                }
+                
+                // Ensure unique ID
+                let finalId = id;
+                let counter = 1;
+                while (document.getElementById(finalId)) {
+                    finalId = id + '-' + counter;
+                    counter++;
+                }
+                
+                heading.id = finalId;
+                
+                const level = parseInt(heading.tagName.charAt(1));
+                const headingData = {
+                    id: finalId,
+                    level: level,
+                    text: heading.textContent,
+                    element: heading
+                };
+                
+                // H1 and H2 create new sections
+                if (level <= 2) {
+                    currentSection = {
+                        header: headingData,
+                        children: [],
+                        collapsed: true
+                    };
+                    sections.push(currentSection);
+                } else if (currentSection) {
+                    // H3+ go under the current section
+                    currentSection.children.push(headingData);
+                }
             });
             
-            document.getElementById('markdown-content').insertBefore(toc, document.getElementById('markdown-content').firstChild);
+            // Render sections
+            sections.forEach(section => {
+                // Section header
+                const sectionHeader = document.createElement('li');
+                sectionHeader.className = 'toc-section-header';
+                
+                const toggle = document.createElement('button');
+                toggle.className = 'toc-toggle';
+                toggle.innerHTML = '<i class="fas fa-chevron-down"></i>';
+                
+                // Hide toggle if no children
+                if (section.children.length === 0) {
+                    toggle.style.display = 'none';
+                }
+                
+                const headerLink = document.createElement('a');
+                headerLink.href = '#' + section.header.id;
+                headerLink.textContent = section.header.text;
+                headerLink.className = 'toc-level-' + section.header.level;
+                
+                // Combined click handler for both navigation and expansion
+                const handleSectionClick = function(e) {
+                    e.preventDefault();
+                    
+                    // Update URL
+                    window.location.hash = '#' + section.header.id;
+                    
+                    // Scroll to the target element
+                    const targetElement = document.getElementById(section.header.id);
+                    if (targetElement) {
+                        const targetScroll = targetElement.offsetTop - 100;
+                        const currentScroll = window.pageYOffset;
+                        const distance = Math.abs(targetScroll - currentScroll);
+                        
+                        if (distance > 500) {
+                            window.scrollTo({ top: targetScroll, behavior: 'auto' });
+                        } else {
+                            window.scrollTo({ top: targetScroll, behavior: 'smooth' });
+                        }
+                        
+                        // Update active state
+                        updateActiveState(section.header.id);
+                    }
+                    
+                    // Expand/collapse the section if it has children
+                    if (section.children.length > 0) {
+                        toggleSection(section, toggle);
+                    }
+                };
+                
+                // Add click handlers to both toggle and header link
+                toggle.addEventListener('click', handleSectionClick);
+                headerLink.addEventListener('click', handleSectionClick);
+                
+                sectionHeader.appendChild(toggle);
+                sectionHeader.appendChild(headerLink);
+                tocList.appendChild(sectionHeader);
+                
+                // Section children
+                if (section.children.length > 0) {
+                    const childrenContainer = document.createElement('ul');
+                    childrenContainer.className = 'toc-section collapsed';
+                    
+                    section.children.forEach(child => {
+                        const childLi = document.createElement('li');
+                        childLi.className = 'toc-level-' + child.level;
+                        
+                        const childLink = document.createElement('a');
+                        childLink.href = '#' + child.id;
+                        childLink.textContent = child.text;
+                        childLink.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            
+                            // Update URL
+                            window.location.hash = '#' + child.id;
+                            
+                            // Scroll to the target element
+                            const targetElement = document.getElementById(child.id);
+                            if (targetElement) {
+                                const targetScroll = targetElement.offsetTop - 100;
+                                const currentScroll = window.pageYOffset;
+                                const distance = Math.abs(targetScroll - currentScroll);
+                                
+                                if (distance > 500) {
+                                    window.scrollTo({ top: targetScroll, behavior: 'auto' });
+                                } else {
+                                    window.scrollTo({ top: targetScroll, behavior: 'smooth' });
+                                }
+                                
+                                // Update active state
+                                updateActiveState(child.id);
+                            }
+                        });
+                        
+                        childLi.appendChild(childLink);
+                        childrenContainer.appendChild(childLi);
+                    });
+                    
+                    tocList.appendChild(childrenContainer);
+                    
+                    // Set toggle to collapsed state
+                    toggle.classList.add('collapsed');
+                }
+            });
+        }
+        
+        // Toggle section visibility
+        function toggleSection(section, toggle) {
+            const childrenContainer = toggle.parentElement.nextElementSibling;
+            if (childrenContainer && childrenContainer.classList.contains('toc-section')) {
+                const isCollapsed = childrenContainer.classList.contains('collapsed');
+                
+                if (isCollapsed) {
+                    childrenContainer.classList.remove('collapsed');
+                    toggle.classList.remove('collapsed');
+                    section.collapsed = false;
+                } else {
+                    childrenContainer.classList.add('collapsed');
+                    toggle.classList.add('collapsed');
+                    section.collapsed = true;
+                }
+            }
+        }
+        
+        // Update active state
+        function updateActiveState(activeId) {
+            document.querySelectorAll('.toc a').forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + activeId) {
+                    link.classList.add('active');
+                }
+            });
+        }
+        
+        // Update active TOC item based on scroll position
+        function updateActiveTOCItem() {
+            const headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+            const tocLinks = document.querySelectorAll('.toc a');
+            
+            let current = '';
+            headings.forEach(heading => {
+                const rect = heading.getBoundingClientRect();
+                if (rect.top <= 100) {
+                    current = heading.id;
+                }
+            });
+            
+            updateActiveState(current);
         }
         
         // Generate TOC after content is loaded
         setTimeout(generateTOC, 100);
         
-        // Smooth scrolling for anchor links
-        document.addEventListener('click', function(e) {
-            if (e.target.tagName === 'A' && e.target.getAttribute('href').startsWith('#')) {
-                e.preventDefault();
-                const target = document.querySelector(e.target.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth' });
+        // Add scroll listener to update active TOC item
+        window.addEventListener('scroll', updateActiveTOCItem);
+        
+        // Initialize active state on page load
+        setTimeout(updateActiveTOCItem, 200);
+        
+        // Simple hash navigation - let browser handle it naturally
+        function handleHashNavigation() {
+            const startTime = performance.now();
+            const hash = window.location.hash;
+            console.log('Hash navigation triggered, hash:', hash, 'Time:', startTime);
+            if (hash) {
+                const targetId = hash.substring(1);
+                console.log('Looking for element with ID:', targetId);
+                const targetElement = document.getElementById(targetId);
+                console.log('Target element found:', targetElement);
+                
+                if (targetElement) {
+                    console.log('Scrolling to element');
+                    const targetScroll = targetElement.offsetTop - 100;
+                    const currentScroll = window.pageYOffset;
+                    const distance = Math.abs(targetScroll - currentScroll);
+                    
+                    console.log('Target scroll:', targetScroll, 'Current scroll:', currentScroll, 'Distance:', distance);
+                    
+                    const scrollStartTime = performance.now();
+                    if (distance > 500) {
+                        window.scrollTo({ top: targetScroll, behavior: 'auto' });
+                        console.log('Instant scroll completed in:', performance.now() - scrollStartTime, 'ms');
+                    } else {
+                        window.scrollTo({ top: targetScroll, behavior: 'smooth' });
+                        console.log('Smooth scroll initiated in:', performance.now() - scrollStartTime, 'ms');
+                    }
+                    
+                    // Update active state
+                    const activeStateStartTime = performance.now();
+                    updateActiveState(targetId);
+                    console.log('Active state updated in:', performance.now() - activeStateStartTime, 'ms');
+                    
+                    console.log('Total hash navigation time:', performance.now() - startTime, 'ms');
+                } else {
+                    console.log('Element not found, retrying...');
+                    // If element not found, retry after a delay
+                    setTimeout(handleHashNavigation, 200);
                 }
             }
-        });
+        }
+        
+        // Handle hash navigation after TOC is generated
+        const tocStartTime = performance.now();
+        console.log('Setting up TOC hash navigation timer at:', tocStartTime);
+        setTimeout(() => {
+            console.log('TOC hash navigation timer fired after:', performance.now() - tocStartTime, 'ms');
+            handleHashNavigation();
+        }, 1000);
+        
+        // Handle hash changes
+        window.addEventListener('hashchange', handleHashNavigation);
     </script>
     
     <!-- Font Awesome for icons -->
@@ -352,6 +1005,24 @@ export async function adminRoutes(fastify: FastifyInstance) {
       return reply.code(404).send('Documentation not found');
     }
   });
+
+  // Postman collection download route
+  fastify.get('/Email-Gateway-API.postman_collection.json', async (request, reply) => {
+    const fs = require('fs');
+    const path = require('path');
+    
+    try {
+      const filePath = path.join(process.cwd(), 'Email-Gateway-API.postman_collection.json');
+      const content = fs.readFileSync(filePath, 'utf8');
+      
+      return reply
+        .type('application/json')
+        .header('Content-Disposition', 'attachment; filename="Email-Gateway-API.postman_collection.json"')
+        .send(content);
+    } catch (error) {
+      return reply.code(404).send('Postman collection not found');
+    }
+  });
   
   // API endpoint for real-time data
   fastify.get('/admin/api/data', adminController.getApiData.bind(adminController));
@@ -382,12 +1053,34 @@ export async function adminRoutes(fastify: FastifyInstance) {
         return reply.code(400).send({ error: 'Missing "template" field' });
       }
       
-      // Import the email controller to use the queue
+      // Import required modules
       const { EmailQueueProducer } = await import('../../queue/producer');
+      const { prisma } = await import('../../db/client');
+      const { v4: uuidv4 } = await import('uuid');
+      
       const queueProducer = new EmailQueueProducer();
       
       // Generate a unique message ID for the test email
       const messageId = `test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Extract metadata
+      const tenantId = emailData.metadata?.tenantId || 'admin_test';
+      
+      // Store message in database first (like the main email controller does)
+      await prisma.message.create({
+        data: {
+          messageId,
+          tenantId,
+          toJson: emailData.to,
+          subject: emailData.subject,
+          templateKey: emailData.template.key,
+          locale: emailData.template.locale,
+          variablesJson: emailData.variables || {},
+          status: 'QUEUED',
+          webhookUrl: undefined,
+          attempts: 0
+        }
+      });
       
       // Transform data to match EmailJobData interface
       const testEmailData = {
@@ -403,9 +1096,9 @@ export async function adminRoutes(fastify: FastifyInstance) {
         replyTo: emailData.replyTo,
         subject: emailData.subject,
         attachments: emailData.attachments,
-        webhookUrl: emailData.webhookUrl,
-        tenantId: emailData.metadata?.tenantId,
-        attempts: 3
+        webhookUrl: process.env.WEBHOOK_BASE_URL ? `${process.env.WEBHOOK_BASE_URL}/webhooks/routee` : undefined,
+        tenantId,
+        attempts: 0
       };
       
       // Send to queue
@@ -424,5 +1117,134 @@ export async function adminRoutes(fastify: FastifyInstance) {
         details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
+  });
+
+  // AI Playground routes
+  let aiController: AIController | null = null;
+  
+  try {
+    aiController = new AIController();
+    await aiController.initialize();
+  } catch (error) {
+    console.warn('AI controller initialization failed, AI playground will be disabled:', error);
+  }
+  
+  // Generate template using AI (no authentication required for admin testing)
+  fastify.post('/admin/ai/generate-template', async (request, reply) => {
+    try {
+      if (!aiController) {
+        return reply.code(503).send({ 
+          error: 'AI service unavailable',
+          message: 'AI features are currently disabled due to service unavailability'
+        });
+      }
+
+      const { description, workspaceName, productName, userName } = request.body as any;
+      
+      if (!description || !workspaceName || !productName || !userName) {
+        return reply.code(400).send({ 
+          error: 'Missing required fields: description, workspaceName, productName, userName' 
+        });
+      }
+
+      // Generate template using AI
+      const template = await aiController['generateTemplateFromDescription'](description, workspaceName, productName, userName);
+      
+      return reply.send({ template });
+    } catch (error) {
+      console.error('Error generating AI template:', error);
+      return reply.code(500).send({ 
+        error: 'Failed to generate template',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+  
+  // Generate template using AI (authenticated endpoint)
+  fastify.post('/api/admin/ai/generate-template', {
+    schema: {
+      body: {
+        type: 'object',
+        required: ['description', 'workspaceName', 'productName', 'userName'],
+        properties: {
+          description: { type: 'string', minLength: 1 },
+          workspaceName: { type: 'string', minLength: 1 },
+          productName: { type: 'string', minLength: 1 },
+          userName: { type: 'string', minLength: 1 }
+        }
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            template: {
+              type: 'object',
+              properties: {
+                template: {
+                  type: 'object',
+                  properties: {
+                    key: { type: 'string' },
+                    locale: { type: 'string' }
+                  }
+                },
+                variables: {
+                  type: 'object',
+                  properties: {
+                    workspace_name: { type: 'string' },
+                    user_firstname: { type: 'string' },
+                    product_name: { type: 'string' },
+                    support_email: { type: 'string' },
+                    email_title: { type: 'string' },
+                    custom_content: { type: 'string' },
+                    facts: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          label: { type: 'string' },
+                          value: { type: 'string' }
+                        }
+                      }
+                    },
+                    cta_primary: {
+                      type: 'object',
+                      properties: {
+                        label: { type: 'string' },
+                        url: { type: 'string' }
+                      }
+                    },
+                    cta_secondary: {
+                      type: 'object',
+                      properties: {
+                        label: { type: 'string' },
+                        url: { type: 'string' }
+                      }
+                    },
+                    social_links: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          platform: { type: 'string' },
+                          url: { type: 'string' }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, async (request, reply) => {
+    if (!aiController) {
+      return reply.code(503).send({ 
+        error: 'AI service unavailable',
+        message: 'AI features are currently disabled due to service unavailability'
+      });
+    }
+    return aiController.generateTemplate(request as any, reply);
   });
 }

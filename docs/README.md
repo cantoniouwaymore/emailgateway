@@ -17,8 +17,10 @@ Welcome to the Waymore Transactional Emails Service documentation! This guide pr
 
 | Document | Description | Audience |
 |----------|-------------|----------|
-| **[Routee Integration](./ROUTEE_INTEGRATION.md)** | Routee email provider setup, webhook configuration, and callback handling | Developers, Integrators |
-| **[Universal Template Guide](./UNIVERSAL_TEMPLATE_GUIDE.md)** | Template system, MJML usage, and responsive email design | Developers, Designers |
+| **[Routee Integration](./ROUTEE_INTEGRATION.md)** | Routee email provider setup and callback handling | Developers, Integrators |
+| **[Transactional Template Guide](./TRANSACTIONAL_TEMPLATE_GUIDE.md)** | Template system, MJML usage, and responsive email design | Developers, Designers |
+| **[AI Playground Guide](./AI_PLAYGROUND.md)** | AI-powered email template generation with OpenAI | Developers, Product Teams |
+| **[OpenAI Setup Guide](./OPENAI_SETUP.md)** | OpenAI integration setup and configuration | Developers, DevOps |
 
 ### 📦 Package Documentation
 
@@ -31,7 +33,8 @@ Welcome to the Waymore Transactional Emails Service documentation! This guide pr
 ### For Developers
 - **Getting Started**: [Developer Guide](./DEVELOPER.md#quick-start)
 - **API Usage**: [API Reference](./API.md#endpoints)
-- **Template Development**: [Universal Template Guide](./UNIVERSAL_TEMPLATE_GUIDE.md)
+- **Template Development**: [Transactional Template Guide](./TRANSACTIONAL_TEMPLATE_GUIDE.md)
+- **AI Template Generation**: [AI Playground Guide](./AI_PLAYGROUND.md)
 
 ### For DevOps
 - **Deployment**: [Deployment Guide](./DEPLOYMENT.md)
@@ -41,15 +44,17 @@ Welcome to the Waymore Transactional Emails Service documentation! This guide pr
 ### For Integrators
 - **API Integration**: [API Reference](./API.md)
 - **Routee Setup**: [Routee Integration](./ROUTEE_INTEGRATION.md)
-- **Template Usage**: [Universal Template Guide](./UNIVERSAL_TEMPLATE_GUIDE.md)
+- **Template Usage**: [Transactional Template Guide](./TRANSACTIONAL_TEMPLATE_GUIDE.md)
+- **AI Template Generation**: [AI Playground Guide](./AI_PLAYGROUND.md)
 
 ## 🎯 Key Features
 
 ### 📧 Email Processing
 - **Multi-Provider Support**: Routee, SendGrid, SES
 - **Template System**: MJML-based responsive templates
+- **AI Template Generation**: OpenAI-powered template creation
 - **Queue Processing**: Reliable background job processing
-- **Webhook Integration**: Real-time delivery tracking
+- **Status Tracking**: Real-time delivery tracking
 
 ### 🔧 Technical Features
 - **RESTful API**: Standardized HTTP endpoints
@@ -79,16 +84,7 @@ curl -X POST /api/v1/emails \
   }'
 ```
 
-### 2. Webhook Integration
-```bash
-# Configure webhook URL
-WEBHOOK_BASE_URL="https://your-domain.com"
-
-# Routee will send callbacks to:
-# https://your-domain.com/webhooks/routee
-```
-
-### 3. Template Development
+### 2. Template Development
 ```mjml
 <mjml>
   <mj-body>

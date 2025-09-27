@@ -2,7 +2,7 @@
 
 /**
  * Test script for Single-Email Package Notifications
- * Demonstrates all enhanced features of the universal template
+ * Demonstrates all enhanced features of the transactional template
  */
 
 const fs = require('fs');
@@ -88,17 +88,17 @@ async function main() {
     
     // List all template files
     const templateFiles = [
-      'test-universal-enhanced-welcome.json',
-      'test-universal-enhanced-payment-success.json',
-      'test-universal-enhanced-payment-failure-attempt-1.json',
-      'test-universal-enhanced-payment-failure-final.json',
-      'test-universal-enhanced-renewal-7.json',
-      'test-universal-enhanced-renewal-1-day.json',
-      'test-universal-enhanced-renewal-confirmation.json',
-      'test-universal-enhanced-upgrade-confirmation.json',
-      'test-universal-enhanced-downgrade-confirmation.json',
-      'test-universal-enhanced-usage-80.json',
-      'test-universal-enhanced-usage-100.json'
+      'test-transactional-enhanced-welcome.json',
+      'test-transactional-enhanced-payment-success.json',
+      'test-transactional-enhanced-payment-failure-attempt-1.json',
+      'test-transactional-enhanced-payment-failure-final.json',
+      'test-transactional-enhanced-renewal-7.json',
+      'test-transactional-enhanced-renewal-1-day.json',
+      'test-transactional-enhanced-renewal-confirmation.json',
+      'test-transactional-enhanced-upgrade-confirmation.json',
+      'test-transactional-enhanced-downgrade-confirmation.json',
+      'test-transactional-enhanced-usage-80.json',
+      'test-transactional-enhanced-usage-100.json'
     ];
     
     logHeader('Enhanced Template Features');

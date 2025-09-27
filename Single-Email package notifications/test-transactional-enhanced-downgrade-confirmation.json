@@ -11,7 +11,7 @@
   },
   "subject": "Your plan has been changed to Basic",
   "template": {
-    "key": "universal",
+    "key": "transactional",
     "locale": "en"
   },
   "variables": {

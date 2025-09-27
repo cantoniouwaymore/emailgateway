@@ -37,7 +37,7 @@ async function sendEmail(jwtToken) {
         },
         subject: "Welcome to Waymore Platform",
         template: {
-          key: "universal",
+          key: "transactional",
           locale: "en"
         },
         to: [
@@ -81,8 +81,8 @@ async function checkMessageStatus(messageId, jwtToken) {
   }
 }
 
-// Example 4: Send Email with Webhook
-async function sendEmailWithWebhook(jwtToken) {
+// Example 4: Send Email with Universal Template
+async function sendEmailWithUniversalTemplate(jwtToken) {
   try {
     const response = await fetch(`${BASE_URL}/api/v1/emails`, {
       method: 'POST',
@@ -98,7 +98,7 @@ async function sendEmailWithWebhook(jwtToken) {
         },
         subject: "Email with Webhook",
         template: {
-          key: "universal",
+          key: "transactional",
           locale: "en"
         },
         to: [
@@ -107,7 +107,6 @@ async function sendEmailWithWebhook(jwtToken) {
             name: "Recipient Name"
           }
         ],
-        webhookUrl: "https://your-app.com/webhooks/email-status",
         variables: {
           title: "Webhook Test",
           details: "This email includes webhook notifications.",
@@ -143,7 +142,7 @@ async function sendToMultipleRecipients(jwtToken) {
         },
         subject: "Important Update",
         template: {
-          key: "universal",
+          key: "transactional",
           locale: "en"
         },
         to: [
@@ -267,7 +266,7 @@ module.exports = {
   getJWTToken,
   sendEmail,
   checkMessageStatus,
-  sendEmailWithWebhook,
+  sendEmailWithUniversalTemplate,
   sendToMultipleRecipients,
   checkSystemHealth,
   simulateWebhookEvent,

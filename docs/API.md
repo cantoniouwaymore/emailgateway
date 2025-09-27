@@ -158,7 +158,6 @@ POST /api/v1/emails
     "eventId": "evt_67890",
     "campaignId": "cmp_abc123"
   },
-  "webhookUrl": "https://api.waymore.io/webhooks/email-events"
 }
 ```
 
@@ -177,7 +176,6 @@ POST /api/v1/emails
 | `variables` | object | No | Template variables |
 | `attachments` | array | No | File attachments (max 5MB total) |
 | `metadata` | object | No | Custom metadata |
-| `webhookUrl` | string | No | Webhook URL for events |
 
 #### Template Object
 
@@ -623,93 +621,6 @@ curl -X POST /api/v1/emails \
   -d '{"to": [{"email": "different@example.com"}], ...}'
 ```
 
-## Webhooks
-
-The service supports both sending webhook notifications to clients and receiving webhook events from email providers.
-
-### Client Webhooks (Outgoing)
-
-The service can send webhook notifications for email events to client-specified URLs.
-
-#### Webhook Payload
-
-```json
-{
-  "messageId": "msg_abc123def456",
-  "status": "delivered",
-  "eventType": "delivered",
-  "timestamp": "2024-01-01T10:00:05Z",
-  "provider": "routee",
-  "trackingId": "routee_12345",
-  "details": {
-    "recipient": "user@example.com",
-    "deliveryTime": "2024-01-01T10:00:05Z"
-  }
-}
-```
-
-#### Event Types
-
-| Event | Description |
-|-------|-------------|
-| `delivered` | Email delivered to recipient |
-| `bounce` | Email bounced back |
-| `open` | Email was opened |
-| `click` | Link was clicked |
-| `spam` | Email marked as spam |
-
-### Provider Webhooks (Incoming)
-
-The service receives webhook events from email providers to update message status.
-
-#### Routee Webhook Endpoint
-
-```
-POST /webhooks/routee
-```
-
-**Request Headers:**
-```
-Content-Type: application/json
-X-Routee-Signature: sha256=abc123... (optional)
-X-Routee-Timestamp: 1640995200000 (optional)
-```
-
-**Request Body:**
-```json
-{
-  "events": [
-    {
-      "trackingId": "routee_tracking_123456",
-      "eventType": "delivered",
-      "timestamp": "2024-01-01T10:00:05Z",
-      "details": {
-        "recipient": "user@example.com",
-        "deliveryTime": "2024-01-01T10:00:05Z"
-      }
-    }
-  ]
-}
-```
-
-**Response:**
-```json
-{
-  "processed": 1,
-  "failed": 0,
-  "total": 1
-}
-```
-| `email.bounced` | Email bounced back |
-| `email.failed` | Email failed to send |
-
-### Webhook Security
-
-Webhooks are signed with HMAC-SHA256:
-
-```http
-X-Webhook-Signature: sha256=abc123def456...
-```
 
 ## SDKs and Examples
 
@@ -910,111 +821,75 @@ GET /admin/api/data
 }
 ```
 
-## Webhook Integration
 
-### Routee Webhook
+## AI Playground
 
-Receive real-time status updates from Routee:
+### Generate Template with AI
 
-```http
-POST /webhooks/routee
-```
+Generate email templates using natural language descriptions:
+
+**Endpoint**: `POST /api/admin/ai/generate-template`
 
 **Headers**:
-```http
-Content-Type: application/json
-X-Routee-Signature: <signature> (optional)
-X-Routee-Timestamp: <timestamp> (optional)
-```
+- `Authorization: Bearer <jwt_token>`
+- `Content-Type: application/json`
 
 **Request Body**:
 ```json
 {
-  "trackingId": "0bd5d38d-3c8e-4c4f-8bc5-3bac1457f07d",
-  "status": {
-    "id": 2,
-    "name": "send",
-    "dateTime": 1757482432,
-    "final": false,
-    "delivered": false
-  }
+  "description": "A welcome email for new users that includes their name, a welcome message, account details, and a button to get started",
+  "workspaceName": "Waymore",
+  "productName": "Waymore Platform",
+  "userName": "John"
 }
 ```
 
 **Response**:
 ```json
 {
-  "processed": 1,
-  "failed": 0,
-  "total": 1
-}
-```
-
-### Webhook Event Types
-
-| Status Name | Status Update | Description |
-|-------------|---------------|-------------|
-| `send` | `SENT` | Email sent to provider |
-| `delivered` | `DELIVERED` | Email successfully delivered |
-| `opened` | `DELIVERED` | Email opened (tracked but status remains delivered) |
-| `bounce` | `BOUNCED` | Email bounced back |
-| `failed` | `BOUNCED` | Email delivery failed |
-| `dropped` | `BOUNCED` | Email dropped by provider |
-| `reject` | `BOUNCED` | Email rejected by provider |
-| `spam` | `BOUNCED` | Email marked as spam |
-
-### Webhook Security
-
-**Note**: Routee webhooks do not support signature validation by default. The webhook endpoint is configured to accept Routee callbacks without signature verification for optimal compatibility.
-
-Optional webhook signature validation (disabled for Routee):
-
-```bash
-# Webhook secret (currently disabled for Routee compatibility)
-ROUTEE_WEBHOOK_SECRET=your-webhook-secret
-```
-
-### Routee Callback Configuration
-
-The Routee provider is configured with comprehensive callback support:
-
-```json
-{
-  "callback": {
-    "statusCallback": {
-      "strategy": "OnChange",
-      "url": "https://your-domain.com/webhooks/routee"
+  "template": {
+    "template": {
+      "key": "transactional",
+      "locale": "en"
     },
-    "eventCallback": {
-      "onClick": "https://your-domain.com/webhooks/routee",
-      "onOpen": "https://your-domain.com/webhooks/routee"
+    "variables": {
+      "workspace_name": "Waymore",
+      "user_firstname": "John",
+      "product_name": "Waymore Platform",
+      "support_email": "support@waymore.io",
+      "email_title": "Welcome to Waymore!",
+      "custom_content": "Hello John,<br><br>🎉 <strong>Welcome to Waymore Platform!</strong><br><br>We're excited to have you on board...",
+      "facts": [
+        {"label": "Account Type", "value": "Pro Plan"},
+        {"label": "Workspace", "value": "Waymore"},
+        {"label": "Setup Status", "value": "Complete"}
+      ],
+      "cta_primary": {
+        "label": "Get Started",
+        "url": "https://app.waymore.io/dashboard"
+      },
+      "cta_secondary": {
+        "label": "View Documentation",
+        "url": "https://docs.waymore.io"
+      }
     }
   }
 }
 ```
 
-**Callback Types:**
-- **`statusCallback`**: Receives status updates (sent, delivered, bounced, etc.)
-- **`eventCallback`**: Receives event updates (opens, clicks, etc.)
-- **`strategy: "OnChange"`**: Callbacks sent whenever status changes
+**Features**:
+- Natural language template generation
+- Automatic content structure based on email type
+- Support for welcome, payment, password reset, and report emails
+- Generated templates ready for immediate use
+- Quick test functionality
 
-### Webhook Setup for Development
-
-For local development, use ngrok to create a public webhook URL:
-
-```bash
-# Install ngrok
-brew install ngrok
-
-# Configure with your auth token
-ngrok config add-authtoken YOUR_TOKEN
-
-# Start tunnel
-ngrok http 3000
-
-# Update environment
-echo 'WEBHOOK_BASE_URL="https://your-ngrok-url.ngrok.io"' >> .env
-```
+**Usage**:
+1. Access the AI Playground at `/admin` → "AI Playground" tab
+2. Describe your email template in natural language
+3. Generate the JSON structure
+4. Test the email with the "Send Test Email" button
+5. Copy the generated template for your application
 
 ## Team Integration
 
@@ -1022,7 +897,7 @@ echo 'WEBHOOK_BASE_URL="https://your-ngrok-url.ngrok.io"' >> .env
 
 Ready-to-use API collection for your team:
 
-**File**: `Email-Gateway-API.postman_collection.json`
+**[📥 Download Postman Collection](Email-Gateway-API.postman_collection.json)**
 
 **Features**:
 - Auto-token management
@@ -1032,7 +907,7 @@ Ready-to-use API collection for your team:
 - Complete request examples
 
 **Setup**:
-1. Import the Postman collection
+1. Download and import the Postman collection
 2. Follow `POSTMAN_SETUP.md` guide
 3. Start with "Get JWT Token" request
 4. Use "Send Email - Universal Template" to send emails

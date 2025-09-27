@@ -1,255 +1,222 @@
 export function generateDocumentationSection(data: any): string {
   return `
     <div id="documentation-tab" class="tab-content">
-      <div class="mb-8">
-        <h2 class="text-2xl font-bold text-gray-900 mb-2">
-          <i class="fas fa-book mr-3 text-indigo-600"></i>
-          Documentation
-        </h2>
-        <p class="text-lg text-gray-600">
-          Access comprehensive documentation, guides, and resources for the email gateway system
-        </p>
-      </div>
-      
-      ${generateDocumentationOverview()}
-      ${generateDocumentationCards()}
-      ${generateQuickLinks()}
-    </div>`;
-}
+      <div class="max-w-6xl mx-auto px-6 py-8">
+        <!-- Header -->
+        <div class="mb-12">
+          <h1 class="text-3xl font-bold text-gray-900 mb-4">Email Gateway Documentation</h1>
+          <p class="text-lg text-gray-600">Complete developer resources and guides for our email gateway system</p>
+        </div>
 
-function generateDocumentationOverview(): string {
-  return `
-    <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-8 mb-8 border border-indigo-200">
-      <div class="flex items-center mb-6">
-        <div class="flex items-center justify-center h-16 w-16 rounded-full bg-indigo-100 mr-4">
-          <i class="fas fa-graduation-cap text-2xl text-indigo-600"></i>
-        </div>
-        <div>
-          <h3 class="text-2xl font-bold text-gray-900">Developer Resources</h3>
-          <p class="text-lg text-gray-600">Complete documentation and guides for building with our email gateway</p>
-        </div>
-      </div>
-      
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div class="bg-white rounded-lg p-6 shadow-md border border-indigo-100">
-          <div class="flex items-center mb-3">
-            <i class="fas fa-file-alt text-xl text-blue-600 mr-3"></i>
-            <h4 class="text-lg font-semibold text-gray-900">Comprehensive</h4>
+        <!-- Quickstart Section -->
+        <div class="mb-12">
+          <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-8 border border-blue-100">
+            <div class="flex items-start justify-between mb-6">
+              <div class="flex-1">
+                <h2 class="text-xl font-semibold text-gray-900 mb-2 flex items-center">
+                  <i class="fas fa-rocket text-blue-600 mr-3"></i>
+                  Quick Start Guide
+                </h2>
+                <p class="text-gray-700 mb-4">Get up and running with our email gateway in minutes. Send your first email with just a few lines of code.</p>
+                <div class="flex items-center text-sm text-gray-600">
+                  <i class="fas fa-clock mr-2"></i>
+                  <span>5 minutes to complete</span>
+                </div>
+              </div>
+              <a href="/docs/API.md" class="ml-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                View Full Guide
+                <i class="fas fa-arrow-right ml-2"></i>
+              </a>
+            </div>
+            
+            <!-- Code Example -->
+            <div class="bg-gray-900 rounded-lg overflow-hidden">
+              <div class="flex items-center justify-between px-4 py-3 bg-gray-800 border-b border-gray-700">
+                <div class="flex items-center">
+                  <span class="text-sm text-gray-300">JavaScript</span>
+                </div>
+                <button onclick="copyCodeSample()" class="text-gray-400 hover:text-white transition-colors">
+                  <i class="fas fa-copy"></i>
+                </button>
+              </div>
+              <div class="p-4">
+                <pre class="text-sm text-gray-100 overflow-x-auto"><code>const response = await fetch('/api/emails', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer YOUR_API_KEY'
+  },
+  body: JSON.stringify({
+    to: 'user@example.com',
+    template: 'welcome',
+    data: { name: 'John' }
+  })
+});</code></pre>
+              </div>
+            </div>
           </div>
-          <p class="text-gray-600 text-sm">Complete guides covering all features and use cases</p>
         </div>
-        
-        <div class="bg-white rounded-lg p-6 shadow-md border border-indigo-100">
-          <div class="flex items-center mb-3">
-            <i class="fas fa-code text-xl text-green-600 mr-3"></i>
-            <h4 class="text-lg font-semibold text-gray-900">Code Examples</h4>
-          </div>
-          <p class="text-gray-600 text-sm">Real-world examples and implementation patterns</p>
-        </div>
-        
-        <div class="bg-white rounded-lg p-6 shadow-md border border-indigo-100">
-          <div class="flex items-center mb-3">
-            <i class="fas fa-lightbulb text-xl text-yellow-600 mr-3"></i>
-            <h4 class="text-lg font-semibold text-gray-900">Best Practices</h4>
-          </div>
-          <p class="text-gray-600 text-sm">Proven strategies and optimization techniques</p>
-        </div>
-        
-        <div class="bg-white rounded-lg p-6 shadow-md border border-indigo-100">
-          <div class="flex items-center mb-3">
-            <i class="fas fa-question-circle text-xl text-purple-600 mr-3"></i>
-            <h4 class="text-lg font-semibold text-gray-900">Troubleshooting</h4>
-          </div>
-          <p class="text-gray-600 text-sm">Common issues and their solutions</p>
-        </div>
-      </div>
-    </div>`;
-}
 
-function generateDocumentationCards(): string {
-  return `
-    <div class="mb-8">
-      <h3 class="text-xl font-semibold text-gray-800 mb-6">
-        <i class="fas fa-folder-open mr-2 text-blue-600"></i>
-        Documentation Library
-      </h3>
-      
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-200">
-          <div class="flex items-center mb-4">
-            <div class="flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mr-4">
-              <i class="fas fa-puzzle-piece text-xl text-blue-600"></i>
-            </div>
-            <div>
-              <h4 class="text-lg font-semibold text-gray-900">Universal Template Guide</h4>
-              <p class="text-sm text-gray-600">Complete template system documentation</p>
-            </div>
+        <!-- Documentation Cards -->
+        <div class="mb-12">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-semibold text-gray-900">Browse Documentation</h2>
+            <a href="/docs/API.md" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+              View all guides <i class="fas fa-arrow-right ml-1"></i>
+            </a>
           </div>
-          <p class="text-gray-600 mb-4">
-            Learn about the universal email template system, customization options, multi-language support, and advanced features.
-          </p>
-          <div class="flex space-x-2">
-            <button onclick="openDocumentation('template-guide')" 
-                    class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
-              <i class="fas fa-book-open mr-2"></i>
-              Read Guide
-            </button>
-            <button onclick="copyDocumentationLink('template-guide')" 
-                    class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-3 rounded-lg transition-colors duration-200">
-              <i class="fas fa-link"></i>
-            </button>
-          </div>
-        </div>
-        
-        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-200">
-          <div class="flex items-center mb-4">
-            <div class="flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mr-4">
-              <i class="fas fa-code text-xl text-green-600"></i>
-            </div>
-            <div>
-              <h4 class="text-lg font-semibold text-gray-900">API Reference</h4>
-              <p class="text-sm text-gray-600">Complete API documentation</p>
-            </div>
-          </div>
-          <p class="text-gray-600 mb-4">
-            Detailed API endpoints, request/response formats, authentication, and integration examples.
-          </p>
-          <div class="flex space-x-2">
-            <button onclick="openDocumentation('api-reference')" 
-                    class="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
-              <i class="fas fa-book-open mr-2"></i>
-              Read Guide
-            </button>
-            <button onclick="copyDocumentationLink('api-reference')" 
-                    class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-3 rounded-lg transition-colors duration-200">
-              <i class="fas fa-link"></i>
-            </button>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <a href="/docs/API.md" class="group bg-white rounded-lg border border-gray-200 p-6 hover:border-blue-300 hover:shadow-md transition-all duration-200">
+              <div class="flex items-start justify-between mb-4">
+                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <i class="fas fa-code text-blue-600 text-lg"></i>
+                </div>
+                <i class="fas fa-arrow-right text-gray-400 group-hover:text-blue-600 transition-colors"></i>
+              </div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-2">API Reference</h3>
+              <p class="text-gray-600 text-sm">Complete API documentation with examples, endpoints, and authentication details.</p>
+            </a>
+            
+            <a href="/docs/DEVELOPER.md" class="group bg-white rounded-lg border border-gray-200 p-6 hover:border-blue-300 hover:shadow-md transition-all duration-200">
+              <div class="flex items-start justify-between mb-4">
+                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                  <i class="fas fa-cog text-green-600 text-lg"></i>
+                </div>
+                <i class="fas fa-arrow-right text-gray-400 group-hover:text-blue-600 transition-colors"></i>
+              </div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-2">Developer Guide</h3>
+              <p class="text-gray-600 text-sm">Setup, configuration, and development best practices for integrating with our platform.</p>
+            </a>
+            
+            <a href="/docs/TRANSACTIONAL_TEMPLATE_GUIDE.md" class="group bg-white rounded-lg border border-gray-200 p-6 hover:border-blue-300 hover:shadow-md transition-all duration-200">
+              <div class="flex items-start justify-between mb-4">
+                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <i class="fas fa-envelope text-purple-600 text-lg"></i>
+                </div>
+                <i class="fas fa-arrow-right text-gray-400 group-hover:text-blue-600 transition-colors"></i>
+              </div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-2">Template Guide</h3>
+              <p class="text-gray-600 text-sm">Create and customize email templates with our comprehensive template system.</p>
+            </a>
           </div>
         </div>
-        
-        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-200">
-          <div class="flex items-center mb-4">
-            <div class="flex items-center justify-center h-12 w-12 rounded-full bg-purple-100 mr-4">
-              <i class="fas fa-lightbulb text-xl text-purple-600"></i>
-            </div>
-            <div>
-              <h4 class="text-lg font-semibold text-gray-900">Developer Guide</h4>
-              <p class="text-sm text-gray-600">Best practices and tips</p>
-            </div>
-          </div>
-          <p class="text-gray-600 mb-4">
-            Development best practices, optimization techniques, and troubleshooting guides for developers.
-          </p>
-          <div class="flex space-x-2">
-            <button onclick="openDocumentation('best-practices')" 
-                    class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
-              <i class="fas fa-book-open mr-2"></i>
-              Read Guide
-            </button>
-            <button onclick="copyDocumentationLink('best-practices')" 
-                    class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-3 rounded-lg transition-colors duration-200">
-              <i class="fas fa-link"></i>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>`;
-}
 
-function generateQuickLinks(): string {
-  return `
-    <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-8 border border-gray-200">
-      <div class="text-center mb-8">
-        <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-indigo-100 mb-4">
-          <i class="fas fa-rocket text-2xl text-indigo-600"></i>
+        <!-- Getting Started Section -->
+        <div class="mb-12">
+          <h2 class="text-2xl font-semibold text-gray-900 mb-6">Getting Started</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white rounded-lg border border-gray-200 p-6">
+              <div class="flex items-center mb-4">
+                <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mr-4">
+                  <i class="fas fa-key text-orange-600"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900">Authentication</h3>
+              </div>
+              <p class="text-gray-600 text-sm mb-4">Learn how to authenticate with our API using API keys and JWT tokens.</p>
+              <a href="/docs/API.md#authentication" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                Learn more <i class="fas fa-arrow-right ml-1"></i>
+              </a>
+            </div>
+            
+            <div class="bg-white rounded-lg border border-gray-200 p-6">
+              <div class="flex items-center mb-4">
+                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-4">
+                  <i class="fas fa-paper-plane text-green-600"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900">Send Your First Email</h3>
+              </div>
+              <p class="text-gray-600 text-sm mb-4">Follow our step-by-step guide to send your first email through our gateway.</p>
+              <a href="/docs/API.md#sending-emails" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                Get started <i class="fas fa-arrow-right ml-1"></i>
+              </a>
+            </div>
+          </div>
         </div>
-        <h3 class="text-2xl font-bold text-gray-900 mb-2">Quick Start Resources</h3>
-        <p class="text-lg text-gray-600">
-          Get up and running quickly with these essential resources
-        </p>
+
+        <!-- Resources Section -->
+        <div class="mb-12">
+          <h2 class="text-2xl font-semibold text-gray-900 mb-6">Additional Resources</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <a href="/docs/ARCHITECTURE.md" class="text-center p-6 bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200">
+              <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-sitemap text-indigo-600 text-lg"></i>
+              </div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-2">Architecture</h3>
+              <p class="text-sm text-gray-600">System architecture and design principles</p>
+            </a>
+            
+            <a href="/docs/DEPLOYMENT.md" class="text-center p-6 bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200">
+              <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-server text-yellow-600 text-lg"></i>
+              </div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-2">Deployment</h3>
+              <p class="text-sm text-gray-600">Deployment guides and best practices</p>
+            </a>
+            
+            <a href="/docs/CLEANUP.md" class="text-center p-6 bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200">
+              <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-broom text-red-600 text-lg"></i>
+              </div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-2">Cleanup</h3>
+              <p class="text-sm text-gray-600">Data cleanup and maintenance procedures</p>
+            </a>
+            
+            <a href="/docs/ROUTEE_INTEGRATION.md" class="text-center p-6 bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200">
+              <div class="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-plug text-teal-600 text-lg"></i>
+              </div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-2">Routee Integration</h3>
+              <p class="text-sm text-gray-600">Routee SMS provider integration guide</p>
+            </a>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="border-t border-gray-200 pt-8">
+          <div class="text-center">
+            <p class="text-gray-600 text-sm mb-4">Need help? Have questions?</p>
+            <div class="flex justify-center space-x-6">
+              <a href="mailto:support@waymore.io" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                <i class="fas fa-envelope mr-2"></i>Contact Support
+              </a>
+              <a href="https://github.com/waymore/emailgateway" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                <i class="fab fa-github mr-2"></i>GitHub
+              </a>
+              <a href="/docs/README.md" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                <i class="fas fa-book mr-2"></i>Full Documentation
+              </a>
+            </div>
+          </div>
+        </div>
       </div>
-      
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div class="bg-white rounded-lg p-6 shadow-md border border-gray-100 hover:shadow-lg transition-shadow duration-200">
-          <div class="flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mx-auto mb-4">
-            <i class="fas fa-play text-xl text-blue-600"></i>
-          </div>
-          <h4 class="text-lg font-semibold text-gray-900 text-center mb-2">Getting Started</h4>
-          <p class="text-gray-600 text-center text-sm mb-4">Quick setup and first email</p>
-          <button onclick="openDocumentation('getting-started')" 
-                  class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
-            Start Here
-          </button>
-        </div>
-        
-        <div class="bg-white rounded-lg p-6 shadow-md border border-gray-100 hover:shadow-lg transition-shadow duration-200">
-          <div class="flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mx-auto mb-4">
-            <i class="fas fa-code text-xl text-green-600"></i>
-          </div>
-          <h4 class="text-lg font-semibold text-gray-900 text-center mb-2">Code Examples</h4>
-          <p class="text-gray-600 text-center text-sm mb-4">Copy-paste ready examples</p>
-          <button onclick="openDocumentation('examples')" 
-                  class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
-            View Examples
-          </button>
-        </div>
-        
-        <div class="bg-white rounded-lg p-6 shadow-md border border-gray-100 hover:shadow-lg transition-shadow duration-200">
-          <div class="flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 mx-auto mb-4">
-            <i class="fas fa-tools text-xl text-yellow-600"></i>
-          </div>
-          <h4 class="text-lg font-semibold text-gray-900 text-center mb-2">Tools & SDKs</h4>
-          <p class="text-gray-600 text-center text-sm mb-4">Development tools and libraries</p>
-          <button onclick="openDocumentation('tools')" 
-                  class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
-            Browse Tools
-          </button>
-        </div>
-        
-        <div class="bg-white rounded-lg p-6 shadow-md border border-gray-100 hover:shadow-lg transition-shadow duration-200">
-          <div class="flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mx-auto mb-4">
-            <i class="fas fa-life-ring text-xl text-red-600"></i>
-          </div>
-          <h4 class="text-lg font-semibold text-gray-900 text-center mb-2">Support</h4>
-          <p class="text-gray-600 text-center text-sm mb-4">Get help and support</p>
-          <button onclick="openDocumentation('support')" 
-                  class="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
-            Get Support
-          </button>
-        </div>
-      </div>
-    </div>
-    
-    <script>
-      function openDocumentation(type) {
-        const urls = {
-          'template-guide': '/docs/UNIVERSAL_TEMPLATE_GUIDE.md',
-          'api-reference': '/docs/API.md',
-          'best-practices': '/docs/DEVELOPER.md',
-          'getting-started': '/docs/README.md',
-          'examples': '/docs/API.md',
-          'tools': '/docs/DEVELOPER.md',
-          'support': '/docs/DEVELOPER.md'
-        };
-        
-        if (urls[type]) {
-          window.location.href = urls[type];
-        }
-      }
-      
-      function copyDocumentationLink(type) {
-        const urls = {
-          'template-guide': '/docs/UNIVERSAL_TEMPLATE_GUIDE.md',
-          'api-reference': '/docs/API.md',
-          'best-practices': '/docs/DEVELOPER.md'
-        };
-        
-        if (urls[type]) {
-          const fullUrl = window.location.origin + urls[type];
-          navigator.clipboard.writeText(fullUrl).then(() => {
-            alert('Documentation link copied to clipboard!');
+
+      <script>
+        function copyCodeSample() {
+          const codeSample = \`const response = await fetch('/api/emails', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer YOUR_API_KEY'
+  },
+  body: JSON.stringify({
+    to: 'user@example.com',
+    template: 'welcome',
+    data: { name: 'John' }
+  })
+});\`;
+          
+          navigator.clipboard.writeText(codeSample).then(() => {
+            // Show a temporary success message
+            const button = event.target.closest('button');
+            const originalContent = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-check text-green-400"></i>';
+            setTimeout(() => {
+              button.innerHTML = originalContent;
+            }, 2000);
           });
         }
-      }
-    </script>`;
+      </script>
+    </div>
+  `;
 }

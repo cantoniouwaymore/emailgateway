@@ -11,7 +11,7 @@
   },
   "subject": "Your plan has been upgraded to Advanced",
   "template": {
-    "key": "universal",
+    "key": "transactional",
     "locale": "en"
   },
   "variables": {

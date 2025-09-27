@@ -235,7 +235,7 @@ interface Message {
   status: MessageStatus;      // Current status
   attempts: number;           // Retry attempts
   lastError?: string;         // Last error message
-  webhookUrl?: string;        // Webhook endpoint
+  webhookUrl?: string;        // Internal webhook endpoint (set via WEBHOOK_BASE_URL)
   createdAt: Date;           // Creation timestamp
   updatedAt: Date;           // Last update timestamp
 }
@@ -335,7 +335,7 @@ interface EmailJobData {
   replyTo?: Recipient;
   subject: string;
   attachments?: Attachment[];
-  webhookUrl?: string;
+  webhookUrl?: string;        // Internal webhook endpoint (set via WEBHOOK_BASE_URL)
   tenantId?: string;
   attempts: number;
 }
@@ -563,5 +563,5 @@ spec:
 
 ---
 
-**Last Updated**: September 2024  
+**Last Updated**: September 2025
 **Architecture Version**: 1.0.0

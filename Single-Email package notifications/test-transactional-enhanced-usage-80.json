@@ -9,9 +9,9 @@
     "email": "marketing@waymore.io",
     "name": "Waymore Team"
   },
-  "subject": "Final reminder: Pro renews tomorrow for Waymore",
+  "subject": "Usage Threshold Warning",
   "template": {
-    "key": "universal",
+    "key": "transactional",
     "locale": "en"
   },
   "variables": {
@@ -19,23 +19,22 @@
     "user_firstname": "Antonio",
     "product_name": "Waymore Platform",
     "support_email": "support@waymore.io",
-    "email_title": "Final Reminder: Pro renews tomorrow",
-    "custom_content": "Hello {{user_firstname}},<br><br>This is a friendly reminder that your <strong>{{plan_name}}</strong> subscription for <strong>{{workspace_name}}</strong> renews on <strong>{{renewal_date}}</strong>.<br><br>💰 <strong>Upcoming charge:</strong> {{next_charge_amount}} {{currency}}<br><br>⚠️ <strong>Please confirm your payment details</strong> to avoid service interruption.",
+    "email_title": "Usage Threshold Warning",
+    "custom_content": "Hello {{user_firstname}},<br><br>Your current <strong>{{product_name}}</strong> subscription <strong>{{plan_name}}</strong> is at <strong>{{usage_percent}}%</strong> of its limit.<br><br>👉 <strong>To avoid interruptions</strong>, you may want to review your plan and upgrade if needed.",
     "image_url": "https://i.ibb.co/8LfvqPk7/Waymore-logo-Colour.png",
     "image_alt": "Waymore Logo",
     "facts": [
-      {"label": "Plan:", "value": "Pro"},
-      {"label": "Renewal Date:", "value": "01 Oct 2025"},
-      {"label": "Charge Amount:", "value": "70.00 EUR"},
-      {"label": "Workspace:", "value": "Waymore"}
+      {"label": "Used:", "value": "8,000 emails"},
+      {"label": "Limit:", "value": "10,000 emails"},
+      {"label": "Usage:", "value": "80%"}
     ],
     "cta_primary": {
-      "label": "Manage Billing",
+      "label": "Manage Plan",
       "url": "https://app.waymore.io/billing"
     },
     "cta_secondary": {
-      "label": "Update Payment",
-      "url": "https://app.waymore.io/billing/payment-methods"
+      "label": "View Usage Details",
+      "url": "https://app.waymore.io/usage"
     },
     "social_links": [
       {"platform": "twitter", "url": "https://twitter.com/waymore_io"},
@@ -54,14 +53,14 @@
       "body_background": "#fff3cd"
     },
     "content": {
-      "en": "Final reminder: Your subscription renews tomorrow. Please confirm your payment details.",
-      "es": "Recordatorio final: Su suscripción se renueva mañana. Por favor confirme sus datos de pago.",
-      "fr": "Rappel final: Votre abonnement se renouvelle demain. Veuillez confirmer vos informations de paiement."
+      "en": "Usage Threshold Warning - Your subscription is at 80% of its limit.",
+      "es": "Advertencia de Umbral de Uso - Su suscripción está al 80% de su límite.",
+      "fr": "Avertissement de Seuil d'Utilisation - Votre abonnement est à 80% de sa limite."
     }
   },
   "metadata": {
     "tenantId": "waymore_test",
-    "eventId": "renewal_1_day_final",
-    "notificationType": "renewal_final_reminder"
+    "eventId": "usage_threshold_80_enhanced",
+    "notificationType": "usage_warning"
   }
 }

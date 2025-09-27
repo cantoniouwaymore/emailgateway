@@ -11,7 +11,7 @@
   },
   "subject": "Action required: Payment failed for your Pro subscription",
   "template": {
-    "key": "universal",
+    "key": "transactional",
     "locale": "en"
   },
   "variables": {

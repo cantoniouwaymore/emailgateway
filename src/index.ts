@@ -43,6 +43,7 @@ import { healthRoutes } from './api/routes/health';
 import { webhookRoutes } from './api/routes/webhook';
 import { adminRoutes } from './api/routes/admin';
 import { generateTestToken } from './utils/auth';
+import { AIController } from './api/controllers/ai';
 
 const PORT = parseInt(process.env['PORT'] || '3000');
 const HOST = process.env['HOST'] || '0.0.0.0';
@@ -138,6 +139,15 @@ async function start() {
   try {
     // Connect to database
     await connectDatabase();
+
+    // Initialize AI controller and vector store (non-blocking)
+    try {
+      const aiController = new AIController();
+      await aiController.initialize();
+      logger.info('AI controller initialized successfully');
+    } catch (error) {
+      logger.warn({ error: error instanceof Error ? error.message : 'Unknown error' }, 'AI controller initialization failed, continuing without AI features');
+    }
 
     // Build server
     const server = await buildServer();

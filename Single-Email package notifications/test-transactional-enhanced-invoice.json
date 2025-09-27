@@ -1,0 +1,75 @@
+{
+  "to": [
+    {
+      "email": "cantoniou@waymore.io",
+      "name": "Antonio"
+    }
+  ],
+  "from": {
+    "email": "billing@waymore.io",
+    "name": "Waymore Billing"
+  },
+  "subject": "Invoice #INV-2024-001 - Payment Due",
+  "template": {
+    "key": "transactional",
+    "locale": "en"
+  },
+  "variables": {
+    "workspace_name": "Waymore",
+    "user_firstname": "Antonio",
+    "product_name": "Waymore Platform",
+    "support_email": "billing@waymore.io",
+    "email_title": "Invoice #INV-2024-001",
+    "custom_content": "Hello {{user_firstname}},<br><br>📄 <strong>Your invoice is ready!</strong><br><br>Thank you for your business. Your invoice for the Pro Plan subscription is now available for payment.<br><br>Please review the details below and complete your payment by the due date to avoid any service interruption.<br><br>If you have any questions about this invoice, please don't hesitate to contact our billing team.",
+    "image_url": "https://i.ibb.co/8LfvqPk7/Waymore-logo-Colour.png",
+    "image_alt": "Waymore Logo",
+    "facts": [
+      {"label": "Invoice Number:", "value": "INV-2024-001"},
+      {"label": "Issue Date:", "value": "January 15, 2024"},
+      {"label": "Due Date:", "value": "February 14, 2024"},
+      {"label": "Plan:", "value": "Pro Plan - Monthly"},
+      {"label": "Amount:", "value": "$99.00 USD"},
+      {"label": "Status:", "value": "Payment Pending"}
+    ],
+    "cta_primary": {
+      "label": "Pay Now",
+      "url": "https://app.waymore.io/billing/invoice/INV-2024-001"
+    },
+    "cta_secondary": {
+      "label": "Download PDF",
+      "url": "https://app.waymore.io/billing/invoice/INV-2024-001/download"
+    },
+    "social_links": [
+      {"platform": "twitter", "url": "https://twitter.com/waymore_io"},
+      {"platform": "linkedin", "url": "https://linkedin.com/company/waymore"},
+      {"platform": "github", "url": "https://github.com/waymore"}
+    ],
+    "theme": {
+      "font_family": "'Inter', 'Helvetica Neue', Arial, sans-serif",
+      "text_color": "#374151",
+      "heading_color": "#1f2937",
+      "primary_button_color": "#dc2626",
+      "primary_button_text_color": "#ffffff",
+      "secondary_button_color": "#6b7280",
+      "secondary_button_text_color": "#ffffff",
+      "background_color": "#ffffff",
+      "body_background": "#f8fafc",
+      "border_color": "#e5e7eb",
+      "muted_text_color": "#9ca3af",
+      "link_color": "#3b82f6"
+    },
+    "content": {
+      "en": "Your invoice is ready for payment. Please review the details and complete your payment by the due date.",
+      "es": "Su factura está lista para el pago. Por favor revise los detalles y complete su pago antes de la fecha de vencimiento.",
+      "fr": "Votre facture est prête pour le paiement. Veuillez examiner les détails et effectuer votre paiement avant la date d'échéance.",
+      "de": "Ihre Rechnung ist zur Zahlung bereit. Bitte überprüfen Sie die Details und begleichen Sie Ihre Zahlung bis zum Fälligkeitsdatum.",
+      "it": "La tua fattura è pronta per il pagamento. Si prega di rivedere i dettagli e completare il pagamento entro la data di scadenza.",
+      "pt": "Sua fatura está pronta para pagamento. Por favor, revise os detalhes e complete seu pagamento até a data de vencimento."
+    }
+  },
+  "metadata": {
+    "tenantId": "waymore_test",
+    "eventId": "invoice_payment_due",
+    "notificationType": "billing"
+  }
+}

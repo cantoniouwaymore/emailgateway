@@ -12,7 +12,7 @@
 
 ### 🚀 Core Capabilities
 - **RESTful API**: Standardized POST /v1/emails endpoint with full validation.
-- **Enhanced Universal Template**: Advanced MJML template with multi-button support, social media integration, custom themes, multi-language support, and dynamic images.
+- **Enhanced Transactional Template**: Advanced MJML template with multi-button support, social media integration, custom themes, multi-language support, and dynamic images.
 - **Queue System**: BullMQ (Redis) for reliable background job processing.
 - **Provider Abstraction**: Pluggable email providers (Routee, SES, SendGrid).
 - **Idempotency**: Exactly-once intake with Idempotency-Key header.
@@ -133,9 +133,9 @@ npm run dev:all
 
 </details>
 
-## 🎨 Universal Template Features
+## 🎨 Transactional Template Features
 
-The Waymore Transactional Emails Service now features a powerful universal template with advanced capabilities:
+The Waymore Transactional Emails Service now features a powerful transactional template with advanced capabilities:
 
 ### ✨ Template Capabilities
 
@@ -219,7 +219,7 @@ curl -X POST http://localhost:3000/api/v1/emails \
     "to": [{"email": "user@example.com", "name": "John Doe"}],
     "from": {"email": "no-reply@waymore.io", "name": "Waymore"},
     "subject": "Welcome to Waymore!",
-    "template": {"key": "universal", "locale": "en"},
+    "template": {"key": "transactional", "locale": "en"},
     "variables": {
       "workspace_name": "Waymore",
       "user_firstname": "John",
@@ -433,7 +433,7 @@ The Waymore Transactional Emails Service receives webhook events from email prov
 - **Routee Webhook** - `/webhooks/routee`
 - **Status Mapping** - Automatic status updates (delivered, bounced, failed)
 - **Event Storage** - All webhook events are stored for analytics
-- **Client Notifications** - Forward webhooks to client URLs
+- **Client Notifications** - Forward webhooks to configured internal URL
 
 ### Webhook Events
 - `delivered` → Updates to `DELIVERED` status

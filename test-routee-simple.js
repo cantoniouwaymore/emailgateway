@@ -58,7 +58,7 @@ async function testEmailSending(token) {
     to: [{ email: 'cantoniou@waymore.io', name: 'Antonio' }],
     from: { email: 'marketing@waymore.io', name: 'Waymore Marketing' },
     subject: '🎉 Routee Integration Test - SUCCESS!',
-    template: { key: 'notifications/universal', locale: 'en' },
+        template: { key: 'notifications/transactional', locale: 'en' },
     variables: {
       email_title: 'Routee Integration Working!',
       user_name: 'Antonio',

@@ -9,9 +9,9 @@
     "email": "marketing@waymore.io",
     "name": "Waymore Team"
   },
-  "subject": "Usage Threshold Warning",
+  "subject": "Renewal Reminder",
   "template": {
-    "key": "universal",
+    "key": "transactional",
     "locale": "en"
   },
   "variables": {
@@ -19,22 +19,22 @@
     "user_firstname": "Antonio",
     "product_name": "Waymore Platform",
     "support_email": "support@waymore.io",
-    "email_title": "Usage Threshold Warning",
-    "custom_content": "Hello {{user_firstname}},<br><br>Your current <strong>{{product_name}}</strong> subscription <strong>{{plan_name}}</strong> is at <strong>{{usage_percent}}%</strong> of its limit.<br><br>👉 <strong>To avoid interruptions</strong>, you may want to review your plan and upgrade if needed.",
+    "email_title": "Renewal Reminder",
+    "custom_content": "Hello {{user_firstname}},<br><br>Your <strong>{{plan_name}}</strong> plan will renew on <strong>{{renewal_date}}</strong>.<br><br>💡 <strong>Tip:</strong> Make sure your payment method is up to date to avoid any service interruptions.",
     "image_url": "https://i.ibb.co/8LfvqPk7/Waymore-logo-Colour.png",
     "image_alt": "Waymore Logo",
     "facts": [
-      {"label": "Used:", "value": "8,000 emails"},
-      {"label": "Limit:", "value": "10,000 emails"},
-      {"label": "Usage:", "value": "80%"}
+      {"label": "Plan:", "value": "Pro"},
+      {"label": "Renewal Date:", "value": "01 Oct 2025"},
+      {"label": "Workspace:", "value": "Waymore"}
     ],
     "cta_primary": {
-      "label": "Manage Plan",
+      "label": "Manage Billing",
       "url": "https://app.waymore.io/billing"
     },
     "cta_secondary": {
-      "label": "View Usage Details",
-      "url": "https://app.waymore.io/usage"
+      "label": "View Plan Details",
+      "url": "https://app.waymore.io/plans"
     },
     "social_links": [
       {"platform": "twitter", "url": "https://twitter.com/waymore_io"},
@@ -45,22 +45,22 @@
       "font_family": "'Inter', 'Helvetica Neue', Arial, sans-serif",
       "text_color": "#2c3e50",
       "heading_color": "#1a1a1a",
-      "primary_button_color": "#ffc107",
-      "primary_button_text_color": "#000000",
+      "primary_button_color": "#007bff",
+      "primary_button_text_color": "#ffffff",
       "secondary_button_color": "#6c757d",
       "secondary_button_text_color": "#ffffff",
       "background_color": "#ffffff",
-      "body_background": "#fff3cd"
+      "body_background": "#f8f9fa"
     },
     "content": {
-      "en": "Usage Threshold Warning - Your subscription is at 80% of its limit.",
-      "es": "Advertencia de Umbral de Uso - Su suscripción está al 80% de su límite.",
-      "fr": "Avertissement de Seuil d'Utilisation - Votre abonnement est à 80% de sa limite."
+      "en": "Renewal Reminder - Your plan will renew soon. Make sure your payment method is up to date.",
+      "es": "Recordatorio de Renovación - Su plan se renovará pronto. Asegúrese de que su método de pago esté actualizado.",
+      "fr": "Rappel de Renouvellement - Votre plan se renouvellera bientôt. Assurez-vous que votre méthode de paiement est à jour."
     }
   },
   "metadata": {
     "tenantId": "waymore_test",
-    "eventId": "usage_threshold_80_enhanced",
-    "notificationType": "usage_warning"
+    "eventId": "renewal_7_days_enhanced",
+    "notificationType": "renewal_reminder"
   }
 }

@@ -20,7 +20,7 @@ async function testAPI() {
       to: [{ email: 'test@example.com', name: 'Test User' }],
       from: { email: 'no-reply@waymore.io', name: 'Waymore' },
       subject: 'Test Email from Gateway',
-      template: { key: 'notifications/universal', locale: 'en' },
+      template: { key: 'notifications/transactional', locale: 'en' },
       variables: {
         email_title: 'Welcome to Waymore! 🚀',
         facts: [

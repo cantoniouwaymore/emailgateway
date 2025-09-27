@@ -74,9 +74,17 @@ export function generateTabNavigation(): string {
     <div class="mb-8">
         <div class="border-b border-gray-200">
             <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-                <button onclick="showTab('health')" id="health-tab-btn" class="tab-button active whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
-                    <i class="fas fa-heartbeat mr-2"></i>
-                    System Health
+                <button onclick="showTab('documentation')" id="documentation-tab-btn" class="tab-button active whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                    <i class="fas fa-book mr-2"></i>
+                    Documentation
+                </button>
+                <button onclick="showTab('templates')" id="templates-tab-btn" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                    <i class="fas fa-code mr-2"></i>
+                    Transactional Template Playground
+                </button>
+                <button onclick="showTab('ai-playground')" id="ai-playground-tab-btn" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                    <i class="fas fa-robot mr-2"></i>
+                    AI Playground
                 </button>
                 <button onclick="showTab('messages')" id="messages-tab-btn" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
                     <i class="fas fa-envelope mr-2"></i>
@@ -90,13 +98,9 @@ export function generateTabNavigation(): string {
                     <i class="fas fa-search mr-2"></i>
                     Search
                 </button>
-                <button onclick="showTab('templates')" id="templates-tab-btn" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
-                    <i class="fas fa-code mr-2"></i>
-                    Universal Template Playground
-                </button>
-                <button onclick="showTab('documentation')" id="documentation-tab-btn" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
-                    <i class="fas fa-book mr-2"></i>
-                    Documentation
+                <button onclick="showTab('health')" id="health-tab-btn" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                    <i class="fas fa-heartbeat mr-2"></i>
+                    System Health
                 </button>
             </nav>
         </div>
@@ -105,7 +109,7 @@ export function generateTabNavigation(): string {
 
 export function generateRefreshButton(): string {
   return `
-    <div class="mt-6 flex justify-end">
+    <div id="refresh-button-container" class="mt-6 flex justify-end" style="display: none;">
         <button onclick="location.reload()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
             <i class="fas fa-sync-alt mr-2"></i>
             Refresh Data
@@ -144,15 +148,35 @@ export function generateDashboardScript(): string {
                 selectedButton.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
             }
             
+            // Show/hide refresh button based on tab
+            const refreshButton = document.getElementById('refresh-button-container');
+            if (refreshButton) {
+                // Tabs that need refresh: health, messages, webhooks, search
+                const tabsWithRefresh = ['health', 'messages', 'webhooks', 'search'];
+                if (tabsWithRefresh.includes(tabName)) {
+                    refreshButton.style.display = 'flex';
+                } else {
+                    refreshButton.style.display = 'none';
+                }
+            }
+            
             // Update URL hash to remember the current tab
             if (window.location.hash !== '#' + tabName) {
                 window.history.replaceState(null, null, '#' + tabName);
             }
+            
+            // Initialize AI Playground when tab is shown
+            if (tabName === 'ai-playground' && typeof initializeAIPlayground === 'function') {
+                initializeAIPlayground();
+            }
         }
         
-        // Auto-refresh every 30 seconds
+        // Auto-refresh every 30 seconds (but not for AI Playground or Templates tab)
         setInterval(() => {
-            location.reload();
+            const currentTab = window.location.hash.substring(1);
+            if (currentTab !== 'ai-playground' && currentTab !== 'templates') {
+                location.reload();
+            }
         }, 30000);
         
         // Function to get event type CSS class
@@ -174,7 +198,7 @@ export function generateDashboardScript(): string {
             const hash = window.location.hash;
             if (hash) {
                 const tabName = hash.substring(1); // Remove the # symbol
-                if (['health', 'messages', 'webhooks', 'search', 'templates', 'documentation'].includes(tabName)) {
+                if (['documentation', 'templates', 'ai-playground', 'messages', 'webhooks', 'search', 'health'].includes(tabName)) {
                     showTab(tabName);
                     return;
                 }
@@ -185,7 +209,7 @@ export function generateDashboardScript(): string {
             if (searchResults && searchResults.innerHTML.trim() !== '') {
                 showTab('search');
             } else {
-                showTab('health');
+                showTab('documentation');
             }
         });
     </script>`;

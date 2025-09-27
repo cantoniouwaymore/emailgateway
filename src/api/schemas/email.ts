@@ -28,8 +28,7 @@ export const sendEmailRequestSchema = z.object({
   template: templateSchema,
   variables: z.record(z.unknown()).optional(),
   attachments: z.array(attachmentSchema).optional(),
-  metadata: z.record(z.unknown()).optional(),
-  webhookUrl: z.string().url().optional()
+  metadata: z.record(z.unknown()).optional()
 });
 
 export const sendEmailResponseSchema = z.object({

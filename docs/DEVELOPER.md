@@ -65,8 +65,8 @@ src/
 ├── templates/             # Template system
 │   ├── engine.ts         # Template rendering engine
 │   └── notifications/    # Template files
-│       ├── universal-en.mjml
-│       └── universal-en.txt
+│       ├── transactional-en.mjml
+│       └── transactional-en.txt
 ├── utils/                 # Utility functions
 │   ├── auth.ts          # JWT authentication
 │   ├── idempotency.ts   # Idempotency handling
@@ -209,7 +209,7 @@ Idempotency-Key: <UNIQUE_KEY>
   "from": {"email": "no-reply@waymore.io", "name": "Waymore"},
   "subject": "Welcome!",
   "template": {
-    "key": "notifications/universal",
+    "key": "notifications/transactional",
     "locale": "en"
   },
   "variables": {
@@ -347,21 +347,21 @@ CREATE TYPE MessageStatus AS ENUM (
 
 ## Template System
 
-The template system uses MJML for responsive email design and Handlebars for dynamic content. The system now features a single, powerful universal template with advanced capabilities.
+The template system uses MJML for responsive email design and Handlebars for dynamic content. The system now features a single, powerful transactional template with advanced capabilities.
 
 ### Template Structure
 
-The current template structure is simplified to focus on the enhanced universal template:
+The current template structure is simplified to focus on the enhanced transactional template:
 ```
 src/templates/
-├── universal-en.mjml      # Enhanced universal template (MJML)
-├── universal-en.txt       # Plain text version
+├── transactional-en.mjml      # Enhanced transactional template (MJML)
+├── transactional-en.txt       # Plain text version
 └── engine.ts              # Template engine
 ```
 
-### Universal Template Features
+### Transactional Template Features
 
-The universal template supports:
+The transactional template supports:
 
 - **Multi-Button Support**: Side-by-side primary and secondary buttons
 - **Social Media Integration**: Built-in social media links
@@ -372,8 +372,8 @@ The universal template supports:
 - **Dark Mode Ready**: Theme-driven styling
 
 ### Template Naming Convention
-- `universal-en.mjml` - Main HTML template
-- `universal-en.txt` - Plain text version
+- `transactional-en.mjml` - Main HTML template
+- `transactional-en.txt` - Plain text version
 - `{category}-{locale}.subject` - Subject template (optional)
 
 ### MJML Template Example
@@ -414,7 +414,7 @@ Available helpers:
 
 ### Template Variables
 
-The universal template supports comprehensive variable structure:
+The transactional template supports comprehensive variable structure:
 
 ```json
 {
@@ -488,7 +488,7 @@ interface EmailJobData {
     contentBase64: string;
     contentType: string;
   }>;
-  webhookUrl?: string;
+  webhookUrl?: string;        // Internal webhook endpoint (set via WEBHOOK_BASE_URL)
   tenantId?: string;
   attempts: number;
 }
@@ -874,7 +874,7 @@ Error: connect ECONNREFUSED 127.0.0.1:6379
 
 #### Template Not Found
 ```bash
-Template file not found: notifications/universal-en.mjml
+Template file not found: notifications/transactional-en.mjml
 ```
 **Solution**: Check template file exists and path is correct.
 

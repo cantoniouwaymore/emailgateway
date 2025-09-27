@@ -97,7 +97,7 @@ export class EmailController {
           locale: emailRequest.template.locale,
           variablesJson: emailRequest.variables || {} as any,
           status: 'QUEUED',
-          webhookUrl: emailRequest.webhookUrl,
+          webhookUrl: undefined,
           attempts: 0
         }
       });
@@ -119,7 +119,7 @@ export class EmailController {
         replyTo: emailRequest.replyTo,
         subject: emailRequest.subject,
         attachments: emailRequest.attachments,
-        webhookUrl: emailRequest.webhookUrl,
+        webhookUrl: process.env.WEBHOOK_BASE_URL ? `${process.env.WEBHOOK_BASE_URL}/webhooks/routee` : undefined,
         tenantId,
         attempts: 0
       });

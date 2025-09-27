@@ -11,7 +11,7 @@
   },
   "subject": "Usage Limit Reached",
   "template": {
-    "key": "universal",
+    "key": "transactional",
     "locale": "en"
   },
   "variables": {

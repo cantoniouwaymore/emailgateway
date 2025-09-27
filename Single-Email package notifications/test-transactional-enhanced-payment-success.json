@@ -11,7 +11,7 @@
   },
   "subject": "Payment received for your Pro plan – Waymore",
   "template": {
-    "key": "universal",
+    "key": "transactional",
     "locale": "en"
   },
   "variables": {
