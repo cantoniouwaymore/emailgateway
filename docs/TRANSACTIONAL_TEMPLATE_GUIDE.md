@@ -40,9 +40,9 @@ The Transactional Template is a powerful, feature-rich email template built with
 }
 ```
 
-## 🤖 LLM Usage Instructions
+## 🤖 Template Generation Instructions
 
-**For AI/LLM Systems:** When generating transactional email templates, follow these rules:
+**For Template Generation Systems:** When generating transactional email templates, follow these rules:
 
 1. **Use object-based structure**: Use structured sections (`header`, `hero`, `title`, `body`, `snapshot`, `visual`, `actions`, `support`, `footer`)
 2. **Use proper structure**: Wrap template key/locale in `template` object, variables in `variables` object
@@ -1042,7 +1042,7 @@ The `hero` section supports both icons and images. When using images, follow the
 
 #### Template Structure Errors
 
-**Problem**: AI generates incorrect JSON structure
+**Problem**: Template generation creates incorrect JSON structure
 **Solutions**:
 - Ensure `template` object contains `key` and `locale`
 - Keep `variables` object separate from `template` object

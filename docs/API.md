@@ -40,7 +40,13 @@ Authorization: Bearer <JWT_TOKEN>
 
 ### Send Email
 
-Send an email using a template with dynamic variables.
+Send an email using a database-driven template with dynamic variables. Templates are stored in the database and referenced by their unique key.
+
+**How it works:**
+1. You provide only the template key (e.g., "transactional") and variables
+2. The system loads the full template structure from the database
+3. Variables are merged into the template to create the final email
+4. No need to provide the complete template structure in your request
 
 ```http
 POST /api/v1/emails
@@ -90,89 +96,9 @@ POST /api/v1/emails
     "locale": "en"
   },
   "variables": {
-    "header": {
-      "logo_url": "https://i.ibb.co/8LfvqPk7/Waymore-logo-Colour.png",
-      "logo_alt": "Waymore",
-      "tagline": "Empowering your business"
-    },
-    "hero": {
-      "type": "none"
-    },
-    "title": {
-      "text": "Welcome to Waymore!",
-      "size": "28px",
-      "weight": "700",
-      "color": "#1f2937",
-      "align": "center"
-    },
-    "body": {
-      "paragraphs": [
-        "Hello John, welcome to Waymore Platform!",
-        "Your account is ready to use. Here are some tips to get started:",
-        "• Explore your dashboard\n• Set up your profile\n• Connect your first integration"
-      ],
-      "font_size": "16px",
-      "line_height": "26px"
-    },
-    "snapshot": {
-      "title": "Account Summary",
-      "facts": [
-        { "label": "Account Type", "value": "Premium" },
-        { "label": "Created", "value": "2024-01-01" }
-      ],
-      "style": "table"
-    },
-    "visual": {
-      "type": "none"
-    },
-    "actions": {
-      "primary": {
-        "label": "Get Started",
-        "url": "https://app.waymore.io/dashboard",
-        "style": "button",
-        "color": "#3b82f6",
-        "text_color": "#ffffff"
-      },
-      "secondary": {
-        "label": "Learn More",
-        "url": "https://docs.waymore.io",
-        "style": "link",
-        "color": "#6b7280"
-      }
-    },
-    "support": {
-      "title": "Need help?",
-      "links": [
-        { "label": "FAQ", "url": "https://waymore.io/faq" },
-        { "label": "Contact Support", "url": "https://waymore.io/support" }
-      ]
-    },
-    "footer": {
-      "tagline": "Empowering your business",
-      "social_links": [
-        { "platform": "twitter", "url": "https://twitter.com/waymore" },
-        { "platform": "linkedin", "url": "https://linkedin.com/company/waymore" }
-      ],
-      "legal_links": [
-        { "label": "Privacy Policy", "url": "https://waymore.io/privacy" },
-        { "label": "Terms of Service", "url": "https://waymore.io/terms" }
-      ],
-      "copyright": "© 2024 Waymore Technologies Inc. All rights reserved."
-    },
-    "theme": {
-      "font_family": "'Roboto', 'Helvetica Neue', Arial, sans-serif",
-      "font_size": "16px",
-      "text_color": "#2c3e50",
-      "heading_color": "#1a1a1a",
-      "background_color": "#ffffff",
-      "body_background": "#f4f4f4",
-      "muted_text_color": "#888888",
-      "border_color": "#e0e0e0",
-      "primary_button_color": "#3b82f6",
-      "primary_button_text_color": "#ffffff",
-      "secondary_button_color": "#6c757d",
-      "secondary_button_text_color": "#ffffff"
-    }
+    "workspace_name": "Waymore",
+    "user_firstname": "John",
+    "dashboard_url": "https://app.waymore.io/dashboard"
   },
   "attachments": [
     {
@@ -544,6 +470,164 @@ Supported locales: `en`, `es`, `fr`, `de`, `it`, `pt`
     "code": "RATE_LIMIT_EXCEEDED",
     "message": "Rate limit exceeded, retry in 60 seconds",
     "traceId": "trace_12345"
+  }
+}
+```
+
+### Validate Template Structure
+
+Validate a template structure without specifying a template key (for general template validation).
+
+```http
+POST /api/v1/templates/validate
+```
+
+#### Headers
+
+| Header | Required | Description |
+|--------|----------|-------------|
+| `Authorization` | Yes | Bearer JWT token |
+| `Content-Type` | Yes | `application/json` |
+
+#### Request Body
+
+```json
+{
+  "template": {
+    "key": "transactional",
+    "locale": "en"
+  },
+  "variables": {
+    "workspace_name": "Waymore",
+    "user_firstname": "John",
+    "dashboard_url": "https://app.waymore.io/dashboard"
+  }
+}
+```
+
+#### Response
+
+**Success (200 OK):**
+```json
+{
+  "valid": true,
+  "errors": [],
+  "warnings": [
+    {
+      "type": "missing_optional_variable",
+      "field": "footer.copyright",
+      "message": "Consider adding copyright text for better branding"
+    }
+  ],
+  "template": {
+    "key": "transactional",
+    "name": "Transactional Email Template",
+    "category": "transactional",
+    "isActive": true
+  }
+}
+```
+
+**Validation Error (400 Bad Request):**
+```json
+{
+  "valid": false,
+  "errors": [
+    {
+      "type": "missing_required_variable",
+      "field": "workspace_name",
+      "message": "Required variable 'workspace_name' is missing"
+    }
+  ],
+  "warnings": [],
+  "template": {
+    "key": "transactional",
+    "name": "Transactional Email Template",
+    "category": "transactional",
+    "isActive": true
+  }
+}
+```
+
+### Validate Template for Email Sending
+
+Before sending an email, you can validate that the template exists and that your variables are correct.
+
+```http
+POST /api/v1/templates/{templateKey}/validate
+```
+
+#### Headers
+
+| Header | Required | Description |
+|--------|----------|-------------|
+| `Authorization` | Yes | Bearer JWT token |
+| `Content-Type` | Yes | `application/json` |
+
+#### Path Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `templateKey` | string | Yes | Template key (e.g., "transactional") |
+
+#### Request Body
+
+```json
+{
+  "variables": {
+    "workspace_name": "Waymore",
+    "user_firstname": "John",
+    "dashboard_url": "https://app.waymore.io/dashboard"
+  }
+}
+```
+
+#### Response
+
+**Success (200 OK):**
+```json
+{
+  "valid": true,
+  "errors": [],
+  "warnings": [
+    {
+      "type": "missing_optional_variable",
+      "field": "footer.copyright",
+      "message": "Consider adding copyright text for better branding"
+    }
+  ],
+  "template": {
+    "key": "transactional",
+    "name": "Transactional Email Template",
+    "category": "transactional",
+    "isActive": true
+  }
+}
+```
+
+**Validation Error (400 Bad Request):**
+```json
+{
+  "valid": false,
+  "errors": [
+    {
+      "type": "missing_required_variable",
+      "field": "workspace_name",
+      "message": "Required variable 'workspace_name' is missing"
+    },
+    {
+      "type": "invalid_variable_type",
+      "field": "user_firstname",
+      "message": "Expected string, got number",
+      "received": 123
+    }
+  ],
+  "warnings": [],
+  "template": {
+    "key": "transactional",
+    "name": "Transactional Email Template",
+    "category": "transactional",
+    "isActive": true
   }
 }
 ```
@@ -970,29 +1054,29 @@ const client = new EmailGateway({
   token: 'your-jwt-token'
 });
 
-// Send email
-const result = await client.sendEmail({
-  to: [{ email: 'user@example.com', name: 'John Doe' }],
-  from: { email: 'no-reply@waymore.io', name: 'Waymore' },
-  subject: 'Welcome!',
-  template: { key: 'universal', locale: 'en' },
-  variables: {
-    workspace_name: 'Waymore',
-    user_firstname: 'John',
-    product_name: 'Waymore Platform',
-    support_email: 'support@waymore.io',
-    email_title: 'Welcome to Waymore!',
-    custom_content: 'Hello John,<br><br>Welcome to our platform!',
-    cta_primary: {
-      label: 'Get Started',
-      url: 'https://app.waymore.io/dashboard'
-    },
-    theme: {
-      primary_button_color: '#28a745',
-      text_color: '#2c3e50'
-    }
-  }
+// Validate template before sending
+const validation = await client.validateTemplate('transactional', {
+  workspace_name: 'Waymore',
+  user_firstname: 'John',
+  dashboard_url: 'https://app.waymore.io/dashboard'
 });
+
+if (validation.valid) {
+  // Send email with database template
+  const result = await client.sendEmail({
+    to: [{ email: 'user@example.com', name: 'John Doe' }],
+    from: { email: 'no-reply@waymore.io', name: 'Waymore' },
+    subject: 'Welcome to Waymore!',
+    template: { key: 'transactional', locale: 'en' },
+    variables: {
+      workspace_name: 'Waymore',
+      user_firstname: 'John',
+      dashboard_url: 'https://app.waymore.io/dashboard'
+    }
+  });
+} else {
+  console.error('Template validation failed:', validation.errors);
+}
 
 // Check status
 const status = await client.getMessageStatus(result.messageId);
@@ -1034,7 +1118,7 @@ result = client.send_email(email_data, 'unique-key-123')
 
 ### cURL Examples
 
-#### Send Email
+#### Send Email with Database Template
 ```bash
 curl -X POST https://api.waymore.io/email-gateway/api/v1/emails \
   -H "Authorization: Bearer your-jwt-token" \
@@ -1044,18 +1128,25 @@ curl -X POST https://api.waymore.io/email-gateway/api/v1/emails \
     "to": [{"email": "user@example.com", "name": "John Doe"}],
     "from": {"email": "no-reply@waymore.io", "name": "Waymore"},
     "subject": "Welcome to Waymore!",
-    "template": {"key": "universal", "locale": "en"},
+    "template": {"key": "transactional", "locale": "en"},
     "variables": {
       "workspace_name": "Waymore",
       "user_firstname": "John",
-      "product_name": "Waymore Platform",
-      "support_email": "support@waymore.io",
-      "email_title": "Welcome to Waymore!",
-      "custom_content": "Hello John,<br><br>Welcome to our platform!",
-      "cta_primary": {
-        "label": "Get Started",
-        "url": "https://app.waymore.io/dashboard"
-      }
+      "dashboard_url": "https://app.waymore.io/dashboard"
+    }
+  }'
+```
+
+#### Validate Template Before Sending
+```bash
+curl -X POST https://api.waymore.io/email-gateway/api/v1/templates/transactional/validate \
+  -H "Authorization: Bearer your-jwt-token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "variables": {
+      "workspace_name": "Waymore",
+      "user_firstname": "John",
+      "dashboard_url": "https://app.waymore.io/dashboard"
     }
   }'
 ```
@@ -1087,7 +1178,964 @@ curl -X POST https://api.waymore.io/email-gateway/api/v1/templates/validate \
   }'
 ```
 
+## Template Management
+
+The Template Management API provides full CRUD operations for database-driven email templates, including localization support and variable validation.
+
+### List Templates
+
+Retrieve all available templates with optional filtering.
+
+```http
+GET /api/v1/templates
+```
+
+#### Query Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `category` | string | Filter by template category |
+| `isActive` | boolean | Filter by active status |
+| `search` | string | Search in name, key, or description |
+
+#### Response
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "template_123",
+      "key": "transactional",
+      "name": "Transactional Email",
+      "description": "Standard transactional email template",
+      "category": "transactional",
+      "isActive": true,
+      "variableSchema": {
+        "type": "object",
+        "properties": {
+          "workspace_name": {"type": "string"},
+          "user_firstname": {"type": "string"}
+        },
+        "required": ["workspace_name", "user_firstname"]
+      },
+      "locales": ["en", "es"],
+      "createdAt": "2025-09-29T10:00:00Z",
+      "updatedAt": "2025-09-29T10:00:00Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 1,
+    "totalPages": 1
+  }
+}
+```
+
+### Get Template
+
+Retrieve a specific template by key.
+
+```http
+GET /api/v1/templates/{templateKey}
+```
+
+#### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "template_123",
+    "key": "transactional",
+    "name": "Transactional Email",
+    "description": "Standard transactional email template",
+    "category": "transactional",
+    "isActive": true,
+    "variableSchema": {
+      "type": "object",
+      "properties": {
+        "workspace_name": {"type": "string"},
+        "user_firstname": {"type": "string"}
+      },
+      "required": ["workspace_name", "user_firstname"]
+    },
+    "jsonStructure": {
+      "mjml": {
+        "tagName": "mjml",
+        "children": [
+          {
+            "tagName": "mj-head",
+            "children": [
+              {
+                "tagName": "mj-title",
+                "content": "{{email_title}}"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "locales": [
+      {
+        "locale": "en",
+        "jsonStructure": {
+          "mjml": {
+            "tagName": "mjml",
+            "children": [
+              {
+                "tagName": "mj-head",
+                "children": [
+                  {
+                    "tagName": "mj-title",
+                    "content": "{{email_title}}"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "createdAt": "2025-09-29T10:00:00Z",
+        "updatedAt": "2025-09-29T10:00:00Z"
+      }
+    ],
+    "createdAt": "2025-09-29T10:00:00Z",
+    "updatedAt": "2025-09-29T10:00:00Z"
+  }
+}
+```
+
+### Create Template
+
+Create a new email template.
+
+```http
+POST /api/v1/templates
+```
+
+#### Request Body
+
+```json
+{
+  "key": "welcome-email",
+  "name": "Welcome Email",
+  "description": "Welcome new users to the platform",
+  "category": "onboarding",
+  "isActive": true,
+  "variableSchema": {
+    "type": "object",
+    "properties": {
+      "user_name": {"type": "string"},
+      "company_name": {"type": "string"},
+      "dashboard_url": {"type": "string"}
+    },
+    "required": ["user_name", "company_name", "dashboard_url"]
+  },
+  "jsonStructure": {
+    "mjml": {
+      "tagName": "mjml",
+      "children": [
+        {
+          "tagName": "mj-head",
+          "children": [
+            {
+              "tagName": "mj-title",
+              "content": "Welcome to {{company_name}}!"
+            }
+          ]
+        },
+        {
+          "tagName": "mj-body",
+          "children": [
+            {
+              "tagName": "mj-section",
+              "children": [
+                {
+                  "tagName": "mj-column",
+                  "children": [
+                    {
+                      "tagName": "mj-text",
+                      "content": "Hello {{user_name}}, welcome to {{company_name}}!"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+```
+
+#### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "template_456",
+    "key": "welcome-email",
+    "name": "Welcome Email",
+    "description": "Welcome new users to the platform",
+    "category": "onboarding",
+    "isActive": true,
+    "variableSchema": {
+      "type": "object",
+      "properties": {
+        "user_name": {"type": "string"},
+        "company_name": {"type": "string"},
+        "dashboard_url": {"type": "string"}
+      },
+      "required": ["user_name", "company_name", "dashboard_url"]
+    },
+    "jsonStructure": {
+      "mjml": {
+        "tagName": "mjml",
+        "children": [
+          {
+            "tagName": "mj-head",
+            "children": [
+              {
+                "tagName": "mj-title",
+                "content": "Welcome to {{company_name}}!"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "locales": [],
+    "createdAt": "2025-09-29T10:00:00Z",
+    "updatedAt": "2025-09-29T10:00:00Z"
+  }
+}
+```
+
+### Update Template
+
+Update an existing template.
+
+```http
+PUT /api/v1/templates/{templateKey}
+```
+
+#### Request Body
+
+Same as Create Template, but all fields are optional.
+
+#### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "template_456",
+    "key": "welcome-email",
+    "name": "Welcome Email Updated",
+    "description": "Updated welcome email template",
+    "category": "onboarding",
+    "isActive": true,
+    "variableSchema": {
+      "type": "object",
+      "properties": {
+        "user_name": {"type": "string"},
+        "company_name": {"type": "string"},
+        "dashboard_url": {"type": "string"}
+      },
+      "required": ["user_name", "company_name", "dashboard_url"]
+    },
+    "jsonStructure": {
+      "mjml": {
+        "tagName": "mjml",
+        "children": [
+          {
+            "tagName": "mj-head",
+            "children": [
+              {
+                "tagName": "mj-title",
+                "content": "Welcome to {{company_name}}!"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "locales": [],
+    "createdAt": "2025-09-29T10:00:00Z",
+    "updatedAt": "2025-09-29T10:05:00Z"
+  }
+}
+```
+
+### Delete Template
+
+Delete a template and all its locales.
+
+```http
+DELETE /api/v1/templates/{templateKey}
+```
+
+#### Response
+
+```http
+204 No Content
+```
+
+### Add Locale
+
+Add a locale-specific version of a template.
+
+```http
+POST /api/v1/templates/{templateKey}/locales
+```
+
+#### Request Body
+
+```json
+{
+  "locale": "es",
+  "jsonStructure": {
+    "mjml": {
+      "tagName": "mjml",
+      "children": [
+        {
+          "tagName": "mj-head",
+          "children": [
+            {
+              "tagName": "mj-title",
+              "content": "¡Bienvenido a {{company_name}}!"
+            }
+          ]
+        },
+        {
+          "tagName": "mj-body",
+          "children": [
+            {
+              "tagName": "mj-section",
+              "children": [
+                {
+                  "tagName": "mj-column",
+                  "children": [
+                    {
+                      "tagName": "mj-text",
+                      "content": "¡Hola {{user_name}}, bienvenido a {{company_name}}!"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+```
+
+#### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "templateId": "template_456",
+    "locale": "es",
+    "jsonStructure": {
+      "mjml": {
+        "tagName": "mjml",
+        "children": [
+          {
+            "tagName": "mj-head",
+            "children": [
+              {
+                "tagName": "mj-title",
+                "content": "¡Bienvenido a {{company_name}}!"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "createdAt": "2025-09-29T10:00:00Z",
+    "updatedAt": "2025-09-29T10:00:00Z"
+  }
+}
+```
+
+### Update Locale
+
+Update a locale-specific version of a template.
+
+```http
+PUT /api/v1/templates/{templateKey}/locales/{locale}
+```
+
+#### Request Body
+
+Same as Add Locale, but `locale` field is not required.
+
+#### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "templateId": "template_456",
+    "locale": "es",
+    "jsonStructure": {
+      "mjml": {
+        "tagName": "mjml",
+        "children": [
+          {
+            "tagName": "mj-head",
+            "children": [
+              {
+                "tagName": "mj-title",
+                "content": "¡Bienvenido a {{company_name}}!"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "createdAt": "2025-09-29T10:00:00Z",
+    "updatedAt": "2025-09-29T10:05:00Z"
+  }
+}
+```
+
+### Delete Locale
+
+Delete a locale-specific version of a template.
+
+```http
+DELETE /api/v1/templates/{templateKey}/locales/{locale}
+```
+
+#### Response
+
+```http
+204 No Content
+```
+
+### Validate Template Variables
+
+Validate template variables against the template's schema.
+
+```http
+POST /api/v1/templates/{templateKey}/validate
+```
+
+#### Request Body
+
+```json
+{
+  "variables": {
+    "user_name": "John Doe",
+    "company_name": "Waymore",
+    "dashboard_url": "https://app.waymore.io/dashboard"
+  }
+}
+```
+
+#### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "valid": true,
+    "errors": []
+  }
+}
+```
+
+### Get Template Variables
+
+Get the variable schema for a template.
+
+```http
+GET /api/v1/templates/{templateKey}/variables
+```
+
+#### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "variableSchema": {
+      "type": "object",
+      "properties": {
+        "user_name": {
+          "type": "string",
+          "description": "User's full name"
+        },
+        "company_name": {
+          "type": "string",
+          "description": "Company name"
+        },
+        "dashboard_url": {
+          "type": "string",
+          "description": "URL to the dashboard",
+          "format": "uri"
+        }
+      },
+      "required": ["user_name", "company_name", "dashboard_url"]
+    },
+    "examples": {
+      "user_name": "John Doe",
+      "company_name": "Waymore",
+      "dashboard_url": "https://app.waymore.io/dashboard"
+    }
+  }
+}
+```
+
+### Get Template Documentation
+
+Get comprehensive documentation for a template.
+
+```http
+GET /api/v1/templates/{templateKey}/docs
+```
+
+#### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "template": {
+      "key": "welcome-email",
+      "name": "Welcome Email",
+      "description": "Welcome new users to the platform",
+      "category": "onboarding"
+    },
+    "variables": {
+      "schema": {
+        "type": "object",
+        "properties": {
+          "user_name": {
+            "type": "string",
+            "description": "User's full name"
+          },
+          "company_name": {
+            "type": "string",
+            "description": "Company name"
+          },
+          "dashboard_url": {
+            "type": "string",
+            "description": "URL to the dashboard",
+            "format": "uri"
+          }
+        },
+        "required": ["user_name", "company_name", "dashboard_url"]
+      },
+      "examples": {
+        "user_name": "John Doe",
+        "company_name": "Waymore",
+        "dashboard_url": "https://app.waymore.io/dashboard"
+      }
+    },
+    "locales": ["en", "es"],
+    "usage": {
+      "endpoint": "POST /api/v1/emails",
+      "template": {
+        "key": "welcome-email",
+        "locale": "en"
+      },
+      "variables": {
+        "user_name": "John Doe",
+        "company_name": "Waymore",
+        "dashboard_url": "https://app.waymore.io/dashboard"
+      }
+    }
+  }
+}
+```
+
+## Webhook Endpoints
+
+### Routee Webhook
+
+Handle webhook events from Routee email provider for delivery status updates.
+
+```http
+POST /webhooks/routee
+```
+
+#### Headers
+
+| Header | Required | Description |
+|--------|----------|-------------|
+| `Content-Type` | Yes | `application/json` |
+
+#### Request Body
+
+```json
+{
+  "event": "delivered",
+  "messageId": "msg_abc123def456",
+  "timestamp": "2024-01-01T10:00:00Z",
+  "provider": "routee",
+  "providerMessageId": "routee_12345",
+  "recipient": "user@example.com",
+  "status": "delivered",
+  "metadata": {
+    "tenantId": "tenant_123",
+    "templateKey": "transactional"
+  }
+}
+```
+
+#### Response
+
+**Success (200 OK):**
+```json
+{
+  "status": "processed",
+  "messageId": "msg_abc123def456",
+  "timestamp": "2024-01-01T10:00:01Z"
+}
+```
+
+**Error (400 Bad Request):**
+```json
+{
+  "error": {
+    "code": "INVALID_WEBHOOK_DATA",
+    "message": "Invalid webhook payload format"
+  }
+}
+```
+
+## Cache Management
+
+### Get Cache Statistics
+
+Retrieve template cache statistics and performance metrics.
+
+```http
+GET /cache/stats
+```
+
+#### Response
+
+**Success (200 OK):**
+```json
+{
+  "enabled": true,
+  "stats": {
+    "size": 15,
+    "keys": ["template:transactional:en", "template:welcome:en"]
+  },
+  "cleaned": 3,
+  "timestamp": "2024-01-01T10:00:00Z"
+}
+```
+
+**Cache Disabled (200 OK):**
+```json
+{
+  "enabled": false,
+  "message": "Template caching is disabled"
+}
+```
+
+### Clear Template Cache
+
+Clear all cached templates and force reload from database.
+
+```http
+POST /cache/clear
+```
+
+#### Response
+
+**Success (200 OK):**
+```json
+{
+  "enabled": true,
+  "message": "Cache cleared successfully",
+  "timestamp": "2024-01-01T10:00:00Z"
+}
+```
+
+**Cache Disabled (200 OK):**
+```json
+{
+  "enabled": false,
+  "message": "Template caching is disabled"
+}
+```
+
+## Development Endpoints
+
+### Generate Test Token
+
+Generate a JWT token for testing API endpoints (development only).
+
+```http
+GET /test-token
+```
+
+#### Response
+
+**Success (200 OK):**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "expiresIn": "1 hour",
+  "scopes": ["emails:send", "emails:read"]
+}
+```
+
+**Note:** This endpoint is only available in development mode.
+
+## Admin Endpoints
+
+### Admin Dashboard
+
+Access the admin dashboard for real-time monitoring and template management.
+
+```http
+GET /admin
+```
+
+#### Query Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `page` | number | No | Page number for pagination (default: 1) |
+| `limit` | number | No | Items per page (default: 20) |
+| `search` | string | No | Search term for filtering |
+| `email` | string | No | Filter by recipient email |
+| `searchPage` | number | No | Page number for search results |
+| `searchLimit` | number | No | Items per page for search results |
+
+#### Response
+
+Returns HTML content for the admin dashboard interface.
+
+### Message Details
+
+Get detailed information about a specific message.
+
+```http
+GET /admin/messages/{messageId}
+```
+
+#### Path Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `messageId` | string | Yes | Message identifier |
+
+#### Response
+
+Returns HTML content for the message details page.
+
+### Admin API Data
+
+Get real-time data for the admin dashboard.
+
+```http
+GET /admin/api/data
+```
+
+#### Response
+
+**Success (200 OK):**
+```json
+{
+  "messages": {
+    "total": 1250,
+    "sent": 1200,
+    "failed": 50,
+    "recent": [
+      {
+        "messageId": "msg_abc123",
+        "status": "sent",
+        "recipient": "user@example.com",
+        "createdAt": "2024-01-01T10:00:00Z"
+      }
+    ]
+  },
+  "templates": {
+    "total": 5,
+    "active": 4,
+    "inactive": 1
+  },
+  "providers": {
+    "routee": {
+      "status": "healthy",
+      "lastCheck": "2024-01-01T10:00:00Z"
+    }
+  }
+}
+```
+
+### Webhook Events
+
+Get recent webhook events for monitoring.
+
+```http
+GET /admin/api/webhooks
+```
+
+#### Response
+
+**Success (200 OK):**
+```json
+{
+  "events": [
+    {
+      "id": "webhook_123",
+      "provider": "routee",
+      "event": "delivered",
+      "messageId": "msg_abc123",
+      "timestamp": "2024-01-01T10:00:00Z",
+      "status": "processed"
+    }
+  ],
+  "total": 150,
+  "page": 1,
+  "limit": 20
+}
+```
+
+### Search by Recipient
+
+Search for messages by recipient email address.
+
+```http
+GET /admin/search
+```
+
+#### Query Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `email` | string | Yes | Recipient email address |
+| `page` | number | No | Page number (default: 1) |
+| `limit` | number | No | Items per page (default: 20) |
+
+#### Response
+
+**Success (200 OK):**
+```json
+{
+  "messages": [
+    {
+      "messageId": "msg_abc123",
+      "status": "sent",
+      "recipient": "user@example.com",
+      "subject": "Welcome to Waymore!",
+      "createdAt": "2024-01-01T10:00:00Z",
+      "templateKey": "transactional"
+    }
+  ],
+  "total": 25,
+  "page": 1,
+  "limit": 20
+}
+```
+
+### Send Test Email
+
+Send a test email from the admin interface (no authentication required).
+
+```http
+POST /admin/send-test-email
+```
+
+#### Request Body
+
+```json
+{
+  "to": [
+    {
+      "email": "test@example.com",
+      "name": "Test User"
+    }
+  ],
+  "subject": "Test Email",
+  "template": {
+    "key": "transactional",
+    "locale": "en"
+  },
+  "variables": {
+    "workspace_name": "Waymore",
+    "user_firstname": "Test"
+  }
+}
+```
+
+#### Response
+
+**Success (200 OK):**
+```json
+{
+  "messageId": "test_1234567890_abcdef",
+  "status": "queued",
+  "message": "Test email queued successfully"
+}
+```
+
+**Error (400 Bad Request):**
+```json
+{
+  "error": "Missing or invalid 'to' field"
+}
+```
+
+### Documentation Viewer
+
+View documentation files in the browser.
+
+```http
+GET /docs/{filename}
+```
+
+#### Path Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `filename` | string | Yes | Documentation filename (e.g., "API.md") |
+
+#### Response
+
+Returns HTML content with markdown viewer for the documentation file.
+
+### Postman Collection Download
+
+Download the Postman collection for API testing.
+
+```http
+GET /Email-Gateway-API.postman_collection.json
+```
+
+#### Response
+
+Returns the Postman collection JSON file as a download.
+
 ## Changelog
+
+### v2.0.0 (2025-09-29)
+- **Database-Driven Template System**: Complete migration from file-based to database-driven templates
+- **Template Management API**: Full CRUD operations for templates with RESTful endpoints
+- **Multi-Language Support**: Native locale management with database storage
+- **Variable Validation**: JSON Schema-based variable validation for templates
+- **Admin Interface**: Complete template management UI with search, filtering, and editing
+- **Template Documentation**: Auto-generated documentation and examples for each template
+- **Migration Tools**: Automated migration from file-based to database templates
+- **Enhanced Security**: Improved template validation and error handling
+- **Performance Optimization**: Database indexing and query optimization
+- **Backward Compatibility**: Seamless transition with fallback to file-based templates
 
 ### v1.1.0 (2025-09-26)
 - **Enhanced Universal Template**: Complete redesign with advanced features
@@ -1179,74 +2227,6 @@ GET /admin/api/data
 ```
 
 
-## AI Playground
-
-### Generate Template with AI
-
-Generate email templates using natural language descriptions:
-
-**Endpoint**: `POST /api/admin/ai/generate-template`
-
-**Headers**:
-- `Authorization: Bearer <jwt_token>`
-- `Content-Type: application/json`
-
-**Request Body**:
-```json
-{
-  "description": "A welcome email for new users that includes their name, a welcome message, account details, and a button to get started",
-  "workspaceName": "Waymore",
-  "productName": "Waymore Platform",
-  "userName": "John"
-}
-```
-
-**Response**:
-```json
-{
-  "template": {
-    "template": {
-      "key": "transactional",
-      "locale": "en"
-    },
-    "variables": {
-      "workspace_name": "Waymore",
-      "user_firstname": "John",
-      "product_name": "Waymore Platform",
-      "support_email": "support@waymore.io",
-      "email_title": "Welcome to Waymore!",
-      "custom_content": "Hello John,<br><br>🎉 <strong>Welcome to Waymore Platform!</strong><br><br>We're excited to have you on board...",
-      "facts": [
-        {"label": "Account Type", "value": "Pro Plan"},
-        {"label": "Workspace", "value": "Waymore"},
-        {"label": "Setup Status", "value": "Complete"}
-      ],
-      "cta_primary": {
-        "label": "Get Started",
-        "url": "https://app.waymore.io/dashboard"
-      },
-      "cta_secondary": {
-        "label": "View Documentation",
-        "url": "https://docs.waymore.io"
-      }
-    }
-  }
-}
-```
-
-**Features**:
-- Natural language template generation
-- Automatic content structure based on email type
-- Support for welcome, payment, password reset, and report emails
-- Generated templates ready for immediate use
-- Quick test functionality
-
-**Usage**:
-1. Access the AI Playground at `/admin` → "AI Playground" tab
-2. Describe your email template in natural language
-3. Generate the JSON structure
-4. Test the email with the "Send Test Email" button
-5. Copy the generated template for your application
 
 ## Team Integration
 

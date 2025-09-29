@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Waymore Transactional Emails Service API",
-    "description": "Complete API collection for the Waymore Transactional Emails Service. Includes authentication, email sending, status checking, admin monitoring endpoints, and webhook testing. Updated for object-based template structure.",
+    "description": "Complete API collection for the Waymore Transactional Emails Service v2.0. Includes authentication, email sending, status checking, admin monitoring endpoints, webhook testing, and comprehensive template management with database-driven templates, localization, and variable validation.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "version": "2.0.0"
   },
@@ -44,6 +44,11 @@
     {
       "key": "product_name",
       "value": "Waymore Platform",
+      "type": "string"
+    },
+    {
+      "key": "message_id",
+      "value": "msg_abc123def456",
       "type": "string"
     }
   ],
@@ -117,7 +122,7 @@
       "name": "Email Operations",
       "item": [
         {
-          "name": "Send Email - Welcome (Object-Based)",
+          "name": "Send Email - Welcome (Database Template)",
           "request": {
             "method": "POST",
             "header": [
@@ -136,7 +141,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"from\": {\n    \"email\": \"marketing@waymore.io\",\n    \"name\": \"Waymore Team\"\n  },\n  \"subject\": \"Welcome to Waymore Platform\",\n  \"template\": {\n    \"key\": \"transactional\",\n    \"locale\": \"en\"\n  },\n  \"to\": [\n    {\n      \"email\": \"{{recipient_email}}\",\n      \"name\": \"{{recipient_name}}\"\n    }\n  ],\n  \"variables\": {\n    \"workspace_name\": \"Acme Corp\",\n    \"user_firstname\": \"{{user_firstname}}\",\n    \"product_name\": \"{{product_name}}\",\n    \"support_email\": \"support@waymore.io\",\n    \"title\": {\n      \"text\": \"Welcome to Waymore!\"\n    },\n    \"body\": {\n      \"content\": [\n        \"Hello {{user_firstname}},\",\n        \"\",\n        \"🎉 <strong>Welcome to {{product_name}}!</strong>\",\n        \"\",\n        \"We're excited to have you on board. Here are some quick tips to get you started:\",\n        \"\",\n        \"• <strong>Explore the dashboard</strong> to see your workspace overview\",\n        \"• <strong>Invite team members</strong> to collaborate on your projects\",\n        \"• <strong>Check out our documentation</strong> for detailed guides\",\n        \"\",\n        \"If you have any questions, don't hesitate to reach out to our support team.\"\n      ]\n    },\n    \"snapshot\": {\n      \"title\": \"Account Details\",\n      \"style\": \"table\",\n      \"facts\": [\n        {\"label\": \"Account Type:\", \"value\": \"Pro Plan\"},\n        {\"label\": \"Workspace:\", \"value\": \"Acme Corp\"},\n        {\"label\": \"Setup Status:\", \"value\": \"Complete\"}\n      ]\n    },\n    \"actions\": {\n      \"primary\": {\n        \"label\": \"Get Started\",\n        \"url\": \"https://go.waymore.io/dashboard\",\n        \"style\": \"button\"\n      },\n      \"secondary\": {\n        \"label\": \"View Documentation\",\n        \"url\": \"https://docs.waymore.io\",\n        \"style\": \"link\"\n      }\n    }\n  },\n  \"metadata\": {\n    \"tenantId\": \"acme_corp\",\n    \"eventId\": \"welcome_user\",\n    \"notificationType\": \"welcome\"\n  }\n}",
+              "raw": "{\n  \"from\": {\n    \"email\": \"marketing@waymore.io\",\n    \"name\": \"Waymore Team\"\n  },\n  \"subject\": \"Welcome to Waymore Platform\",\n  \"template\": {\n    \"key\": \"transactional\",\n    \"locale\": \"en\"\n  },\n  \"to\": [\n    {\n      \"email\": \"{{recipient_email}}\",\n      \"name\": \"{{recipient_name}}\"\n    }\n  ],\n  \"variables\": {\n    \"workspace_name\": \"Acme Corp\",\n    \"user_firstname\": \"{{user_firstname}}\",\n    \"product_name\": \"{{product_name}}\",\n    \"dashboard_url\": \"https://app.waymore.io/dashboard\",\n    \"support_email\": \"support@waymore.io\"\n  },\n  \"metadata\": {\n    \"tenantId\": \"acme_corp\",\n    \"eventId\": \"welcome_user\",\n    \"notificationType\": \"welcome\"\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -148,7 +153,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "emails"]
             },
-            "description": "Send an email using the transactional template with the new object-based structure. This is the main endpoint for sending emails through the gateway."
+            "description": "Send an email using a database-driven template with simplified variables. The template structure is stored in the database and referenced by key. This is the main endpoint for sending emails through the gateway."
           },
           "response": [
             {
@@ -199,7 +204,7 @@
           ]
         },
         {
-          "name": "Send Email - Payment Success (Object-Based)",
+          "name": "Send Email - Payment Success (Database Template)",
           "request": {
             "method": "POST",
             "header": [
@@ -230,11 +235,11 @@
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "emails"]
             },
-            "description": "Send a payment success notification email with billing details and invoice information using the new object-based structure."
+            "description": "Send a payment success notification email using a database-driven template with simplified variables."
           }
         },
         {
-          "name": "Send Email - Usage Warning (Object-Based)",
+          "name": "Send Email - Usage Warning (Database Template)",
           "request": {
             "method": "POST",
             "header": [
@@ -394,6 +399,82 @@
             },
             "description": "Get service metrics and statistics."
           }
+        },
+        {
+          "name": "Get Cache Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/cache/stats",
+              "host": ["{{base_url}}"],
+              "path": ["cache", "stats"]
+            },
+            "description": "Get template cache statistics and performance metrics."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/cache/stats",
+                  "host": ["{{base_url}}"],
+                  "path": ["cache", "stats"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"enabled\": true,\n  \"stats\": {\n    \"size\": 15,\n    \"keys\": [\"template:transactional:en\", \"template:welcome:en\"]\n  },\n  \"cleaned\": 3,\n  \"timestamp\": \"2024-01-01T10:00:00Z\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Clear Template Cache",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/cache/clear",
+              "host": ["{{base_url}}"],
+              "path": ["cache", "clear"]
+            },
+            "description": "Clear all cached templates and force reload from database."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/cache/clear",
+                  "host": ["{{base_url}}"],
+                  "path": ["cache", "clear"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"enabled\": true,\n  \"message\": \"Cache cleared successfully\",\n  \"timestamp\": \"2024-01-01T10:00:00Z\"\n}"
+            }
+          ]
         }
       ]
     },
@@ -424,6 +505,205 @@
               "path": ["admin", "api", "data"]
             },
             "description": "Get admin dashboard data including statistics and recent activity."
+          }
+        },
+        {
+          "name": "Message Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/messages/{{message_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "messages", "{{message_id}}"]
+            },
+            "description": "Get detailed information about a specific message."
+          }
+        },
+        {
+          "name": "Webhook Events",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/api/webhooks",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "api", "webhooks"]
+            },
+            "description": "Get recent webhook events for monitoring."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/admin/api/webhooks",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "api", "webhooks"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"events\": [\n    {\n      \"id\": \"webhook_123\",\n      \"provider\": \"routee\",\n      \"event\": \"delivered\",\n      \"messageId\": \"msg_abc123\",\n      \"timestamp\": \"2024-01-01T10:00:00Z\",\n      \"status\": \"processed\"\n    }\n  ],\n  \"total\": 150,\n  \"page\": 1,\n  \"limit\": 20\n}"
+            }
+          ]
+        },
+        {
+          "name": "Search by Recipient",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/search?email={{recipient_email}}&page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "search"],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "{{recipient_email}}"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Search for messages by recipient email address."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/admin/search?email={{recipient_email}}&page=1&limit=20",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "search"],
+                  "query": [
+                    {
+                      "key": "email",
+                      "value": "{{recipient_email}}"
+                    },
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"messages\": [\n    {\n      \"messageId\": \"msg_abc123\",\n      \"status\": \"sent\",\n      \"recipient\": \"user@example.com\",\n      \"subject\": \"Welcome to Waymore!\",\n      \"createdAt\": \"2024-01-01T10:00:00Z\",\n      \"templateKey\": \"transactional\"\n    }\n  ],\n  \"total\": 25,\n  \"page\": 1,\n  \"limit\": 20\n}"
+            }
+          ]
+        },
+        {
+          "name": "Send Test Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": [\n    {\n      \"email\": \"{{recipient_email}}\",\n      \"name\": \"{{recipient_name}}\"\n    }\n  ],\n  \"subject\": \"Test Email\",\n  \"template\": {\n    \"key\": \"transactional\",\n    \"locale\": \"en\"\n  },\n  \"variables\": {\n    \"workspace_name\": \"Waymore\",\n    \"user_firstname\": \"{{user_firstname}}\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/send-test-email",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "send-test-email"]
+            },
+            "description": "Send a test email from the admin interface (no authentication required)."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"to\": [\n    {\n      \"email\": \"{{recipient_email}}\",\n      \"name\": \"{{recipient_name}}\"\n    }\n  ],\n  \"subject\": \"Test Email\",\n  \"template\": {\n    \"key\": \"transactional\",\n    \"locale\": \"en\"\n  },\n  \"variables\": {\n    \"workspace_name\": \"Waymore\",\n    \"user_firstname\": \"{{user_firstname}}\"\n  }\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/send-test-email",
+                  "host": ["{{base_url}}"],
+                  "path": ["admin", "send-test-email"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"messageId\": \"test_1234567890_abcdef\",\n  \"status\": \"queued\",\n  \"message\": \"Test email queued successfully\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Documentation Viewer",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/docs/API.md",
+              "host": ["{{base_url}}"],
+              "path": ["docs", "API.md"]
+            },
+            "description": "View documentation files in the browser."
+          }
+        },
+        {
+          "name": "Postman Collection Download",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/Email-Gateway-API.postman_collection.json",
+              "host": ["{{base_url}}"],
+              "path": ["Email-Gateway-API.postman_collection.json"]
+            },
+            "description": "Download the Postman collection for API testing."
           }
         }
       ]
@@ -542,87 +822,47 @@
       ]
     },
     {
-      "name": "AI Playground",
+      "name": "Template Management",
       "item": [
         {
-          "name": "Generate Template with AI",
+          "name": "List Templates",
           "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"description\": \"A welcome email for new users that includes their name, a welcome message, account details, and a button to get started\",\n  \"workspaceName\": \"Waymore\",\n  \"productName\": \"Waymore Platform\",\n  \"userName\": \"John\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
+            "method": "GET",
+            "header": [],
             "url": {
-              "raw": "{{base_url}}/api/admin/ai/generate-template",
+              "raw": "{{base_url}}/api/v1/templates",
               "host": ["{{base_url}}"],
-              "path": ["api", "admin", "ai", "generate-template"]
+              "path": ["api", "v1", "templates"]
             },
-            "description": "Generate email template JSON structure using AI based on natural language description."
+            "description": "Retrieve all available templates with optional filtering."
           }
         },
         {
-          "name": "Generate Payment Success Template",
+          "name": "Get Template",
           "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"description\": \"A payment confirmation email with transaction details, amount, date, and receipt download link\",\n  \"workspaceName\": \"Waymore\",\n  \"productName\": \"Waymore Platform\",\n  \"userName\": \"John\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
+            "method": "GET",
+            "header": [],
             "url": {
-              "raw": "{{base_url}}/api/admin/ai/generate-template",
+              "raw": "{{base_url}}/api/v1/templates/transactional",
               "host": ["{{base_url}}"],
-              "path": ["api", "admin", "ai", "generate-template"]
+              "path": ["api", "v1", "templates", "transactional"]
             },
-            "description": "Generate a payment success email template with transaction details and receipt link."
+            "description": "Retrieve a specific template by key."
           }
         },
         {
-          "name": "Generate Password Reset Template",
+          "name": "Create Template",
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"description\": \"A password reset email with security instructions, reset link, and expiration notice\",\n  \"workspaceName\": \"Waymore\",\n  \"productName\": \"Waymore Platform\",\n  \"userName\": \"John\"\n}",
+              "raw": "{\n  \"key\": \"welcome-email\",\n  \"name\": \"Welcome Email\",\n  \"description\": \"Welcome new users to the platform\",\n  \"category\": \"onboarding\",\n  \"isActive\": true,\n  \"variableSchema\": {\n    \"type\": \"object\",\n    \"properties\": {\n      \"user_name\": {\"type\": \"string\"},\n      \"company_name\": {\"type\": \"string\"},\n      \"dashboard_url\": {\"type\": \"string\"}\n    },\n    \"required\": [\"user_name\", \"company_name\", \"dashboard_url\"]\n  },\n  \"jsonStructure\": {\n    \"mjml\": {\n      \"tagName\": \"mjml\",\n      \"children\": [\n        {\n          \"tagName\": \"mj-head\",\n          \"children\": [\n            {\n              \"tagName\": \"mj-title\",\n              \"content\": \"Welcome to {{company_name}}!\"\n            }\n          ]\n        },\n        {\n          \"tagName\": \"mj-body\",\n          \"children\": [\n            {\n              \"tagName\": \"mj-section\",\n              \"children\": [\n                {\n                  \"tagName\": \"mj-column\",\n                  \"children\": [\n                    {\n                      \"tagName\": \"mj-text\",\n                      \"content\": \"Hello {{user_name}}, welcome to {{company_name}}!\"\n                    }\n                  ]\n                }\n              ]\n            }\n          ]\n        }\n      ]\n    }\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -630,30 +870,26 @@
               }
             },
             "url": {
-              "raw": "{{base_url}}/api/admin/ai/generate-template",
+              "raw": "{{base_url}}/api/v1/templates",
               "host": ["{{base_url}}"],
-              "path": ["api", "admin", "ai", "generate-template"]
+              "path": ["api", "v1", "templates"]
             },
-            "description": "Generate a password reset email template with security instructions and reset link."
+            "description": "Create a new email template."
           }
         },
         {
-          "name": "Generate Monthly Report Template",
+          "name": "Update Template",
           "request": {
-            "method": "POST",
+            "method": "PUT",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"description\": \"A monthly analytics report email with key metrics, charts data, and insights\",\n  \"workspaceName\": \"Waymore\",\n  \"productName\": \"Waymore Platform\",\n  \"userName\": \"John\"\n}",
+              "raw": "{\n  \"name\": \"Welcome Email Updated\",\n  \"description\": \"Updated welcome email template\",\n  \"isActive\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -661,12 +897,252 @@
               }
             },
             "url": {
-              "raw": "{{base_url}}/api/admin/ai/generate-template",
+              "raw": "{{base_url}}/api/v1/templates/welcome-email",
               "host": ["{{base_url}}"],
-              "path": ["api", "admin", "ai", "generate-template"]
+              "path": ["api", "v1", "templates", "welcome-email"]
             },
-            "description": "Generate a monthly report email template with analytics and metrics."
+            "description": "Update an existing template."
           }
+        },
+        {
+          "name": "Delete Template",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/templates/welcome-email",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "templates", "welcome-email"]
+            },
+            "description": "Delete a template and all its locales."
+          }
+        },
+        {
+          "name": "Add Locale",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"locale\": \"es\",\n  \"jsonStructure\": {\n    \"mjml\": {\n      \"tagName\": \"mjml\",\n      \"children\": [\n        {\n          \"tagName\": \"mj-head\",\n          \"children\": [\n            {\n              \"tagName\": \"mj-title\",\n              \"content\": \"¡Bienvenido a {{company_name}}!\"\n            }\n          ]\n        },\n        {\n          \"tagName\": \"mj-body\",\n          \"children\": [\n            {\n              \"tagName\": \"mj-section\",\n              \"children\": [\n                {\n                  \"tagName\": \"mj-column\",\n                  \"children\": [\n                    {\n                      \"tagName\": \"mj-text\",\n                      \"content\": \"¡Hola {{user_name}}, bienvenido a {{company_name}}!\"\n                    }\n                  ]\n                }\n              ]\n            }\n          ]\n        }\n      ]\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/templates/transactional/locales",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "templates", "transactional", "locales"]
+            },
+            "description": "Add a locale-specific version of a template."
+          }
+        },
+        {
+          "name": "Update Locale",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jsonStructure\": {\n    \"mjml\": {\n      \"tagName\": \"mjml\",\n      \"children\": [\n        {\n          \"tagName\": \"mj-head\",\n          \"children\": [\n            {\n              \"tagName\": \"mj-title\",\n              \"content\": \"¡Bienvenido a {{company_name}}!\"\n            }\n          ]\n        }\n      ]\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/templates/transactional/locales/es",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "templates", "transactional", "locales", "es"]
+            },
+            "description": "Update a locale-specific version of a template."
+          }
+        },
+        {
+          "name": "Delete Locale",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/templates/transactional/locales/es",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "templates", "transactional", "locales", "es"]
+            },
+            "description": "Delete a locale-specific version of a template."
+          }
+        },
+        {
+          "name": "Validate Template Structure",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"template\": {\n    \"key\": \"transactional\",\n    \"locale\": \"en\"\n  },\n  \"variables\": {\n    \"workspace_name\": \"Waymore\",\n    \"user_firstname\": \"John\",\n    \"dashboard_url\": \"https://app.waymore.io/dashboard\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/templates/validate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "templates", "validate"]
+            },
+            "description": "Validate a template structure without specifying a template key (for general template validation)."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{jwt_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"template\": {\n    \"key\": \"transactional\",\n    \"locale\": \"en\"\n  },\n  \"variables\": {\n    \"workspace_name\": \"Waymore\",\n    \"user_firstname\": \"John\",\n    \"dashboard_url\": \"https://app.waymore.io/dashboard\"\n  }\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/v1/templates/validate",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "v1", "templates", "validate"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"valid\": true,\n  \"errors\": [],\n  \"warnings\": [\n    {\n      \"type\": \"missing_optional_variable\",\n      \"field\": \"footer.copyright\",\n      \"message\": \"Consider adding copyright text for better branding\"\n    }\n  ],\n  \"template\": {\n    \"key\": \"transactional\",\n    \"name\": \"Transactional Email Template\",\n    \"category\": \"transactional\",\n    \"isActive\": true\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Validate Template Variables",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"variables\": {\n    \"user_name\": \"John Doe\",\n    \"company_name\": \"Waymore\",\n    \"dashboard_url\": \"https://app.waymore.io/dashboard\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/templates/transactional/validate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "templates", "transactional", "validate"]
+            },
+            "description": "Validate template variables against the template's schema."
+          }
+        },
+        {
+          "name": "Get Template Variables",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/templates/transactional/variables",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "templates", "transactional", "variables"]
+            },
+            "description": "Get the variable schema for a template."
+          }
+        },
+        {
+          "name": "Get Template Documentation",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/templates/transactional/docs",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "templates", "transactional", "docs"]
+            },
+            "description": "Get comprehensive documentation for a template."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Development Endpoints",
+      "item": [
+        {
+          "name": "Generate Test Token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/test-token",
+              "host": ["{{base_url}}"],
+              "path": ["test-token"]
+            },
+            "description": "Generate a JWT token for testing API endpoints (development only)."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/test-token",
+                  "host": ["{{base_url}}"],
+                  "path": ["test-token"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"expiresIn\": \"1 hour\",\n  \"scopes\": [\"emails:send\", \"emails:read\"]\n}"
+            }
+          ]
         }
       ]
     }

@@ -1,0 +1,172 @@
+{
+  "template": {
+    "key": "payment-failure",
+    "locale": "en"
+  },
+  "variables": {
+    "header": {
+      "show": true,
+      "padding": "12px 0px 8px 0px",
+      "tagline": "Payment Issue",
+      "logo_alt": "Waymore Logo",
+      "logo_url": "https://i.ibb.co/8LfvqPk7/Waymore-logo-Colour.png",
+      "logo_width": "180px"
+    },
+    "hero": {
+      "show": true,
+      "type": "icon",
+      "padding": "8px 0px 10px 0px",
+      "icon": "⚠️",
+      "icon_size": "48px"
+    },
+    "title": {
+      "show": true,
+      "size": "32px",
+      "text": "Payment Failed - Action Required",
+      "align": "center",
+      "color": "#dc2626",
+      "weight": "bold",
+      "padding": "8px 0px 12px 0px",
+      "line_height": "1.2"
+    },
+    "body": {
+      "show": true,
+      "color": "#374151",
+      "padding": "8px 0px 16px 0px",
+      "font_size": "16px",
+      "paragraphs": [
+        "Hello John, we were unable to process your payment for your Pro plan subscription.",
+        "This could be due to an expired card, insufficient funds, or a temporary issue with your bank.",
+        "Please update your payment method to avoid service interruption. Your account will remain active for 3 more days.",
+        "If you need assistance, our support team is here to help you resolve this quickly."
+      ],
+      "line_height": "1.6"
+    },
+    "visual": {
+      "show": true,
+      "type": "countdown",
+      "padding": "8px 0px",
+      "countdown": {
+        "message": "Account suspension in",
+        "target_date": "2024-02-01T23:59:59Z",
+        "show_days": true,
+        "show_hours": true,
+        "show_minutes": true,
+        "show_seconds": false
+      }
+    },
+    "actions": {
+      "show": true,
+      "padding": "16px 0px",
+      "primary": {
+        "label": "Update Payment Method",
+        "url": "https://app.waymore.io/billing/payment-methods",
+        "style": "solid",
+        "color": "#dc2626",
+        "text_color": "#ffffff"
+      },
+      "secondary": {
+        "label": "Contact Support",
+        "url": "mailto:billing@waymore.io",
+        "style": "outline",
+        "color": "#6b7280",
+        "text_color": "#6b7280"
+      }
+    },
+    "support": {
+      "show": true,
+      "title": "Need help?",
+      "padding": "16px 0px",
+      "links": [
+        {
+          "label": "Payment FAQ",
+          "url": "https://waymore.io/payment-faq"
+        },
+        {
+          "label": "Contact Billing Support",
+          "url": "mailto:billing@waymore.io"
+        },
+        {
+          "label": "Live Chat",
+          "url": "https://waymore.io/support/chat"
+        }
+      ]
+    },
+    "snapshot": {
+      "show": true,
+      "title": "Payment Details",
+      "padding": "16px 0px",
+      "style": "table",
+      "facts": [
+        {
+          "label": "Failed Amount",
+          "value": "$29.99"
+        },
+        {
+          "label": "Payment Method",
+          "value": "**** 4242 (Visa)"
+        },
+        {
+          "label": "Failure Reason",
+          "value": "Card declined - insufficient funds"
+        },
+        {
+          "label": "Retry Date",
+          "value": "January 18, 2024"
+        },
+        {
+          "label": "Account Status",
+          "value": "Active (3 days remaining)"
+        }
+      ]
+    },
+    "footer": {
+      "show": true,
+      "padding": "24px 0px 8px 0px",
+      "tagline": "Empowering your business",
+      "copyright": "© 2024 Waymore Technologies Inc. All rights reserved.",
+      "social_links": [
+        {
+          "platform": "twitter",
+          "url": "https://twitter.com/waymore"
+        },
+        {
+          "platform": "linkedin",
+          "url": "https://linkedin.com/company/waymore"
+        },
+        {
+          "platform": "github",
+          "url": "https://github.com/waymore"
+        }
+      ],
+      "legal_links": [
+        {
+          "label": "Privacy Policy",
+          "url": "https://waymore.io/privacy"
+        },
+        {
+          "label": "Terms of Service",
+          "url": "https://waymore.io/terms"
+        },
+        {
+          "label": "Billing Policy",
+          "url": "https://waymore.io/billing-policy"
+        }
+      ]
+    },
+    "theme": {
+      "font_family": "Helvetica Neue, Helvetica, Arial, sans-serif",
+      "font_size": "16px",
+      "text_color": "#374151",
+      "heading_color": "#1f2937",
+      "background_color": "#ffffff",
+      "body_background": "#f8fafc",
+      "muted_text_color": "#6b7280",
+      "border_color": "#e5e7eb",
+      "primary_button_color": "#dc2626",
+      "primary_button_text_color": "#ffffff",
+      "secondary_button_color": "#6b7280",
+      "secondary_button_text_color": "#ffffff"
+    }
+  }
+}

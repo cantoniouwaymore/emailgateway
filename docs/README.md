@@ -19,8 +19,6 @@ Welcome to the Waymore Transactional Emails Service documentation! This guide pr
 |----------|-------------|----------|
 | **[Routee Integration](./ROUTEE_INTEGRATION.md)** | Routee email provider setup and callback handling | Developers, Integrators |
 | **[Transactional Template Guide](./TRANSACTIONAL_TEMPLATE_GUIDE.md)** | Template system, MJML usage, and responsive email design | Developers, Designers |
-| **[AI Playground Guide](./AI_PLAYGROUND.md)** | AI-powered email template generation with OpenAI | Developers, Product Teams |
-| **[OpenAI Setup Guide](./OPENAI_SETUP.md)** | OpenAI integration setup and configuration | Developers, DevOps |
 
 ### 📦 Package Documentation
 
@@ -34,7 +32,6 @@ Welcome to the Waymore Transactional Emails Service documentation! This guide pr
 - **Getting Started**: [Developer Guide](./DEVELOPER.md#quick-start)
 - **API Usage**: [API Reference](./API.md#endpoints)
 - **Template Development**: [Transactional Template Guide](./TRANSACTIONAL_TEMPLATE_GUIDE.md)
-- **AI Template Generation**: [AI Playground Guide](./AI_PLAYGROUND.md)
 
 ### For DevOps
 - **Deployment**: [Deployment Guide](./DEPLOYMENT.md)
@@ -45,14 +42,12 @@ Welcome to the Waymore Transactional Emails Service documentation! This guide pr
 - **API Integration**: [API Reference](./API.md)
 - **Routee Setup**: [Routee Integration](./ROUTEE_INTEGRATION.md)
 - **Template Usage**: [Transactional Template Guide](./TRANSACTIONAL_TEMPLATE_GUIDE.md)
-- **AI Template Generation**: [AI Playground Guide](./AI_PLAYGROUND.md)
 
 ## 🎯 Key Features
 
 ### 📧 Email Processing
 - **Multi-Provider Support**: Routee, SendGrid, SES
 - **Template System**: MJML-based responsive templates
-- **AI Template Generation**: OpenAI-powered template creation
 - **Queue Processing**: Reliable background job processing
 - **Status Tracking**: Real-time delivery tracking
 

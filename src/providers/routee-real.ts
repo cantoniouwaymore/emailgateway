@@ -206,7 +206,7 @@ export class RouteeEmailProvider implements EmailProvider {
       console.log('Routee API Request:', JSON.stringify(routeeRequest, null, 2));
       console.log('========================');
 
-      // Make the API call to Routee Email API v.2
+      // Make the API call to Routee Email API (correct endpoint without /v2)
       const response = await fetch(`${this.baseUrl}/transactional-email`, {
         method: 'POST',
         headers: {

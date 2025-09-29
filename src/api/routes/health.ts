@@ -22,4 +22,14 @@ export async function healthRoutes(fastify: FastifyInstance) {
     schema: healthCheckSchema,
     handler: healthController.healthCheck.bind(healthController)
   });
+
+  // GET /cache/stats - Template cache statistics
+  fastify.get('/cache/stats', {
+    handler: healthController.getCacheStats.bind(healthController)
+  });
+
+  // POST /cache/clear - Clear template cache
+  fastify.post('/cache/clear', {
+    handler: healthController.clearCache.bind(healthController)
+  });
 }

@@ -22,7 +22,7 @@ export const sendEmailRequestSchema = z.object({
   to: z.array(recipientSchema).min(1),
   cc: z.array(recipientSchema).optional(),
   bcc: z.array(recipientSchema).optional(),
-  from: recipientSchema,
+  from: recipientSchema.optional(),
   replyTo: recipientSchema.optional(),
   subject: z.string().min(1).max(200),
   template: templateSchema,

@@ -3,6 +3,7 @@ import mjml from 'mjml';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { logger } from '../utils/logger';
+import { DatabaseTemplateEngine } from './database-engine';
 
 export interface TemplateRenderOptions {
   key: string;
@@ -19,10 +20,30 @@ export interface RenderedTemplate {
 
 export class TemplateEngine {
   private templatesPath: string;
+  private databaseEngine: DatabaseTemplateEngine;
+  private useDatabase: boolean;
+  private fallbackToFiles: boolean;
+  private cacheEnabled: boolean;
+  private cache: Map<string, { data: any; timestamp: number }>;
+  private cacheTtl: number;
 
   constructor(templatesPath: string = join(process.cwd(), 'src', 'templates')) {
     this.templatesPath = templatesPath;
+    this.useDatabase = process.env.USE_DATABASE_TEMPLATES === 'true';
+    this.fallbackToFiles = process.env.TEMPLATE_FALLBACK_TO_FILES === 'true';
+    this.cacheEnabled = process.env.TEMPLATE_CACHE_ENABLED === 'true';
+    this.cacheTtl = parseInt(process.env.TEMPLATE_CACHE_TTL_SECONDS || '300') * 1000;
+    this.cache = new Map();
+    
+    this.databaseEngine = new DatabaseTemplateEngine(templatesPath);
     this.registerHelpers();
+    
+    logger.info('TemplateEngine initialized', {
+      useDatabase: this.useDatabase,
+      fallbackToFiles: this.fallbackToFiles,
+      cacheEnabled: this.cacheEnabled,
+      cacheTtl: this.cacheTtl
+    });
   }
 
   private registerHelpers(): void {
@@ -101,7 +122,50 @@ export class TemplateEngine {
   async renderTemplate(options: TemplateRenderOptions): Promise<RenderedTemplate> {
     const { key, locale = 'en', version, variables } = options;
 
+    // Check cache first if enabled
+    if (this.cacheEnabled) {
+      const cacheKey = `${key}:${locale}:${JSON.stringify(variables)}`;
+      const cached = this.cache.get(cacheKey);
+      if (cached && (Date.now() - cached.timestamp) < this.cacheTtl) {
+        logger.debug({ templateKey: key, locale, source: 'cache' }, 'Template rendered from cache');
+        return cached.data;
+      }
+    }
+
     try {
+      // Use database engine if enabled and template exists in database
+      if (this.useDatabase) {
+        console.log('🔧 TEMPLATE ENGINE - Using database engine for:', { key, locale, variables });
+        try {
+          const result = await this.databaseEngine.renderTemplate({
+            key,
+            locale,
+            variables
+          });
+          console.log('🔧 TEMPLATE ENGINE - Database rendering successful:', { templateKey: key, locale, source: 'database' });
+          logger.info({ templateKey: key, locale, source: 'database' }, 'Template rendered from database');
+          
+          // Cache the result if enabled
+          if (this.cacheEnabled) {
+            const cacheKey = `${key}:${locale}:${JSON.stringify(variables)}`;
+            this.cache.set(cacheKey, { data: result, timestamp: Date.now() });
+          }
+          
+          return result;
+        } catch (dbError) {
+          console.log('🔧 TEMPLATE ENGINE - Database rendering failed:', { templateKey: key, error: dbError instanceof Error ? dbError.message : 'Unknown error' });
+          logger.warn({ templateKey: key, error: dbError instanceof Error ? dbError.message : 'Unknown error' }, 'Database template rendering failed, falling back to file system');
+          // Fall through to file system rendering if fallback is enabled
+          if (!this.fallbackToFiles) {
+            throw dbError;
+          }
+        }
+      }
+
+      // Fallback to file system rendering
+      console.log('🔧 TEMPLATE ENGINE - Falling back to file system rendering:', { templateKey: key, locale, source: 'filesystem' });
+      logger.info({ templateKey: key, locale, source: 'filesystem' }, 'Rendering template from file system');
+
       // Process custom_content variable if it exists
       const processedVariables = { ...variables };
       if (processedVariables.custom_content && typeof processedVariables.custom_content === 'string') {
@@ -153,7 +217,14 @@ export class TemplateEngine {
         // Subject template is optional
       }
 
-      logger.info({ templateKey: key, locale }, 'Template rendered successfully');
+      logger.info({ templateKey: key, locale, source: 'filesystem' }, 'Template rendered successfully');
+      
+      // Cache the result if enabled
+      if (this.cacheEnabled) {
+        const cacheKey = `${key}:${locale}:${JSON.stringify(variables)}`;
+        this.cache.set(cacheKey, { data: result, timestamp: Date.now() });
+      }
+      
       return result;
     } catch (error) {
       logger.error({ error, templateKey: key, locale }, 'Failed to render template');
@@ -186,11 +257,108 @@ export class TemplateEngine {
     }
   }
 
+  // Cache management methods
+  clearCache(): void {
+    this.cache.clear();
+    logger.info('Template cache cleared');
+  }
+
+  getCacheStats(): { size: number; keys: string[] } {
+    return {
+      size: this.cache.size,
+      keys: Array.from(this.cache.keys())
+    };
+  }
+
+  // Clean expired cache entries
+  cleanExpiredCache(): number {
+    const now = Date.now();
+    let cleaned = 0;
+    
+    for (const [key, value] of this.cache.entries()) {
+      if (now - value.timestamp > this.cacheTtl) {
+        this.cache.delete(key);
+        cleaned++;
+      }
+    }
+    
+    if (cleaned > 0) {
+      logger.debug({ cleaned }, 'Expired cache entries cleaned');
+    }
+    
+    return cleaned;
+  }
+
   async previewTemplate(options: TemplateRenderOptions): Promise<RenderedTemplate> {
     // Same as renderTemplate but with additional validation
     const result = await this.renderTemplate(options);
     
     // Add preview-specific modifications if needed
     return result;
+  }
+
+  // Database engine methods
+  async getAvailableTemplates(): Promise<any[]> {
+    if (this.useDatabase) {
+      return await this.databaseEngine.getAvailableTemplates();
+    }
+    return [];
+  }
+
+  async getTemplate(key: string): Promise<any> {
+    if (this.useDatabase) {
+      return await this.databaseEngine.getTemplate(key);
+    }
+    return null;
+  }
+
+
+  async createTemplate(templateData: any): Promise<any> {
+    if (this.useDatabase) {
+      return await this.databaseEngine.createTemplate(templateData);
+    }
+    throw new Error('Database engine not enabled');
+  }
+
+  async updateTemplate(key: string, templateData: any): Promise<any> {
+    if (this.useDatabase) {
+      return await this.databaseEngine.updateTemplate(key, templateData);
+    }
+    throw new Error('Database engine not enabled');
+  }
+
+  async deleteTemplate(key: string): Promise<void> {
+    if (this.useDatabase) {
+      return await this.databaseEngine.deleteTemplate(key);
+    }
+    throw new Error('Database engine not enabled');
+  }
+
+  async addLocale(templateKey: string, locale: string, jsonStructure: any): Promise<any> {
+    if (this.useDatabase) {
+      return await this.databaseEngine.addLocale(templateKey, locale, jsonStructure);
+    }
+    throw new Error('Database engine not enabled');
+  }
+
+  async updateLocale(templateKey: string, locale: string, jsonStructure: any): Promise<any> {
+    if (this.useDatabase) {
+      return await this.databaseEngine.updateLocale(templateKey, locale, jsonStructure);
+    }
+    throw new Error('Database engine not enabled');
+  }
+
+  async deleteLocale(templateKey: string, locale: string): Promise<void> {
+    if (this.useDatabase) {
+      return await this.databaseEngine.deleteLocale(templateKey, locale);
+    }
+    throw new Error('Database engine not enabled');
+  }
+
+  async validateTemplateVariables(templateKey: string, variables: Record<string, any>): Promise<any> {
+    if (this.useDatabase) {
+      return await this.databaseEngine.validateTemplateVariables(templateKey, variables);
+    }
+    return { valid: true, errors: [], warnings: [] };
   }
 }

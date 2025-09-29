@@ -25,6 +25,13 @@ export class EmailWorker {
 
     this.templateEngine = new TemplateEngine();
     this.providerManager = new ProviderManager();
+    
+    // Set up cache cleanup if caching is enabled
+    if (process.env.TEMPLATE_CACHE_ENABLED === 'true') {
+      setInterval(() => {
+        this.templateEngine.cleanExpiredCache();
+      }, 5 * 60 * 1000); // Every 5 minutes
+    }
 
     this.worker = new Worker<EmailJobData>('email-send', this.processEmailJob.bind(this), {
       connection: this.redis,

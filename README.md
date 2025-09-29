@@ -12,13 +12,17 @@
 
 ### 🚀 Core Capabilities
 - **RESTful API**: Standardized POST /v1/emails endpoint with full validation.
-- **Enhanced Transactional Template**: Advanced MJML template with multi-button support, social media integration, custom themes, multi-language support, and dynamic images.
+- **Database-Driven Templates**: Complete template management system with CRUD operations, localization, and variable validation.
+- **Template Management API**: Full REST API for creating, updating, and managing email templates.
+- **Multi-Language Support**: Native locale management with database storage for international templates.
+- **Variable Validation**: JSON Schema-based validation for template variables with real-time error reporting.
+- **Enhanced Transactional Template**: Advanced MJML template with multi-button support, social media integration, custom themes, and dynamic images.
 - **Queue System**: BullMQ (Redis) for reliable background job processing.
 - **Provider Abstraction**: Pluggable email providers (Routee, SES, SendGrid).
 - **Idempotency**: Exactly-once intake with Idempotency-Key header.
 - **Observability**: Structured logging, Prometheus metrics, health checks.
 - **Security**: JWT authentication, rate limiting, input validation.
-- **Admin Dashboard**: Real-time web interface for monitoring email delivery.
+- **Admin Dashboard**: Real-time web interface for monitoring email delivery and template management.
 - **Webhook Integration**: Real-time status updates from email providers.
 - **Postman Collection**: Ready-to-use API collection for team integration.
 
@@ -28,6 +32,80 @@
 - **Event-Driven**: Asynchronous processing with reliable queues
 - **Provider Agnostic**: Easy to add new email providers
 - **Template-Driven**: Dynamic content with responsive email design
+
+## 📧 Template Management System
+
+The Waymore Transactional Emails Service now features a comprehensive database-driven template management system that provides complete control over email templates.
+
+### 🎯 Key Features
+
+- **Database Storage**: All templates are stored in PostgreSQL with full versioning and metadata
+- **CRUD Operations**: Complete Create, Read, Update, Delete operations via REST API
+- **Multi-Language Support**: Native locale management with database storage
+- **Variable Validation**: JSON Schema-based validation for template variables
+- **Admin Interface**: Web-based template management with real-time editing
+- **Template Documentation**: Auto-generated documentation and examples
+- **Migration Tools**: Automated migration from file-based to database templates
+
+### 🗄️ Database Schema
+
+```sql
+-- Template table for storing template definitions
+CREATE TABLE "Template" (
+  "id" TEXT PRIMARY KEY,
+  "key" TEXT UNIQUE NOT NULL,
+  "name" TEXT NOT NULL,
+  "description" TEXT,
+  "category" TEXT NOT NULL,
+  "isActive" BOOLEAN DEFAULT true,
+  "variableSchema" JSONB NOT NULL,
+  "jsonStructure" JSONB NOT NULL,
+  "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- TemplateLocale table for storing locale-specific content
+CREATE TABLE "TemplateLocale" (
+  "id" TEXT PRIMARY KEY,
+  "templateId" TEXT NOT NULL REFERENCES "Template"("id") ON DELETE CASCADE,
+  "locale" TEXT NOT NULL,
+  "jsonStructure" JSONB NOT NULL,
+  "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE("templateId", "locale")
+);
+```
+
+### 🔧 API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/v1/templates` | List all templates with filtering |
+| `GET` | `/api/v1/templates/{key}` | Get specific template |
+| `POST` | `/api/v1/templates` | Create new template |
+| `PUT` | `/api/v1/templates/{key}` | Update template |
+| `DELETE` | `/api/v1/templates/{key}` | Delete template |
+| `POST` | `/api/v1/templates/{key}/locales` | Add locale |
+| `PUT` | `/api/v1/templates/{key}/locales/{locale}` | Update locale |
+| `DELETE` | `/api/v1/templates/{key}/locales/{locale}` | Delete locale |
+| `POST` | `/api/v1/templates/{key}/validate` | Validate variables |
+| `GET` | `/api/v1/templates/{key}/variables` | Get variable schema |
+| `GET` | `/api/v1/templates/{key}/docs` | Get template documentation |
+
+### 🌐 Admin Interface
+
+Access the template management interface at `/admin` and click on the **"Template Management"** tab to:
+
+- **View Templates**: Browse all templates with search and filtering
+- **Create Templates**: Add new templates with JSON editor
+- **Edit Templates**: Modify existing templates with real-time validation
+- **Manage Locales**: Add and edit locale-specific content
+- **Validate Variables**: Test template variables against schemas
+- **View Documentation**: Access auto-generated template docs
+
+### 📖 Migration Guide
+
+For detailed migration instructions from file-based to database-driven templates, see our comprehensive [Template Migration Guide](./docs/TEMPLATE_MIGRATION_GUIDE.md).
 
 ## 🛠️ Tech Stack
 

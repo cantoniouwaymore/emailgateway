@@ -42,8 +42,8 @@ import { emailRoutes } from './api/routes/email';
 import { healthRoutes } from './api/routes/health';
 import { webhookRoutes } from './api/routes/webhook';
 import { adminRoutes } from './api/routes/admin';
+import { templateRoutes } from './api/routes/templates';
 import { generateTestToken } from './utils/auth';
-import { AIController } from './api/controllers/ai';
 
 const PORT = parseInt(process.env['PORT'] || '3000');
 const HOST = process.env['HOST'] || '0.0.0.0';
@@ -97,10 +97,17 @@ async function buildServer() {
   setupMetricsEndpoint(fastify);
 
   // Register routes
+  console.log('🔧 Registering routes...');
   await fastify.register(healthRoutes);
+  console.log('✅ Health routes registered');
   await fastify.register(webhookRoutes);
+  console.log('✅ Webhook routes registered');
   await fastify.register(adminRoutes);
+  console.log('✅ Admin routes registered');
+  await fastify.register(templateRoutes);
+  console.log('✅ Template routes registered');
   await fastify.register(emailRoutes, { prefix: '/api' });
+  console.log('✅ Email routes registered');
 
   // Add a test endpoint to generate JWT tokens (development only)
   if (NODE_ENV === 'development') {
@@ -121,6 +128,17 @@ async function buildServer() {
         endpoints: {
           'POST /api/v1/emails': 'Send email',
           'GET /api/v1/messages/:id': 'Get message status',
+          'GET /api/v1/templates': 'List templates',
+          'GET /api/v1/templates/:key': 'Get template',
+          'POST /api/v1/templates': 'Create template',
+          'PUT /api/v1/templates/:key': 'Update template',
+          'DELETE /api/v1/templates/:key': 'Delete template',
+          'POST /api/v1/templates/:key/locales': 'Add locale',
+          'PUT /api/v1/templates/:key/locales/:locale': 'Update locale',
+          'DELETE /api/v1/templates/:key/locales/:locale': 'Delete locale',
+          'POST /api/v1/templates/:key/validate': 'Validate template',
+          'GET /api/v1/templates/:key/variables': 'Get template variables',
+          'GET /api/v1/templates/:key/docs': 'Get template docs',
           'POST /webhooks/routee': 'Routee webhook endpoint',
           'GET /healthz': 'Liveness probe',
           'GET /readyz': 'Readiness probe',
@@ -140,14 +158,6 @@ async function start() {
     // Connect to database
     await connectDatabase();
 
-    // Initialize AI controller and vector store (non-blocking)
-    try {
-      const aiController = new AIController();
-      await aiController.initialize();
-      logger.info('AI controller initialized successfully');
-    } catch (error) {
-      logger.warn({ error: error instanceof Error ? error.message : 'Unknown error' }, 'AI controller initialization failed, continuing without AI features');
-    }
 
     // Build server
     const server = await buildServer();
@@ -178,6 +188,22 @@ async function start() {
 
     process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
     process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+    // Set up cache cleanup interval if caching is enabled
+    if (process.env.TEMPLATE_CACHE_ENABLED === 'true') {
+      const cleanupInterval = setInterval(() => {
+        // This will be handled by the TemplateEngine instances
+        // when they are created, but we can add global cleanup here if needed
+      }, 5 * 60 * 1000); // Every 5 minutes
+
+      // Clean up interval on shutdown
+      process.on('SIGTERM', () => {
+        clearInterval(cleanupInterval);
+      });
+      process.on('SIGINT', () => {
+        clearInterval(cleanupInterval);
+      });
+    }
 
   } catch (error) {
     logger.error({ error }, 'Failed to start server');

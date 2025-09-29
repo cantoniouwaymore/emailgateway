@@ -459,11 +459,21 @@
               {{#if support.title}}{{support.title}}{{else}}Need help?{{/if}}
             </mj-text>
             {{#if support.links}}
+            {{#if (gt support.links.length 1)}}
+            <!-- Multiple links - render as inline with separators -->
             <mj-text font-size="14px" color="{{#if theme.muted_text_color}}{{theme.muted_text_color}}{{else}}#6b7280{{/if}}" align="center" padding="0px 0px 16px 0px">
               {{#each support.links}}
-                {{#if @first}}{{else}} • {{/if}}<a href="{{url}}" style="color: {{#if ../../theme.link_color}}{{../../theme.link_color}}{{else}}#3b82f6{{/if}}; text-decoration: none;">{{label}}</a>
+                {{#if @first}}{{else}}<span style="margin: 0 8px;">•</span>{{/if}}<a href="{{url}}" style="color: {{#if ../../theme.link_color}}{{../../theme.link_color}}{{else}}#3b82f6{{/if}}; text-decoration: none; font-weight: 500;">{{#if label}}{{label}}{{else}}{{text}}{{/if}}</a>
               {{/each}}
             </mj-text>
+            {{else}}
+            <!-- Single link - render as centered link -->
+            <mj-text font-size="14px" color="{{#if theme.muted_text_color}}{{theme.muted_text_color}}{{else}}#6b7280{{/if}}" align="center" padding="0px 0px 16px 0px">
+              {{#each support.links}}
+                <a href="{{url}}" style="color: {{#if ../../theme.link_color}}{{../../theme.link_color}}{{else}}#3b82f6{{/if}}; text-decoration: none; font-weight: 500;">{{#if label}}{{label}}{{else}}{{text}}{{/if}}</a>
+              {{/each}}
+            </mj-text>
+            {{/if}}
             {{/if}}
           </mj-column>
         </mj-section>

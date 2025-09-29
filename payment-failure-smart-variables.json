@@ -1,0 +1,388 @@
+{
+  "template": {
+    "key": "payment-failure",
+    "name": "Payment Failure Notification",
+    "description": "Smart payment failure notification template with variable system"
+  },
+  "variables": {
+    "userFirstName": "John",
+    "userLastName": "Doe",
+    "userEmail": "john.doe@example.com",
+    "paymentFailureTitle": "Payment Failed - Action Required",
+    "planName": "Pro Monthly",
+    "gracePeriodDays": 3,
+    "failedAmount": "$29.99",
+    "paymentMethod": "**** 4242 (Visa)",
+    "failureReason": "Card declined - insufficient funds",
+    "retryDate": "January 18, 2024",
+    "accountStatus": "Active (3 days remaining)",
+    "suspensionDate": "2024-02-01T23:59:59Z",
+    "primaryButtonLabel": "Update Payment Method",
+    "updatePaymentUrl": "https://app.waymore.io/billing/payment-methods",
+    "secondaryButtonLabel": "Contact Support",
+    "supportEmail": "billing@waymore.io",
+    "countdownMessage": "Account suspension in",
+    "paymentDetailsTitle": "Payment Details",
+    "supportTitle": "Need help?",
+    "failedAmountLabel": "Failed Amount",
+    "paymentMethodLabel": "Payment Method",
+    "failureReasonLabel": "Failure Reason",
+    "retryDateLabel": "Retry Date",
+    "accountStatusLabel": "Account Status",
+    "faqLinkLabel": "Payment FAQ",
+    "faqUrl": "https://waymore.io/payment-faq",
+    "billingSupportLabel": "Contact Billing Support",
+    "billingSupportUrl": "mailto:billing@waymore.io",
+    "liveChatLabel": "Live Chat",
+    "liveChatUrl": "https://waymore.io/support/chat",
+    "companyName": "Waymore",
+    "companyLogo": "https://i.ibb.co/8LfvqPk7/Waymore-logo-Colour.png",
+    "companyTagline": "Empowering your business",
+    "copyrightText": "© 2024 Waymore Technologies Inc. All rights reserved.",
+    "twitterUrl": "https://twitter.com/waymore",
+    "linkedinUrl": "https://linkedin.com/company/waymore",
+    "githubUrl": "https://github.com/waymore",
+    "privacyPolicyLabel": "Privacy Policy",
+    "privacyPolicyUrl": "https://waymore.io/privacy",
+    "termsOfServiceLabel": "Terms of Service",
+    "termsOfServiceUrl": "https://waymore.io/terms",
+    "billingPolicyLabel": "Billing Policy",
+    "billingPolicyUrl": "https://waymore.io/billing-policy",
+    "themeFontFamily": "Helvetica Neue, Helvetica, Arial, sans-serif",
+    "themeFontSize": "16px",
+    "themeTextColor": "#374151",
+    "themeHeadingColor": "#1f2937",
+    "themeBackgroundColor": "#ffffff",
+    "themeBodyBackground": "#f8fafc",
+    "themeMutedTextColor": "#6b7280",
+    "themeBorderColor": "#e5e7eb",
+    "themePrimaryButtonColor": "#dc2626",
+    "themePrimaryButtonTextColor": "#ffffff",
+    "themeSecondaryButtonColor": "#6b7280",
+    "themeSecondaryButtonTextColor": "#ffffff"
+  },
+  "schema": {
+    "type": "object",
+    "properties": {
+      "userFirstName": {
+        "type": "string",
+        "description": "User first name",
+        "example": "John"
+      },
+      "userLastName": {
+        "type": "string",
+        "description": "User last name",
+        "example": "Doe"
+      },
+      "userEmail": {
+        "type": "string",
+        "description": "User email address",
+        "example": "john@example.com"
+      },
+      "paymentFailureTitle": {
+        "type": "string",
+        "description": "Payment failure email title",
+        "example": "Payment Failed - Action Required"
+      },
+      "planName": {
+        "type": "string",
+        "description": "Subscription plan name",
+        "example": "Pro Monthly"
+      },
+      "gracePeriodDays": {
+        "type": "number",
+        "description": "Days remaining in grace period",
+        "example": 3
+      },
+      "failedAmount": {
+        "type": "string",
+        "description": "Failed payment amount",
+        "example": "$29.99"
+      },
+      "paymentMethod": {
+        "type": "string",
+        "description": "Payment method details",
+        "example": "**** 4242 (Visa)"
+      },
+      "failureReason": {
+        "type": "string",
+        "description": "Reason for payment failure",
+        "example": "Card declined - insufficient funds"
+      },
+      "retryDate": {
+        "type": "string",
+        "description": "Next retry date",
+        "example": "January 18, 2024"
+      },
+      "accountStatus": {
+        "type": "string",
+        "description": "Current account status",
+        "example": "Active (3 days remaining)"
+      },
+      "suspensionDate": {
+        "type": "string",
+        "description": "Account suspension date",
+        "example": "2024-02-01T23:59:59Z"
+      },
+      "primaryButtonLabel": {
+        "type": "string",
+        "description": "Primary button text",
+        "example": "Update Payment Method"
+      },
+      "updatePaymentUrl": {
+        "type": "string",
+        "description": "Update payment method URL",
+        "example": "https://app.waymore.io/billing/payment-methods"
+      },
+      "secondaryButtonLabel": {
+        "type": "string",
+        "description": "Secondary button text",
+        "example": "Contact Support"
+      },
+      "supportEmail": {
+        "type": "string",
+        "description": "Support email address",
+        "example": "billing@waymore.io"
+      },
+      "countdownMessage": {
+        "type": "string",
+        "description": "Countdown message",
+        "example": "Account suspension in"
+      },
+      "paymentDetailsTitle": {
+        "type": "string",
+        "description": "Payment details section title",
+        "example": "Payment Details"
+      },
+      "supportTitle": {
+        "type": "string",
+        "description": "Support section title",
+        "example": "Need help?"
+      },
+      "failedAmountLabel": {
+        "type": "string",
+        "description": "Failed amount label",
+        "example": "Failed Amount"
+      },
+      "paymentMethodLabel": {
+        "type": "string",
+        "description": "Payment method label",
+        "example": "Payment Method"
+      },
+      "failureReasonLabel": {
+        "type": "string",
+        "description": "Failure reason label",
+        "example": "Failure Reason"
+      },
+      "retryDateLabel": {
+        "type": "string",
+        "description": "Retry date label",
+        "example": "Retry Date"
+      },
+      "accountStatusLabel": {
+        "type": "string",
+        "description": "Account status label",
+        "example": "Account Status"
+      },
+      "faqLinkLabel": {
+        "type": "string",
+        "description": "FAQ link label",
+        "example": "Payment FAQ"
+      },
+      "faqUrl": {
+        "type": "string",
+        "description": "FAQ URL",
+        "example": "https://waymore.io/payment-faq"
+      },
+      "billingSupportLabel": {
+        "type": "string",
+        "description": "Billing support label",
+        "example": "Contact Billing Support"
+      },
+      "billingSupportUrl": {
+        "type": "string",
+        "description": "Billing support URL",
+        "example": "mailto:billing@waymore.io"
+      },
+      "liveChatLabel": {
+        "type": "string",
+        "description": "Live chat label",
+        "example": "Live Chat"
+      },
+      "liveChatUrl": {
+        "type": "string",
+        "description": "Live chat URL",
+        "example": "https://waymore.io/support/chat"
+      },
+      "companyName": {
+        "type": "string",
+        "description": "Company name",
+        "example": "Waymore"
+      },
+      "companyLogo": {
+        "type": "string",
+        "description": "Company logo URL",
+        "example": "https://i.ibb.co/8LfvqPk7/Waymore-logo-Colour.png"
+      },
+      "companyTagline": {
+        "type": "string",
+        "description": "Company tagline",
+        "example": "Empowering your business"
+      },
+      "copyrightText": {
+        "type": "string",
+        "description": "Copyright text",
+        "example": "© 2024 Waymore Technologies Inc. All rights reserved."
+      },
+      "twitterUrl": {
+        "type": "string",
+        "description": "Twitter URL",
+        "example": "https://twitter.com/waymore"
+      },
+      "linkedinUrl": {
+        "type": "string",
+        "description": "LinkedIn URL",
+        "example": "https://linkedin.com/company/waymore"
+      },
+      "githubUrl": {
+        "type": "string",
+        "description": "GitHub URL",
+        "example": "https://github.com/waymore"
+      },
+      "privacyPolicyLabel": {
+        "type": "string",
+        "description": "Privacy policy label",
+        "example": "Privacy Policy"
+      },
+      "privacyPolicyUrl": {
+        "type": "string",
+        "description": "Privacy policy URL",
+        "example": "https://waymore.io/privacy"
+      },
+      "termsOfServiceLabel": {
+        "type": "string",
+        "description": "Terms of service label",
+        "example": "Terms of Service"
+      },
+      "termsOfServiceUrl": {
+        "type": "string",
+        "description": "Terms of service URL",
+        "example": "https://waymore.io/terms"
+      },
+      "billingPolicyLabel": {
+        "type": "string",
+        "description": "Billing policy label",
+        "example": "Billing Policy"
+      },
+      "billingPolicyUrl": {
+        "type": "string",
+        "description": "Billing policy URL",
+        "example": "https://waymore.io/billing-policy"
+      },
+      "themeFontFamily": {
+        "type": "string",
+        "description": "Theme font family",
+        "example": "Helvetica Neue, Helvetica, Arial, sans-serif"
+      },
+      "themeFontSize": {
+        "type": "string",
+        "description": "Theme font size",
+        "example": "16px"
+      },
+      "themeTextColor": {
+        "type": "string",
+        "description": "Theme text color",
+        "example": "#374151"
+      },
+      "themeHeadingColor": {
+        "type": "string",
+        "description": "Theme heading color",
+        "example": "#1f2937"
+      },
+      "themeBackgroundColor": {
+        "type": "string",
+        "description": "Theme background color",
+        "example": "#ffffff"
+      },
+      "themeBodyBackground": {
+        "type": "string",
+        "description": "Theme body background",
+        "example": "#f8fafc"
+      },
+      "themeMutedTextColor": {
+        "type": "string",
+        "description": "Theme muted text color",
+        "example": "#6b7280"
+      },
+      "themeBorderColor": {
+        "type": "string",
+        "description": "Theme border color",
+        "example": "#e5e7eb"
+      },
+      "themePrimaryButtonColor": {
+        "type": "string",
+        "description": "Theme primary button color",
+        "example": "#dc2626"
+      },
+      "themePrimaryButtonTextColor": {
+        "type": "string",
+        "description": "Theme primary button text color",
+        "example": "#ffffff"
+      },
+      "themeSecondaryButtonColor": {
+        "type": "string",
+        "description": "Theme secondary button color",
+        "example": "#6b7280"
+      },
+      "themeSecondaryButtonTextColor": {
+        "type": "string",
+        "description": "Theme secondary button text color",
+        "example": "#ffffff"
+      }
+    },
+    "required": [
+      "userFirstName",
+      "userEmail",
+      "paymentFailureTitle",
+      "planName",
+      "gracePeriodDays",
+      "failedAmount",
+      "paymentMethod",
+      "failureReason",
+      "retryDate",
+      "accountStatus",
+      "suspensionDate",
+      "primaryButtonLabel",
+      "updatePaymentUrl",
+      "secondaryButtonLabel",
+      "supportEmail",
+      "countdownMessage",
+      "paymentDetailsTitle",
+      "supportTitle",
+      "failedAmountLabel",
+      "paymentMethodLabel",
+      "failureReasonLabel",
+      "retryDateLabel",
+      "accountStatusLabel",
+      "faqLinkLabel",
+      "faqUrl",
+      "billingSupportLabel",
+      "billingSupportUrl",
+      "liveChatLabel",
+      "liveChatUrl",
+      "companyName",
+      "companyLogo",
+      "companyTagline",
+      "copyrightText",
+      "twitterUrl",
+      "linkedinUrl",
+      "githubUrl",
+      "privacyPolicyLabel",
+      "privacyPolicyUrl",
+      "termsOfServiceLabel",
+      "termsOfServiceUrl",
+      "billingPolicyLabel",
+      "billingPolicyUrl"
+    ]
+  }
+}

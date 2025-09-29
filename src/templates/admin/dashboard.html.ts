@@ -2,9 +2,11 @@ import { generateHealthSection } from './components/health-section.html';
 import { generateMessagesSection } from './components/messages-section.html';
 import { generateWebhooksSection } from './components/webhooks-section.html';
 import { generateSearchSection } from './components/search-section.html';
-import { generateTemplatesSection } from './components/templates-section.html';
 import { generateDocumentationSection } from './components/documentation-section.html';
-import { generateAIPlaygroundSection, generateAIPlaygroundScript } from './components/ai-playground-section.html';
+import { generateTemplateListSection } from './components/template-management/template-list.html';
+import { generateTemplateFormModal } from './components/template-management/template-form.html';
+import { generateLocaleManagementModal } from './components/template-management/locale-management.html';
+import { generateTemplateManagementScripts } from './components/template-management/template-scripts';
 import { 
   generateNavbar, 
   generateHeader, 
@@ -38,7 +40,7 @@ export function generateDashboardHTML(data: any): string {
         .tab-button.active { @apply border-indigo-500 text-indigo-600; }
         .tab-button { @apply border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300; }
         
-        /* OpenAI-style documentation CSS */
+        /* Documentation CSS */
         .docs-page { @apply min-h-screen bg-white; }
         .ovr-page { @apply max-w-6xl mx-auto px-6 py-12; }
         .ovr-section { @apply mb-16; }
@@ -111,13 +113,17 @@ export function generateDashboardHTML(data: any): string {
         ${generateMessagesSection({ recentMessages, pagination })}
         ${generateWebhooksSection({ recentWebhookEvents })}
         ${generateSearchSection({ searchResults, searchQuery, pagination: searchPagination })}
-        ${generateTemplatesSection({})}
-        ${generateAIPlaygroundSection({})}
+        ${generateTemplateListSection()}
         ${generateDocumentationSection({})}
         ${generateRefreshButton()}
     </main>
+    
+    <!-- Template Management Modals -->
+    ${generateTemplateFormModal()}
+    ${generateLocaleManagementModal()}
+    
     ${generateDashboardScript()}
-    ${generateAIPlaygroundScript()}
+    ${generateTemplateManagementScripts()}
 </body>
 </html>`;
 }

@@ -54,6 +54,12 @@ export class EmailController {
 
       const emailRequest = validationResult.data;
 
+      // Always use environment variables for sender (security and consistency)
+      emailRequest.from = {
+        email: process.env.DEFAULT_FROM_EMAIL || 'marketing@waymore.io',
+        name: process.env.DEFAULT_FROM_NAME || 'Waymore'
+      };
+
       // Compute payload hash for idempotency
       const payloadHash = computePayloadHash(emailRequest);
 

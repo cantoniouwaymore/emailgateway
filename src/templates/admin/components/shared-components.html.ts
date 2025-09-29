@@ -78,13 +78,9 @@ export function generateTabNavigation(): string {
                     <i class="fas fa-book mr-2"></i>
                     Documentation
                 </button>
-                <button onclick="showTab('templates')" id="templates-tab-btn" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
-                    <i class="fas fa-code mr-2"></i>
-                    Transactional Template Playground
-                </button>
-                <button onclick="showTab('ai-playground')" id="ai-playground-tab-btn" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
-                    <i class="fas fa-robot mr-2"></i>
-                    AI Playground
+                <button onclick="showTab('template-management')" id="template-management-tab-btn" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                    <i class="fas fa-database mr-2"></i>
+                    Template Management
                 </button>
                 <button onclick="showTab('messages')" id="messages-tab-btn" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
                     <i class="fas fa-envelope mr-2"></i>
@@ -165,16 +161,12 @@ export function generateDashboardScript(): string {
                 window.history.replaceState(null, null, '#' + tabName);
             }
             
-            // Initialize AI Playground when tab is shown
-            if (tabName === 'ai-playground' && typeof initializeAIPlayground === 'function') {
-                initializeAIPlayground();
-            }
         }
         
-        // Auto-refresh every 30 seconds (but not for AI Playground or Templates tab)
+        // Auto-refresh every 30 seconds (but not for Template Management tab)
         setInterval(() => {
             const currentTab = window.location.hash.substring(1);
-            if (currentTab !== 'ai-playground' && currentTab !== 'templates') {
+            if (currentTab !== 'template-management') {
                 location.reload();
             }
         }, 30000);
@@ -198,7 +190,7 @@ export function generateDashboardScript(): string {
             const hash = window.location.hash;
             if (hash) {
                 const tabName = hash.substring(1); // Remove the # symbol
-                if (['documentation', 'templates', 'ai-playground', 'messages', 'webhooks', 'search', 'health'].includes(tabName)) {
+                if (['documentation', 'template-management', 'messages', 'webhooks', 'search', 'health'].includes(tabName)) {
                     showTab(tabName);
                     return;
                 }

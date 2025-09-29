@@ -1,6 +1,5 @@
 import { FastifyInstance } from 'fastify';
 import { AdminController } from '../controllers/admin';
-import { AIController } from '../controllers/ai';
 
 // Markdown viewer function
 function generateMarkdownViewer(filename: string, content: string): string {
@@ -982,6 +981,38 @@ export async function adminRoutes(fastify: FastifyInstance) {
   fastify.get<{ Querystring: { page?: string; limit?: string; search?: string; email?: string; searchPage?: string; searchLimit?: string } }>('/admin', async (request, reply) => {
     return adminController.getDashboardHTML(request, reply);
   });
+
+  // Template editor page
+  fastify.get('/admin/template-editor', async (request, reply) => {
+    const { generateTemplateEditorHTML } = await import('../../templates/admin/template-editor.html');
+    const html = generateTemplateEditorHTML();
+    return reply.type('text/html').send(html);
+  });
+
+  // Template editor static assets
+  fastify.get('/admin/template-editor/styles.css', async (request, reply) => {
+    const fs = require('fs');
+    const path = require('path');
+    const cssPath = path.join(__dirname, '../../templates/admin/components/template-editor/editor-styles.css');
+    try {
+      const css = fs.readFileSync(cssPath, 'utf8');
+      return reply.type('text/css').send(css);
+    } catch (error) {
+      return reply.code(404).send('CSS file not found');
+    }
+  });
+
+  fastify.get('/admin/template-editor/scripts.js', async (request, reply) => {
+    const fs = require('fs');
+    const path = require('path');
+    const jsPath = path.join(__dirname, '../../templates/admin/components/template-editor/editor-scripts.js');
+    try {
+      const js = fs.readFileSync(jsPath, 'utf8');
+      return reply.type('application/javascript').send(js);
+    } catch (error) {
+      return reply.code(404).send('JavaScript file not found');
+    }
+  });
   
   // Message details page
   fastify.get<{ Params: { messageId: string } }>('/admin/messages/:messageId', async (request, reply) => {
@@ -1039,6 +1070,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
   fastify.post('/admin/send-test-email', async (request, reply) => {
     try {
       const emailData = request.body as any;
+      console.log('📧 Admin Test Email Received:', JSON.stringify(emailData, null, 2));
       
       // Validate required fields
       if (!emailData.to || !Array.isArray(emailData.to) || emailData.to.length === 0) {
@@ -1101,6 +1133,8 @@ export async function adminRoutes(fastify: FastifyInstance) {
         attempts: 0
       };
       
+      console.log('📧 Final Test Email Data for Queue:', JSON.stringify(testEmailData, null, 2));
+      
       // Send to queue
       await queueProducer.addEmailJob(testEmailData);
       
@@ -1119,132 +1153,4 @@ export async function adminRoutes(fastify: FastifyInstance) {
     }
   });
 
-  // AI Playground routes
-  let aiController: AIController | null = null;
-  
-  try {
-    aiController = new AIController();
-    await aiController.initialize();
-  } catch (error) {
-    console.warn('AI controller initialization failed, AI playground will be disabled:', error);
-  }
-  
-  // Generate template using AI (no authentication required for admin testing)
-  fastify.post('/admin/ai/generate-template', async (request, reply) => {
-    try {
-      if (!aiController) {
-        return reply.code(503).send({ 
-          error: 'AI service unavailable',
-          message: 'AI features are currently disabled due to service unavailability'
-        });
-      }
-
-      const { description, workspaceName, productName, userName } = request.body as any;
-      
-      if (!description || !workspaceName || !productName || !userName) {
-        return reply.code(400).send({ 
-          error: 'Missing required fields: description, workspaceName, productName, userName' 
-        });
-      }
-
-      // Generate template using AI
-      const template = await aiController['generateTemplateFromDescription'](description, workspaceName, productName, userName);
-      
-      return reply.send({ template });
-    } catch (error) {
-      console.error('Error generating AI template:', error);
-      return reply.code(500).send({ 
-        error: 'Failed to generate template',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  });
-  
-  // Generate template using AI (authenticated endpoint)
-  fastify.post('/api/admin/ai/generate-template', {
-    schema: {
-      body: {
-        type: 'object',
-        required: ['description', 'workspaceName', 'productName', 'userName'],
-        properties: {
-          description: { type: 'string', minLength: 1 },
-          workspaceName: { type: 'string', minLength: 1 },
-          productName: { type: 'string', minLength: 1 },
-          userName: { type: 'string', minLength: 1 }
-        }
-      },
-      response: {
-        200: {
-          type: 'object',
-          properties: {
-            template: {
-              type: 'object',
-              properties: {
-                template: {
-                  type: 'object',
-                  properties: {
-                    key: { type: 'string' },
-                    locale: { type: 'string' }
-                  }
-                },
-                variables: {
-                  type: 'object',
-                  properties: {
-                    workspace_name: { type: 'string' },
-                    user_firstname: { type: 'string' },
-                    product_name: { type: 'string' },
-                    support_email: { type: 'string' },
-                    email_title: { type: 'string' },
-                    custom_content: { type: 'string' },
-                    facts: {
-                      type: 'array',
-                      items: {
-                        type: 'object',
-                        properties: {
-                          label: { type: 'string' },
-                          value: { type: 'string' }
-                        }
-                      }
-                    },
-                    cta_primary: {
-                      type: 'object',
-                      properties: {
-                        label: { type: 'string' },
-                        url: { type: 'string' }
-                      }
-                    },
-                    cta_secondary: {
-                      type: 'object',
-                      properties: {
-                        label: { type: 'string' },
-                        url: { type: 'string' }
-                      }
-                    },
-                    social_links: {
-                      type: 'array',
-                      items: {
-                        type: 'object',
-                        properties: {
-                          platform: { type: 'string' },
-                          url: { type: 'string' }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }, async (request, reply) => {
-    if (!aiController) {
-      return reply.code(503).send({ 
-        error: 'AI service unavailable',
-        message: 'AI features are currently disabled due to service unavailability'
-      });
-    }
-    return aiController.generateTemplate(request as any, reply);
-  });
 }

@@ -11,6 +11,8 @@ import { emailRoutes } from './api/routes/email';
 import { healthRoutes } from './api/routes/health';
 import { webhookRoutes } from './api/routes/webhook';
 import { adminRoutes } from './api/routes/admin';
+import { templateRoutes } from './api/routes/templates';
+import { templateRoutesSimple } from './api/routes/templates-simple';
 import { generateTestToken } from './utils/auth';
 
 const PORT = parseInt(process.env['PORT'] || '3000');
@@ -65,10 +67,21 @@ async function buildServer() {
   setupMetricsEndpoint(fastify);
 
   // Register routes
+  console.log('🔧 Registering routes...');
   await fastify.register(healthRoutes);
+  console.log('✅ Health routes registered');
   await fastify.register(webhookRoutes);
+  console.log('✅ Webhook routes registered');
   await fastify.register(adminRoutes);
+  console.log('✅ Admin routes registered');
+  console.log('🔧 Registering simple template routes...');
+  await fastify.register(templateRoutesSimple);
+  console.log('✅ Simple template routes registered');
+  console.log('🔧 Registering template routes...');
+  await fastify.register(templateRoutes);
+  console.log('✅ Template routes registered');
   await fastify.register(emailRoutes, { prefix: '/api' });
+  console.log('✅ Email routes registered');
 
   // Add a test endpoint to generate JWT tokens (development only)
   if (NODE_ENV === 'development') {
