@@ -7,150 +7,516 @@
       <mj-text font-size="{{#if theme.font_size}}{{theme.font_size}}{{else}}16px{{/if}}" color="{{#if theme.text_color}}{{theme.text_color}}{{else}}#374151{{/if}}" line-height="{{#if theme.line_height}}{{theme.line_height}}{{else}}26px{{/if}}"></mj-text>
       <mj-section background-color="{{#if theme.background_color}}{{theme.background_color}}{{else}}#ffffff{{/if}}"></mj-section>
     </mj-attributes>
+    <mj-style>
+      /* Mobile responsive spacing optimizations */
+      @media only screen and (max-width: 600px) {
+        .mobile-spacing {
+          padding: 8px 8px !important;
+        }
+        .mobile-header {
+          padding: 8px 8px 4px 8px !important;
+        }
+        .mobile-title {
+          padding: 8px 0px 4px 0px !important;
+        }
+        .mobile-body {
+          padding: 0px 0px 6px 0px !important;
+        }
+        .mobile-actions {
+          padding: 0px 0px 8px 0px !important;
+        }
+        .mobile-footer {
+          padding: 8px 8px 12px 8px !important;
+        }
+        .mobile-section {
+          padding: 4px 0px !important;
+        }
+        .mobile-text {
+          padding: 3px 8px !important;
+        }
+        .mobile-button {
+          padding: 6px 12px !important;
+        }
+        .mobile-social {
+          padding: 0px 0px 6px 0px !important;
+        }
+        .mobile-footer mj-divider {
+          padding: 0px 0px 6px 0px !important;
+        }
+        
+        /* Additional mobile optimizations */
+        .mobile-spacing mj-text {
+          padding: 2px 6px !important;
+        }
+        .mobile-spacing mj-image {
+          margin: 3px 0px !important;
+        }
+        .mobile-spacing mj-button {
+          padding: 6px 12px !important;
+          font-size: 14px !important;
+        }
+        
+        /* Reduce line height on mobile for better spacing */
+        .mobile-text {
+          line-height: 1.2 !important;
+        }
+        
+        /* Optimize table spacing on mobile */
+        .mobile-section table {
+          margin: 2px 0px !important;
+        }
+        .mobile-section td {
+          padding: 6px 8px !important;
+        }
+      }
+      
+      /* Desktop spacing optimizations */
+      @media only screen and (min-width: 601px) {
+        /* Ensure consistent width for all sections */
+        .mobile-header,
+        .mobile-footer,
+        .mobile-spacing {
+          max-width: 600px !important;
+          margin: 0 auto !important;
+        }
+        .mobile-header {
+          padding: 20px 20px 12px 20px !important;
+        }
+        .mobile-title {
+          padding: 20px 0px 12px 0px !important;
+        }
+        .mobile-body {
+          padding: 0px 0px 16px 0px !important;
+        }
+        .mobile-actions {
+          padding: 0px 0px 20px 0px !important;
+        }
+        .mobile-footer {
+          padding: 20px 20px 25px 20px !important;
+        }
+        .mobile-section {
+          padding: 12px 0px !important;
+        }
+        .mobile-text {
+          padding: 8px 20px !important;
+        }
+        .mobile-button {
+          padding: 12px 20px !important;
+        }
+        .mobile-social {
+          padding: 0px 0px 15px 0px !important;
+        }
+        .mobile-footer mj-divider {
+          padding: 0px 0px 16px 0px !important;
+        }
+      }
+      
+      {{#if theme.dark_mode}}
+      @media (prefers-color-scheme: dark) {
+        .dark-mode {
+          background-color: {{#if theme.dark_background_color}}{{theme.dark_background_color}}{{else}}#1a1a1a{{/if}} !important;
+        }
+        .dark-mode-text {
+          color: {{#if theme.dark_text_color}}{{theme.dark_text_color}}{{else}}#e0e0e0{{/if}} !important;
+        }
+        .dark-mode-heading {
+          color: {{#if theme.dark_heading_color}}{{theme.dark_heading_color}}{{else}}#ffffff{{/if}} !important;
+        }
+        .dark-mode-muted {
+          color: {{#if theme.dark_muted_color}}{{theme.dark_muted_color}}{{else}}#888888{{/if}} !important;
+        }
+        .dark-mode-border {
+          border-color: {{#if theme.dark_border_color}}{{theme.dark_border_color}}{{else}}#333333{{/if}} !important;
+        }
+        .dark-mode-card {
+          background-color: {{#if theme.dark_card_background}}{{theme.dark_card_background}}{{else}}#2a2a2a{{/if}} !important;
+        }
+      }
+      {{/if}}
+    </mj-style>
   </mj-head>
   <mj-body background-color="{{#if theme.body_background}}{{theme.body_background}}{{else}}#f8fafc{{/if}}">
-    <!-- Header with logo -->
-    <mj-section padding="40px 20px 20px 20px">
+    <!-- Main content card with header, body, and footer -->
+    <mj-section background-color="{{#if theme.background_color}}{{theme.background_color}}{{else}}#ffffff{{/if}}" border-radius="12px" box-shadow="0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)" padding="0px 20px" css-class="mobile-spacing">
       <mj-column>
-        {{#if image_url}}
-        <mj-image width="180px" src="{{image_url}}" alt="{{image_alt}}" border-radius="8px"></mj-image>
-        {{else}}
-        <mj-image width="180px" src="https://i.ibb.co/8LfvqPk7/Waymore-logo-Colour.png" alt="Waymore" border-radius="8px"></mj-image>
-        {{/if}}
-      </mj-column>
-    </mj-section>
-    
-    <!-- Main content card -->
-    <mj-section background-color="{{#if theme.background_color}}{{theme.background_color}}{{else}}#ffffff{{/if}}" border-radius="12px" box-shadow="0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)" padding="0px 20px">
-      <mj-column>
-        <!-- Title section -->
-        <mj-section padding="40px 0px 20px 0px">
+        <!-- Header Section with Object-Based Structure -->
+        {{#if header}}
+        <mj-section padding="{{#if header.padding}}{{header.padding}}{{else}}12px 0px 8px 0px{{/if}}" css-class="mobile-header">
           <mj-column>
-            <mj-text font-size="28px" font-weight="700" color="{{#if theme.heading_color}}{{theme.heading_color}}{{else}}#1f2937{{/if}}" align="center" line-height="36px">
-              {{email_title}}
+            {{#if header}}
+            <mj-image width="{{#if header.logo_width}}{{header.logo_width}}{{else}}180px{{/if}}" 
+                       src="{{#if header.logo_url}}{{header.logo_url}}{{else}}https://i.ibb.co/8LfvqPk7/Waymore-logo-Colour.png{{/if}}" 
+                       alt="{{#if header.logo_alt}}{{header.logo_alt}}{{else}}Waymore{{/if}}" 
+                       border-radius="8px">
+            </mj-image>
+            {{#if header.tagline}}
+            <mj-text font-size="14px" color="{{#if theme.muted_text_color}}{{theme.muted_text_color}}{{else}}#6b7280{{/if}}" align="center" padding="8px 0px 0px 0px">
+              {{header.tagline}}
             </mj-text>
-          </mj-column>
-        </mj-section>
-
-        <!-- Custom Content Section (optional) -->
-        {{#if custom_content}}
-        <mj-section padding="0px 0px 30px 0px">
-          <mj-column>
-            <mj-text font-size="16px" line-height="26px" color="{{#if theme.text_color}}{{theme.text_color}}{{else}}#374151{{/if}}" padding="0px 20px">
-              {{#if content.[locale]}}{{{content.[locale]}}}{{else}}{{{custom_content}}}{{/if}}
-            </mj-text>
+            {{/if}}
+            {{/if}}
           </mj-column>
         </mj-section>
         {{/if}}
 
-        {{#if facts}}
-        <!-- Modern facts table -->
-        <mj-section padding="0px 0px 30px 0px">
+        <!-- Hero Section with Object-Based Structure -->
+        {{#if hero}}
+        {{#if (eq hero.type "image")}}
+        <mj-section padding="{{#if hero.padding}}{{hero.padding}}{{else}}8px 0px 10px 0px{{/if}}" css-class="mobile-section">
           <mj-column>
+            <mj-image width="{{#if hero.image_width}}{{hero.image_width}}{{else}}120px{{/if}}" 
+                       src="{{hero.image_url}}" 
+                       alt="{{#if hero.image_alt}}{{hero.image_alt}}{{else}}Hero Image{{/if}}" 
+                       border-radius="12px">
+            </mj-image>
+          </mj-column>
+        </mj-section>
+        {{else if (eq hero.type "icon")}}
+        <mj-section padding="{{#if hero.padding}}{{hero.padding}}{{else}}8px 0px 10px 0px{{/if}}" css-class="mobile-section">
+          <mj-column>
+            <mj-text font-size="{{#if hero.icon_size}}{{hero.icon_size}}{{else}}48px{{/if}}" align="center">
+              {{#if hero.icon}}{{hero.icon}}{{else}}📧{{/if}}
+            </mj-text>
+          </mj-column>
+        </mj-section>
+        {{/if}}
+        {{/if}}
+
+        <!-- Title Section with Object-Based Structure -->
+        {{#if title}}
+        <mj-section padding="{{#if title.padding}}{{title.padding}}{{else}}12px 0px 8px 0px{{/if}}" css-class="mobile-title">
+          <mj-column>
+            <mj-text font-size="{{#if title.size}}{{title.size}}{{else}}28px{{/if}}" 
+                      font-weight="{{#if title.weight}}{{title.weight}}{{else}}700{{/if}}" 
+                      color="{{#if title.color}}{{title.color}}{{else}}{{#if theme.heading_color}}{{theme.heading_color}}{{else}}#1f2937{{/if}}{{/if}}" 
+                      align="{{#if title.align}}{{title.align}}{{else}}center{{/if}}" 
+                      line-height="{{#if title.line_height}}{{title.line_height}}{{else}}36px{{/if}}">
+              {{#if title.text}}{{title.text}}{{else}}{{#if email_title}}{{email_title}}{{else}}{{#if workspace_name}}Email from {{workspace_name}}{{else}}Email Notification{{/if}}{{/if}}{{/if}}
+            </mj-text>
+          </mj-column>
+        </mj-section>
+        {{/if}}
+
+        <!-- Body Section with Object-Based Structure -->
+        {{#if body}}
+        <mj-section padding="{{#if body.padding}}{{body.padding}}{{else}}0px 0px 10px 0px{{/if}}" css-class="mobile-body">
+          <mj-column>
+            {{#each body.paragraphs}}
+            <mj-text font-size="{{#if ../body.font_size}}{{../body.font_size}}{{else}}16px{{/if}}" 
+                      line-height="{{#if ../body.line_height}}{{../body.line_height}}{{else}}26px{{/if}}" 
+                      color="{{#if ../body.color}}{{../body.color}}{{else}}{{#if ../../theme.text_color}}{{../../theme.text_color}}{{else}}#374151{{/if}}{{/if}}" 
+                      padding="{{#if @first}}0px 20px{{else}}6px 20px 0px 20px{{/if}}" 
+                      css-class="mobile-text">
+              {{{this}}}
+            </mj-text>
+            {{/each}}
+          </mj-column>
+        </mj-section>
+        {{/if}}
+
+        <!-- Snapshot Section with Object-Based Structure -->
+        {{#if snapshot}}
+        <mj-section padding="{{#if snapshot.padding}}{{snapshot.padding}}{{else}}0px 0px 10px 0px{{/if}}" css-class="mobile-section">
+          <mj-column>
+            {{#if snapshot.title}}
+            <mj-text font-size="18px" font-weight="600" color="{{#if theme.heading_color}}{{theme.heading_color}}{{else}}#1f2937{{/if}}" align="center" padding="0px 0px 16px 0px">
+              {{snapshot.title}}
+            </mj-text>
+            {{/if}}
+            {{#if (eq snapshot.style "table")}}
             <mj-table>
-              <tr style="background-color: {{#if theme.card_background}}{{theme.card_background}}{{else}}#f8fafc{{/if}}; border-radius: 8px 8px 0px 0px;">
-                <td style="padding: 16px 20px; font-weight: 600; color: {{#if theme.heading_color}}{{theme.heading_color}}{{else}}#1f2937{{/if}}; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Label</td>
-                <td style="padding: 16px 20px; font-weight: 600; color: {{#if theme.heading_color}}{{theme.heading_color}}{{else}}#1f2937{{/if}}; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Value</td>
-              </tr>
-              {{#each facts}}
-              <tr style="border-bottom: 1px solid {{#if ../../theme.border_color}}{{../../theme.border_color}}{{else}}#e5e7eb{{/if}}; {{#if @last}}border-radius: 0px 0px 8px 8px;{{/if}}">
+              {{#each snapshot.facts}}
+              <tr style="border-bottom: 1px solid {{#if ../../theme.border_color}}{{../../theme.border_color}}{{else}}#e5e7eb{{/if}}; {{#if @last}}border-radius: 8px 8px 8px 8px;{{/if}}">
                 <td style="padding: 16px 20px; color: {{#if ../../theme.text_color}}{{../../theme.text_color}}{{else}}#374151{{/if}}; font-weight: 500; font-size: 15px;">{{label}}</td>
                 <td style="padding: 16px 20px; color: {{#if ../../theme.text_color}}{{../../theme.text_color}}{{else}}#374151{{/if}}; font-size: 15px;">{{value}}</td>
               </tr>
               {{/each}}
             </mj-table>
+            {{/if}}
           </mj-column>
         </mj-section>
         {{/if}}
 
-        <!-- Modern CTA Buttons -->
-        {{#if cta_primary}}
-          {{#if cta_secondary}}
-          <mj-section padding="0px 0px 40px 0px">
-            <mj-column width="50%" vertical-align="middle" padding="0px 8px 0px 0px">
-              <mj-button width="100%" background-color="{{#if theme.primary_button_color}}{{theme.primary_button_color}}{{else}}#3b82f6{{/if}}" color="{{#if theme.primary_button_text_color}}{{theme.primary_button_text_color}}{{else}}#ffffff{{/if}}" href="{{cta_primary.url}}" font-size="15px" font-weight="600" border-radius="8px" padding="16px 24px" box-shadow="0 4px 6px -1px rgba(59, 130, 246, 0.3), 0 2px 4px -1px rgba(59, 130, 246, 0.2)">
-                {{cta_primary.label}}
-              </mj-button>
-            </mj-column>
-            <mj-column width="50%" vertical-align="middle" padding="0px 0px 0px 8px">
-              <mj-button width="100%" background-color="{{#if theme.secondary_button_color}}{{theme.secondary_button_color}}{{else}}#6b7280{{/if}}" color="{{#if theme.secondary_button_text_color}}{{theme.secondary_button_text_color}}{{else}}#ffffff{{/if}}" href="{{cta_secondary.url}}" font-size="15px" font-weight="600" border-radius="8px" padding="16px 24px" box-shadow="0 4px 6px -1px rgba(107, 114, 128, 0.3), 0 2px 4px -1px rgba(107, 114, 128, 0.2)">
-                {{cta_secondary.label}}
-              </mj-button>
-            </mj-column>
-          </mj-section>
-          {{else}}
-          <mj-section padding="0px 0px 40px 0px">
-            <mj-column>
-              <mj-button background-color="{{#if theme.primary_button_color}}{{theme.primary_button_color}}{{else}}#3b82f6{{/if}}" color="{{#if theme.primary_button_text_color}}{{theme.primary_button_text_color}}{{else}}#ffffff{{/if}}" href="{{cta_primary.url}}" font-size="16px" font-weight="600" border-radius="8px" padding="18px 32px" box-shadow="0 4px 6px -1px rgba(59, 130, 246, 0.3), 0 2px 4px -1px rgba(59, 130, 246, 0.2)">
-                {{cta_primary.label}}
-              </mj-button>
-            </mj-column>
-          </mj-section>
-          {{/if}}
-        {{/if}}
-
-        {{#if cta_secondary}}
-          {{#unless cta_primary}}
-          <mj-section padding="0px 0px 40px 0px">
-            <mj-column>
-              <mj-button background-color="{{#if theme.secondary_button_color}}{{theme.secondary_button_color}}{{else}}#6b7280{{/if}}" color="{{#if theme.secondary_button_text_color}}{{theme.secondary_button_text_color}}{{else}}#ffffff{{/if}}" href="{{cta_secondary.url}}" font-size="16px" font-weight="600" border-radius="8px" padding="18px 32px" box-shadow="0 4px 6px -1px rgba(107, 114, 128, 0.3), 0 2px 4px -1px rgba(107, 114, 128, 0.2)">
-                {{cta_secondary.label}}
-              </mj-button>
-            </mj-column>
-          </mj-section>
-          {{/unless}}
-        {{/if}}
-      </mj-column>
-    </mj-section>
-
-    <!-- Social Links Section -->
-    {{#if social_links}}
-    <mj-section padding="20px 0px 40px 0px">
-      <mj-column>
-        <mj-text font-size="14px" color="{{#if theme.muted_text_color}}{{theme.muted_text_color}}{{else}}#6b7280{{/if}}" align="center" padding="0px 0px 16px 0px">
-          Follow us on social media
-        </mj-text>
-        <mj-social icon-size="24px" mode="horizontal" align="center">
-          {{#each social_links}}
-          <mj-social-element name="{{platform}}" href="{{url}}" background-color="{{#if ../../theme.social_button_color}}{{../../theme.social_button_color}}{{else}}#f3f4f6{{/if}}" icon-color="{{#if ../../theme.social_icon_color}}{{../../theme.social_icon_color}}{{else}}#6b7280{{/if}}" />
-          {{/each}}
-        </mj-social>
-      </mj-column>
-    </mj-section>
-    {{/if}}
-
-    <!-- Footer -->
-    <mj-section padding="40px 20px 60px 20px">
-      <mj-column>
-        <!-- Custom Footer Text -->
-        {{#if footer_text}}
-        <mj-text font-size="13px" color="{{#if theme.muted_text_color}}{{theme.muted_text_color}}{{else}}#9ca3af{{/if}}" align="center" line-height="20px">
-          {{{footer_text}}}
-        </mj-text>
+        <!-- Actions Section with Object-Based Structure -->
+        {{#if actions}}
+        {{#if actions.primary}}
+        {{#if actions.secondary}}
+        <mj-section padding="{{#if actions.padding}}{{actions.padding}}{{else}}0px 0px 12px 0px{{/if}}" css-class="mobile-actions">
+          <mj-column width="50%" vertical-align="middle" padding="0px 8px 0px 0px">
+            {{#if (eq actions.primary.style "button")}}
+            <mj-button width="100%" 
+                       background-color="{{#if actions.primary.color}}{{actions.primary.color}}{{else}}{{#if theme.primary_button_color}}{{theme.primary_button_color}}{{else}}#3b82f6{{/if}}{{/if}}" 
+                       color="{{#if actions.primary.text_color}}{{actions.primary.text_color}}{{else}}{{#if theme.primary_button_text_color}}{{theme.primary_button_text_color}}{{else}}#ffffff{{/if}}{{/if}}" 
+                       href="{{actions.primary.url}}" 
+                       font-size="15px" 
+                       font-weight="600" 
+                       border-radius="8px" 
+                       padding="10px 16px" css-class="mobile-button" 
+                       box-shadow="0 4px 6px -1px rgba(59, 130, 246, 0.3), 0 2px 4px -1px rgba(59, 130, 246, 0.2)">
+              {{actions.primary.label}}
+            </mj-button>
+            {{else}}
+            <mj-text align="center" padding="6px 0px">
+              <a href="{{actions.primary.url}}" style="color: {{#if actions.primary.color}}{{actions.primary.color}}{{else}}#3b82f6{{/if}}; text-decoration: none; font-weight: 600;">{{actions.primary.label}}</a>
+            </mj-text>
+            {{/if}}
+          </mj-column>
+          <mj-column width="50%" vertical-align="middle" padding="0px 0px 0px 8px">
+            {{#if (eq actions.secondary.style "button")}}
+            <mj-button width="100%" 
+                       background-color="{{#if actions.secondary.color}}{{actions.secondary.color}}{{else}}{{#if theme.secondary_button_color}}{{theme.secondary_button_color}}{{else}}#6b7280{{/if}}{{/if}}" 
+                       color="{{#if actions.secondary.text_color}}{{actions.secondary.text_color}}{{else}}{{#if theme.secondary_button_text_color}}{{theme.secondary_button_text_color}}{{else}}#ffffff{{/if}}{{/if}}" 
+                       href="{{actions.secondary.url}}" 
+                       font-size="15px" 
+                       font-weight="600" 
+                       border-radius="8px" 
+                       padding="10px 16px" css-class="mobile-button" 
+                       box-shadow="0 4px 6px -1px rgba(107, 114, 128, 0.3), 0 2px 4px -1px rgba(107, 114, 128, 0.2)">
+              {{actions.secondary.label}}
+            </mj-button>
+            {{else}}
+            <mj-text align="center" padding="6px 0px">
+              <a href="{{actions.secondary.url}}" style="color: {{#if actions.secondary.color}}{{actions.secondary.color}}{{else}}#6b7280{{/if}}; text-decoration: none; font-weight: 600;">{{actions.secondary.label}}</a>
+            </mj-text>
+            {{/if}}
+          </mj-column>
+        </mj-section>
         {{else}}
-        <mj-text font-size="13px" color="{{#if theme.muted_text_color}}{{theme.muted_text_color}}{{else}}#9ca3af{{/if}}" align="center" line-height="20px">
-          This email was sent by <strong>{{workspace_name}}</strong>. If you have any questions, please contact <a href="mailto:{{support_email}}" style="color: {{#if theme.link_color}}{{theme.link_color}}{{else}}#3b82f6{{/if}}; text-decoration: none;">{{support_email}}</a>.
-        </mj-text>
+        <mj-section padding="{{#if actions.padding}}{{actions.padding}}{{else}}0px 0px 12px 0px{{/if}}" css-class="mobile-actions">
+          <mj-column>
+            {{#if (eq actions.primary.style "button")}}
+            <mj-button background-color="{{#if actions.primary.color}}{{actions.primary.color}}{{else}}{{#if theme.primary_button_color}}{{theme.primary_button_color}}{{else}}#3b82f6{{/if}}{{/if}}" 
+                       color="{{#if actions.primary.text_color}}{{actions.primary.text_color}}{{else}}{{#if theme.primary_button_text_color}}{{theme.primary_button_text_color}}{{else}}#ffffff{{/if}}{{/if}}" 
+                       href="{{actions.primary.url}}" 
+                       font-size="16px" 
+                       font-weight="600" 
+                       border-radius="8px" 
+                       padding="10px 18px" css-class="mobile-button" 
+                       box-shadow="0 4px 6px -1px rgba(59, 130, 246, 0.3), 0 2px 4px -1px rgba(59, 130, 246, 0.2)">
+              {{actions.primary.label}}
+            </mj-button>
+            {{else}}
+            <mj-text align="center" padding="6px 0px">
+              <a href="{{actions.primary.url}}" style="color: {{#if actions.primary.color}}{{actions.primary.color}}{{else}}#3b82f6{{/if}}; text-decoration: none; font-weight: 600; font-size: 16px;">{{actions.primary.label}}</a>
+            </mj-text>
+            {{/if}}
+          </mj-column>
+        </mj-section>
+        {{/if}}
+        {{/if}}
         {{/if}}
 
-        <!-- Footer Links (Privacy, Terms, Unsubscribe) -->
-        {{#if footer_links}}
-        <mj-text font-size="12px" color="{{#if theme.muted_text_color}}{{theme.muted_text_color}}{{else}}#9ca3af{{/if}}" align="center" padding="16px 0px 0px 0px">
-          {{#each footer_links}}
-            {{#if @first}}{{else}} • {{/if}}<a href="{{url}}" style="color: {{#if ../../theme.link_color}}{{../../theme.link_color}}{{else}}#3b82f6{{/if}}; text-decoration: none;">{{label}}</a>
-          {{/each}}
-        </mj-text>
-        {{/if}}
-
-        <!-- Copyright Text -->
-        {{#if copyright_text}}
-        <mj-text font-size="11px" color="{{#if theme.muted_text_color}}{{theme.muted_text_color}}{{else}}#9ca3af{{/if}}" align="center" padding="16px 0px 0px 0px">
-          {{{copyright_text}}}
-        </mj-text>
+        <!-- Visual Section with Object-Based Structure -->
+        {{#if visual}}
+        {{#if (eq visual.type "progress")}}
+        <mj-section padding="{{#if visual.padding}}{{visual.padding}}{{else}}0px 0px 10px 0px{{/if}}" css-class="mobile-section">
+          <mj-column>
+            {{#each visual.progress_bars}}
+            <mj-table>
+              <tr>
+                <td style="padding: 8px 0px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 14px; font-weight: 600; color: {{#if ../../theme.text_color}}{{../../theme.text_color}}{{else}}#374151{{/if}};">{{label}}</span>
+                    <span style="font-size: 14px; font-weight: 600; color: {{#if ../../theme.text_color}}{{../../theme.text_color}}{{else}}#374151{{/if}};">{{current}}{{#if unit}} {{unit}}{{/if}}</span>
+                  </div>
+                  <div style="background-color: {{#if ../../theme.border_color}}{{../../theme.border_color}}{{else}}#e5e7eb{{/if}}; border-radius: 8px; height: 8px; overflow: hidden;">
+                    <div style="background-color: {{#if color}}{{color}}{{else}}#3b82f6{{/if}}; height: 100%; width: {{percentage}}%; border-radius: 8px; transition: width 0.3s ease;"></div>
+                  </div>
+                  {{#if description}}
+                  <div style="font-size: 12px; color: {{#if ../../theme.muted_text_color}}{{../../theme.muted_text_color}}{{else}}#6b7280{{/if}}; margin-top: 4px;">{{description}}</div>
+                  {{/if}}
+                </td>
+              </tr>
+            </mj-table>
+            {{/each}}
+          </mj-column>
+        </mj-section>
+        {{else if (eq visual.type "countdown")}}
+        {{#unless (countdownExpired visual.countdown.target_date)}}
+        <mj-section padding="{{#if visual.padding}}{{visual.padding}}{{else}}0px 0px 10px 0px{{/if}}" css-class="mobile-section">
+          <mj-column>
+            <mj-table>
+              <tr>
+                <td style="text-align: center; padding: 20px; background-color: {{#if theme.card_background}}{{theme.card_background}}{{else}}#f8fafc{{/if}}; border-radius: 12px; border: 1px solid {{#if theme.border_color}}{{theme.border_color}}{{else}}#e5e7eb{{/if}};">
+                  <div style="font-size: 16px; font-weight: 600; color: {{#if theme.heading_color}}{{theme.heading_color}}{{else}}#1f2937{{/if}}; margin-bottom: 16px;">{{visual.countdown.message}}</div>
+                  <div style="display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; padding: 20px 0;">
+                    {{#if visual.countdown.show_days}}
+                    <div style="text-align: center; padding: 16px 12px; background-color: {{#if theme.card_background}}{{theme.card_background}}{{else}}#f8fafc{{/if}}; border-radius: 12px; border: 1px solid {{#if theme.border_color}}{{theme.border_color}}{{else}}#e5e7eb{{/if}}; min-width: 80px;">
+                      <div style="font-size: 28px; font-weight: 700; color: {{#if theme.primary_button_color}}{{theme.primary_button_color}}{{else}}#3b82f6{{/if}}; line-height: 1; margin-bottom: 4px;">{{countdown visual.countdown.target_date "days"}}</div>
+                      <div style="font-size: 11px; color: {{#if theme.muted_text_color}}{{theme.muted_text_color}}{{else}}#6b7280{{/if}}; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600;">Days</div>
+                    </div>
+                    {{/if}}
+                    {{#if visual.countdown.show_hours}}
+                    <div style="text-align: center; padding: 16px 12px; background-color: {{#if theme.card_background}}{{theme.card_background}}{{else}}#f8fafc{{/if}}; border-radius: 12px; border: 1px solid {{#if theme.border_color}}{{theme.border_color}}{{else}}#e5e7eb{{/if}}; min-width: 80px;">
+                      <div style="font-size: 28px; font-weight: 700; color: {{#if theme.primary_button_color}}{{theme.primary_button_color}}{{else}}#3b82f6{{/if}}; line-height: 1; margin-bottom: 4px;">{{countdown visual.countdown.target_date "hours"}}</div>
+                      <div style="font-size: 11px; color: {{#if theme.muted_text_color}}{{theme.muted_text_color}}{{else}}#6b7280{{/if}}; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600;">Hours</div>
+                    </div>
+                    {{/if}}
+                    {{#if visual.countdown.show_minutes}}
+                    <div style="text-align: center; padding: 16px 12px; background-color: {{#if theme.card_background}}{{theme.card_background}}{{else}}#f8fafc{{/if}}; border-radius: 12px; border: 1px solid {{#if theme.border_color}}{{theme.border_color}}{{else}}#e5e7eb{{/if}}; min-width: 80px;">
+                      <div style="font-size: 28px; font-weight: 700; color: {{#if theme.primary_button_color}}{{theme.primary_button_color}}{{else}}#3b82f6{{/if}}; line-height: 1; margin-bottom: 4px;">{{countdown visual.countdown.target_date "minutes"}}</div>
+                      <div style="font-size: 11px; color: {{#if theme.muted_text_color}}{{theme.muted_text_color}}{{else}}#6b7280{{/if}}; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600;">Minutes</div>
+                    </div>
+                    {{/if}}
+                    {{#if visual.countdown.show_seconds}}
+                    <div style="text-align: center; padding: 16px 12px; background-color: {{#if theme.card_background}}{{theme.card_background}}{{else}}#f8fafc{{/if}}; border-radius: 12px; border: 1px solid {{#if theme.border_color}}{{theme.border_color}}{{else}}#e5e7eb{{/if}}; min-width: 80px;">
+                      <div style="font-size: 28px; font-weight: 700; color: {{#if theme.primary_button_color}}{{theme.primary_button_color}}{{else}}#3b82f6{{/if}}; line-height: 1; margin-bottom: 4px;">{{countdown visual.countdown.target_date "seconds"}}</div>
+                      <div style="font-size: 11px; color: {{#if theme.muted_text_color}}{{theme.muted_text_color}}{{else}}#6b7280{{/if}}; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600;">Seconds</div>
+                    </div>
+                    {{/if}}
+                  </div>
+                  {{#if visual.countdown.target_date}}
+                  <div style="font-size: 12px; color: {{#if theme.muted_text_color}}{{theme.muted_text_color}}{{else}}#6b7280{{/if}}; margin-top: 12px;">
+                    Target: {{formatDate visual.countdown.target_date "short"}}
+                  </div>
+                  {{/if}}
+                </td>
+              </tr>
+            </mj-table>
+          </mj-column>
+        </mj-section>
         {{else}}
-        <mj-text font-size="11px" color="{{#if theme.muted_text_color}}{{theme.muted_text_color}}{{else}}#9ca3af{{/if}}" align="center" padding="16px 0px 0px 0px">
-          © {{current_year}} {{workspace_name}}. All rights reserved.
-        </mj-text>
+        <mj-section padding="{{#if visual.padding}}{{visual.padding}}{{else}}0px 0px 10px 0px{{/if}}" css-class="mobile-section">
+          <mj-column>
+            <mj-table>
+              <tr>
+                <td style="text-align: center; padding: 20px; background-color: {{#if theme.card_background}}{{theme.card_background}}{{else}}#f8fafc{{/if}}; border-radius: 12px; border: 1px solid {{#if theme.border_color}}{{theme.border_color}}{{else}}#e5e7eb{{/if}};">
+                  <div style="font-size: 16px; font-weight: 600; color: {{#if theme.muted_text_color}}{{theme.muted_text_color}}{{else}}#6b7280{{/if}}; margin-bottom: 16px;">⏰ This offer has expired</div>
+                </td>
+              </tr>
+            </mj-table>
+          </mj-column>
+        </mj-section>
+        {{/unless}}
+        {{/if}}
+        {{/if}}
+
+        <!-- Countdown Timer Section -->
+        {{#if countdown}}
+        {{#unless (countdownExpired countdown.target_date)}}
+        <mj-section padding="0px 0px 10px 0px" css-class="mobile-section">
+          <mj-column>
+            <mj-table>
+              <tr>
+                <td style="text-align: center; padding: 20px; background-color: {{#if theme.card_background}}{{theme.card_background}}{{else}}#f8fafc{{/if}}; border-radius: 12px; border: 1px solid {{#if theme.border_color}}{{theme.border_color}}{{else}}#e5e7eb{{/if}};">
+                  <div style="font-size: 16px; font-weight: 600; color: {{#if theme.heading_color}}{{theme.heading_color}}{{else}}#1f2937{{/if}}; margin-bottom: 16px;">{{countdown.message}}</div>
+                  <div style="display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; padding: 20px 0;">
+                    {{#if countdown.show_days}}
+                    <div style="text-align: center; padding: 16px 12px; background-color: {{#if theme.card_background}}{{theme.card_background}}{{else}}#f8fafc{{/if}}; border-radius: 12px; border: 1px solid {{#if theme.border_color}}{{theme.border_color}}{{else}}#e5e7eb{{/if}}; min-width: 80px;">
+                      <div style="font-size: 28px; font-weight: 700; color: {{#if theme.primary_button_color}}{{theme.primary_button_color}}{{else}}#3b82f6{{/if}}; line-height: 1; margin-bottom: 4px;">{{countdown countdown.target_date "days"}}</div>
+                      <div style="font-size: 11px; color: {{#if theme.muted_text_color}}{{theme.muted_text_color}}{{else}}#6b7280{{/if}}; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600;">Days</div>
+                    </div>
+                    {{/if}}
+                    {{#if countdown.show_hours}}
+                    <div style="text-align: center; padding: 16px 12px; background-color: {{#if theme.card_background}}{{theme.card_background}}{{else}}#f8fafc{{/if}}; border-radius: 12px; border: 1px solid {{#if theme.border_color}}{{theme.border_color}}{{else}}#e5e7eb{{/if}}; min-width: 80px;">
+                      <div style="font-size: 28px; font-weight: 700; color: {{#if theme.primary_button_color}}{{theme.primary_button_color}}{{else}}#3b82f6{{/if}}; line-height: 1; margin-bottom: 4px;">{{countdown countdown.target_date "hours"}}</div>
+                      <div style="font-size: 11px; color: {{#if theme.muted_text_color}}{{theme.muted_text_color}}{{else}}#6b7280{{/if}}; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600;">Hours</div>
+                    </div>
+                    {{/if}}
+                    {{#if countdown.show_minutes}}
+                    <div style="text-align: center; padding: 16px 12px; background-color: {{#if theme.card_background}}{{theme.card_background}}{{else}}#f8fafc{{/if}}; border-radius: 12px; border: 1px solid {{#if theme.border_color}}{{theme.border_color}}{{else}}#e5e7eb{{/if}}; min-width: 80px;">
+                      <div style="font-size: 28px; font-weight: 700; color: {{#if theme.primary_button_color}}{{theme.primary_button_color}}{{else}}#3b82f6{{/if}}; line-height: 1; margin-bottom: 4px;">{{countdown countdown.target_date "minutes"}}</div>
+                      <div style="font-size: 11px; color: {{#if theme.muted_text_color}}{{theme.muted_text_color}}{{else}}#6b7280{{/if}}; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600;">Minutes</div>
+                    </div>
+                    {{/if}}
+                    {{#if countdown.show_seconds}}
+                    <div style="text-align: center; padding: 16px 12px; background-color: {{#if theme.card_background}}{{theme.card_background}}{{else}}#f8fafc{{/if}}; border-radius: 12px; border: 1px solid {{#if theme.border_color}}{{theme.border_color}}{{else}}#e5e7eb{{/if}}; min-width: 80px;">
+                      <div style="font-size: 28px; font-weight: 700; color: {{#if theme.primary_button_color}}{{theme.primary_button_color}}{{else}}#3b82f6{{/if}}; line-height: 1; margin-bottom: 4px;">{{countdown countdown.target_date "seconds"}}</div>
+                      <div style="font-size: 11px; color: {{#if theme.muted_text_color}}{{theme.muted_text_color}}{{else}}#6b7280{{/if}}; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600;">Seconds</div>
+                    </div>
+                    {{/if}}
+                  </div>
+                  {{#if countdown.target_date}}
+                  <div style="font-size: 12px; color: {{#if theme.muted_text_color}}{{theme.muted_text_color}}{{else}}#6b7280{{/if}}; margin-top: 12px;">
+                    Target: {{formatDate countdown.target_date "short"}}
+                  </div>
+                  {{/if}}
+                </td>
+              </tr>
+            </mj-table>
+          </mj-column>
+        </mj-section>
+        {{else}}
+        <mj-section padding="0px 0px 10px 0px" css-class="mobile-section">
+          <mj-column>
+            <mj-table>
+              <tr>
+                <td style="text-align: center; padding: 20px; background-color: {{#if theme.card_background}}{{theme.card_background}}{{else}}#f8fafc{{/if}}; border-radius: 12px; border: 1px solid {{#if theme.border_color}}{{theme.border_color}}{{else}}#e5e7eb{{/if}};">
+                  <div style="font-size: 16px; font-weight: 600; color: {{#if theme.muted_text_color}}{{theme.muted_text_color}}{{else}}#6b7280{{/if}}; margin-bottom: 16px;">⏰ This offer has expired</div>
+                </td>
+              </tr>
+            </mj-table>
+          </mj-column>
+        </mj-section>
+        {{/unless}}
+        {{/if}}
+
+        <!-- Support Section with Object-Based Structure -->
+        {{#if support}}
+        <mj-section padding="{{#if support.padding}}{{support.padding}}{{else}}8px 0px 8px 0px{{/if}}" css-class="mobile-section">
+          <mj-column>
+            <mj-text font-size="14px" color="{{#if theme.muted_text_color}}{{theme.muted_text_color}}{{else}}#6b7280{{/if}}" align="center" padding="0px 0px 16px 0px">
+              {{#if support.title}}{{support.title}}{{else}}Need help?{{/if}}
+            </mj-text>
+            {{#if support.links}}
+            <mj-text font-size="14px" color="{{#if theme.muted_text_color}}{{theme.muted_text_color}}{{else}}#6b7280{{/if}}" align="center" padding="0px 0px 16px 0px">
+              {{#each support.links}}
+                {{#if @first}}{{else}} • {{/if}}<a href="{{url}}" style="color: {{#if ../../theme.link_color}}{{../../theme.link_color}}{{else}}#3b82f6{{/if}}; text-decoration: none;">{{label}}</a>
+              {{/each}}
+            </mj-text>
+            {{/if}}
+          </mj-column>
+        </mj-section>
+        {{/if}}
+
+        <!-- Footer Section with Object-Based Structure -->
+        {{#if footer}}
+        <mj-section padding="{{#if footer.padding}}{{footer.padding}}{{else}}12px 0px 16px 0px{{/if}}" css-class="mobile-footer">
+          <mj-column>
+            <!-- Footer Divider -->
+            <mj-divider border-color="{{#if theme.border_color}}{{theme.border_color}}{{else}}#e5e7eb{{/if}}" border-width="1px" padding="0px 0px 20px 0px" />
+            <!-- Footer Logo -->
+            {{#if footer.logo}}
+            <mj-image width="{{#if footer.logo.width}}{{footer.logo.width}}{{else}}120px{{/if}}" 
+                       src="{{#if footer.logo.url}}{{footer.logo.url}}{{else}}https://i.ibb.co/8LfvqPk7/Waymore-logo-Colour.png{{/if}}" 
+                       alt="{{#if footer.logo.alt}}{{footer.logo.alt}}{{else}}Waymore{{/if}}" 
+                       border-radius="8px" 
+                       align="center" 
+                       padding="0px 0px 20px 0px">
+            </mj-image>
+            {{/if}}
+
+            <!-- Footer Tagline -->
+            {{#if footer.tagline}}
+            <mj-text font-size="14px" color="{{#if theme.muted_text_color}}{{theme.muted_text_color}}{{else}}#6b7280{{/if}}" align="center" line-height="22px" padding="0px 0px 20px 0px">
+              {{footer.tagline}}
+            </mj-text>
+            {{/if}}
+
+            <!-- Social Links -->
+            {{#if footer.social_links}}
+            <mj-social icon-size="24px" mode="horizontal" align="center" padding="0px 0px 20px 0px" css-class="mobile-social">
+              {{#each footer.social_links}}
+              <mj-social-element name="{{platform}}" href="{{url}}" background-color="{{#if ../../theme.social_button_color}}{{../../theme.social_button_color}}{{else}}#f3f4f6{{/if}}" icon-color="{{#if ../../theme.social_icon_color}}{{../../theme.social_icon_color}}{{else}}#6b7280{{/if}}" />
+              {{/each}}
+            </mj-social>
+            {{/if}}
+
+            <!-- Legal Links -->
+            {{#if footer.legal_links}}
+            <mj-text font-size="12px" color="{{#if theme.muted_text_color}}{{theme.muted_text_color}}{{else}}#6b7280{{/if}}" align="center" line-height="20px" padding="0px 0px 20px 0px">
+              {{#each footer.legal_links}}
+                {{#if @first}}{{else}} • {{/if}}<a href="{{url}}" style="color: {{#if ../../theme.link_color}}{{../../theme.link_color}}{{else}}#3b82f6{{/if}}; text-decoration: none;">{{label}}</a>
+              {{/each}}
+            </mj-text>
+            {{/if}}
+
+            <!-- Copyright -->
+            <mj-text font-size="12px" color="{{#if theme.muted_text_color}}{{theme.muted_text_color}}{{else}}#6b7280{{/if}}" align="center" line-height="20px">
+              {{#if footer.copyright}}{{footer.copyright}}{{else}}© {{#if current_year}}{{current_year}}{{else}}2024{{/if}} {{#if workspace_name}}{{workspace_name}}{{else}}Your Company{{/if}}. All rights reserved.{{/if}}
+            </mj-text>
+          </mj-column>
+        </mj-section>
         {{/if}}
       </mj-column>
     </mj-section>

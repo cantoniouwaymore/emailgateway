@@ -1,9 +1,9 @@
 {
   "info": {
     "name": "Waymore Transactional Emails Service API",
-    "description": "Complete API collection for the Waymore Transactional Emails Service. Includes authentication, email sending, status checking, admin monitoring endpoints, and webhook testing.",
+    "description": "Complete API collection for the Waymore Transactional Emails Service. Includes authentication, email sending, status checking, admin monitoring endpoints, and webhook testing. Updated for object-based template structure.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "version": "1.0.0"
+    "version": "2.0.0"
   },
   "auth": {
     "type": "bearer",
@@ -117,7 +117,7 @@
       "name": "Email Operations",
       "item": [
         {
-          "name": "Send Email - Basic Template",
+          "name": "Send Email - Welcome (Object-Based)",
           "request": {
             "method": "POST",
             "header": [
@@ -136,7 +136,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"from\": {\n    \"email\": \"marketing@waymore.io\",\n    \"name\": \"Waymore Team\"\n  },\n  \"subject\": \"Welcome to Waymore Platform\",\n  \"template\": {\n    \"key\": \"transactional\",\n    \"locale\": \"en\"\n  },\n  \"to\": [\n    {\n      \"email\": \"{{recipient_email}}\",\n      \"name\": \"{{recipient_name}}\"\n    }\n  ],\n  \"variables\": {\n    \"workspace_name\": \"Acme Corp\",\n    \"user_firstname\": \"{{user_firstname}}\",\n    \"product_name\": \"{{product_name}}\",\n    \"support_email\": \"support@waymore.io\",\n    \"email_title\": \"Welcome to Waymore!\",\n    \"custom_content\": \"Hello {{user_firstname}},<br><br>🎉 <strong>Welcome to {{product_name}}!</strong><br><br>We're excited to have you on board. Here are some quick tips to get you started:<br><br>• <strong>Explore the dashboard</strong> to see your workspace overview<br>• <strong>Invite team members</strong> to collaborate on your projects<br>• <strong>Check out our documentation</strong> for detailed guides<br><br>If you have any questions, don't hesitate to reach out to our support team.\",\n    \"facts\": [\n      {\"label\": \"Account Type:\", \"value\": \"Pro Plan\"},\n      {\"label\": \"Workspace:\", \"value\": \"Acme Corp\"},\n      {\"label\": \"Setup Status:\", \"value\": \"Complete\"}\n    ],\n    \"cta_primary\": {\n      \"label\": \"Get Started\",\n      \"url\": \"https://go.waymore.io/dashboard\"\n    },\n    \"cta_secondary\": {\n      \"label\": \"View Documentation\",\n      \"url\": \"https://docs.waymore.io\"\n    }\n  },\n  \"metadata\": {\n    \"tenantId\": \"acme_corp\",\n    \"eventId\": \"welcome_user\",\n    \"notificationType\": \"welcome\"\n  }\n}",
+              "raw": "{\n  \"from\": {\n    \"email\": \"marketing@waymore.io\",\n    \"name\": \"Waymore Team\"\n  },\n  \"subject\": \"Welcome to Waymore Platform\",\n  \"template\": {\n    \"key\": \"transactional\",\n    \"locale\": \"en\"\n  },\n  \"to\": [\n    {\n      \"email\": \"{{recipient_email}}\",\n      \"name\": \"{{recipient_name}}\"\n    }\n  ],\n  \"variables\": {\n    \"workspace_name\": \"Acme Corp\",\n    \"user_firstname\": \"{{user_firstname}}\",\n    \"product_name\": \"{{product_name}}\",\n    \"support_email\": \"support@waymore.io\",\n    \"title\": {\n      \"text\": \"Welcome to Waymore!\"\n    },\n    \"body\": {\n      \"content\": [\n        \"Hello {{user_firstname}},\",\n        \"\",\n        \"🎉 <strong>Welcome to {{product_name}}!</strong>\",\n        \"\",\n        \"We're excited to have you on board. Here are some quick tips to get you started:\",\n        \"\",\n        \"• <strong>Explore the dashboard</strong> to see your workspace overview\",\n        \"• <strong>Invite team members</strong> to collaborate on your projects\",\n        \"• <strong>Check out our documentation</strong> for detailed guides\",\n        \"\",\n        \"If you have any questions, don't hesitate to reach out to our support team.\"\n      ]\n    },\n    \"snapshot\": {\n      \"title\": \"Account Details\",\n      \"style\": \"table\",\n      \"facts\": [\n        {\"label\": \"Account Type:\", \"value\": \"Pro Plan\"},\n        {\"label\": \"Workspace:\", \"value\": \"Acme Corp\"},\n        {\"label\": \"Setup Status:\", \"value\": \"Complete\"}\n      ]\n    },\n    \"actions\": {\n      \"primary\": {\n        \"label\": \"Get Started\",\n        \"url\": \"https://go.waymore.io/dashboard\",\n        \"style\": \"button\"\n      },\n      \"secondary\": {\n        \"label\": \"View Documentation\",\n        \"url\": \"https://docs.waymore.io\",\n        \"style\": \"link\"\n      }\n    }\n  },\n  \"metadata\": {\n    \"tenantId\": \"acme_corp\",\n    \"eventId\": \"welcome_user\",\n    \"notificationType\": \"welcome\"\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -148,7 +148,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "emails"]
             },
-            "description": "Send an email using the transactional template. This is the main endpoint for sending emails through the gateway."
+            "description": "Send an email using the transactional template with the new object-based structure. This is the main endpoint for sending emails through the gateway."
           },
           "response": [
             {
@@ -171,7 +171,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"from\": {\n    \"email\": \"marketing@waymore.io\",\n    \"name\": \"Waymore Team\"\n  },\n  \"subject\": \"Welcome to Waymore Platform\",\n  \"template\": {\n    \"key\": \"transactional\",\n    \"locale\": \"en\"\n  },\n  \"to\": [\n    {\n      \"email\": \"{{recipient_email}}\",\n      \"name\": \"{{recipient_name}}\"\n    }\n  ],\n  \"variables\": {\n    \"workspace_name\": \"Acme Corp\",\n    \"user_firstname\": \"{{user_firstname}}\",\n    \"product_name\": \"{{product_name}}\",\n    \"support_email\": \"support@waymore.io\",\n    \"email_title\": \"Welcome to Waymore!\",\n    \"custom_content\": \"Hello {{user_firstname}},<br><br>🎉 <strong>Welcome to {{product_name}}!</strong><br><br>We're excited to have you on board. Here are some quick tips to get you started:<br><br>• <strong>Explore the dashboard</strong> to see your workspace overview<br>• <strong>Invite team members</strong> to collaborate on your projects<br>• <strong>Check out our documentation</strong> for detailed guides<br><br>If you have any questions, don't hesitate to reach out to our support team.\",\n    \"facts\": [\n      {\"label\": \"Account Type:\", \"value\": \"Pro Plan\"},\n      {\"label\": \"Workspace:\", \"value\": \"Acme Corp\"},\n      {\"label\": \"Setup Status:\", \"value\": \"Complete\"}\n    ],\n    \"cta_primary\": {\n      \"label\": \"Get Started\",\n      \"url\": \"https://go.waymore.io/dashboard\"\n    },\n    \"cta_secondary\": {\n      \"label\": \"View Documentation\",\n      \"url\": \"https://docs.waymore.io\"\n    }\n  },\n  \"metadata\": {\n    \"tenantId\": \"acme_corp\",\n    \"eventId\": \"welcome_user\",\n    \"notificationType\": \"welcome\"\n  }\n}",
+                  "raw": "{\n  \"from\": {\n    \"email\": \"marketing@waymore.io\",\n    \"name\": \"Waymore Team\"\n  },\n  \"subject\": \"Welcome to Waymore Platform\",\n  \"template\": {\n    \"key\": \"transactional\",\n    \"locale\": \"en\"\n  },\n  \"to\": [\n    {\n      \"email\": \"{{recipient_email}}\",\n      \"name\": \"{{recipient_name}}\"\n    }\n  ],\n  \"variables\": {\n    \"workspace_name\": \"Acme Corp\",\n    \"user_firstname\": \"{{user_firstname}}\",\n    \"product_name\": \"{{product_name}}\",\n    \"support_email\": \"support@waymore.io\",\n    \"title\": {\n      \"text\": \"Welcome to Waymore!\"\n    },\n    \"body\": {\n      \"content\": [\n        \"Hello {{user_firstname}},\",\n        \"\",\n        \"🎉 <strong>Welcome to {{product_name}}!</strong>\",\n        \"\",\n        \"We're excited to have you on board. Here are some quick tips to get you started:\",\n        \"\",\n        \"• <strong>Explore the dashboard</strong> to see your workspace overview\",\n        \"• <strong>Invite team members</strong> to collaborate on your projects\",\n        \"• <strong>Check out our documentation</strong> for detailed guides\",\n        \"\",\n        \"If you have any questions, don't hesitate to reach out to our support team.\"\n      ]\n    },\n    \"snapshot\": {\n      \"title\": \"Account Details\",\n      \"style\": \"table\",\n      \"facts\": [\n        {\"label\": \"Account Type:\", \"value\": \"Pro Plan\"},\n        {\"label\": \"Workspace:\", \"value\": \"Acme Corp\"},\n        {\"label\": \"Setup Status:\", \"value\": \"Complete\"}\n      ]\n    },\n    \"actions\": {\n      \"primary\": {\n        \"label\": \"Get Started\",\n        \"url\": \"https://go.waymore.io/dashboard\",\n        \"style\": \"button\"\n      },\n      \"secondary\": {\n        \"label\": \"View Documentation\",\n        \"url\": \"https://docs.waymore.io\",\n        \"style\": \"link\"\n      }\n    }\n  },\n  \"metadata\": {\n    \"tenantId\": \"acme_corp\",\n    \"eventId\": \"welcome_user\",\n    \"notificationType\": \"welcome\"\n  }\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -199,7 +199,7 @@
           ]
         },
         {
-          "name": "Send Email - Payment Success",
+          "name": "Send Email - Payment Success (Object-Based)",
           "request": {
             "method": "POST",
             "header": [
@@ -218,7 +218,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"from\": {\n    \"email\": \"marketing@waymore.io\",\n    \"name\": \"Waymore Team\"\n  },\n  \"subject\": \"Payment received for your Pro plan – Acme Corp\",\n  \"template\": {\n    \"key\": \"transactional\",\n    \"locale\": \"en\"\n  },\n  \"to\": [\n    {\n      \"email\": \"{{recipient_email}}\",\n      \"name\": \"{{recipient_name}}\"\n    }\n  ],\n  \"variables\": {\n    \"workspace_name\": \"Acme Corp\",\n    \"user_firstname\": \"{{user_firstname}}\",\n    \"product_name\": \"{{product_name}}\",\n    \"support_email\": \"support@waymore.io\",\n    \"email_title\": \"Payment Received\",\n    \"custom_content\": \"Hello {{user_firstname}},<br><br>✅ <strong>Payment received successfully!</strong><br><br>Thank you for your payment. Your Pro plan subscription has been renewed and is now active.\",\n    \"facts\": [\n      {\"label\": \"Amount:\", \"value\": \"$29.00\"},\n      {\"label\": \"Plan:\", \"value\": \"Pro Plan\"},\n      {\"label\": \"Billing Period:\", \"value\": \"Monthly\"},\n      {\"label\": \"Next Billing Date:\", \"value\": \"March 15, 2024\"}\n    ],\n    \"cta_primary\": {\n      \"label\": \"View Invoice\",\n      \"url\": \"https://go.waymore.io/billing\"\n    },\n    \"cta_secondary\": {\n      \"label\": \"Manage Subscription\",\n      \"url\": \"https://go.waymore.io/settings/billing\"\n    }\n  },\n  \"metadata\": {\n    \"tenantId\": \"acme_corp\",\n    \"eventId\": \"payment_success\",\n    \"notificationType\": \"billing\"\n  }\n}",
+              "raw": "{\n  \"from\": {\n    \"email\": \"marketing@waymore.io\",\n    \"name\": \"Waymore Team\"\n  },\n  \"subject\": \"Payment received for your Pro plan – Acme Corp\",\n  \"template\": {\n    \"key\": \"transactional\",\n    \"locale\": \"en\"\n  },\n  \"to\": [\n    {\n      \"email\": \"{{recipient_email}}\",\n      \"name\": \"{{recipient_name}}\"\n    }\n  ],\n  \"variables\": {\n    \"workspace_name\": \"Acme Corp\",\n    \"user_firstname\": \"{{user_firstname}}\",\n    \"product_name\": \"{{product_name}}\",\n    \"support_email\": \"support@waymore.io\",\n    \"title\": {\n      \"text\": \"Payment Received\"\n    },\n    \"body\": {\n      \"content\": [\n        \"Hello {{user_firstname}},\",\n        \"\",\n        \"✅ <strong>Payment received successfully!</strong>\",\n        \"\",\n        \"Thank you for your payment. Your Pro plan subscription has been renewed and is now active.\"\n      ]\n    },\n    \"snapshot\": {\n      \"title\": \"Transaction Details\",\n      \"style\": \"table\",\n      \"facts\": [\n        {\"label\": \"Amount:\", \"value\": \"$29.00\"},\n        {\"label\": \"Plan:\", \"value\": \"Pro Plan\"},\n        {\"label\": \"Billing Period:\", \"value\": \"Monthly\"},\n        {\"label\": \"Next Billing Date:\", \"value\": \"March 15, 2024\"}\n      ]\n    },\n    \"actions\": {\n      \"primary\": {\n        \"label\": \"View Invoice\",\n        \"url\": \"https://go.waymore.io/billing\",\n        \"style\": \"button\"\n      },\n      \"secondary\": {\n        \"label\": \"Manage Subscription\",\n        \"url\": \"https://go.waymore.io/settings/billing\",\n        \"style\": \"link\"\n      }\n    }\n  },\n  \"metadata\": {\n    \"tenantId\": \"acme_corp\",\n    \"eventId\": \"payment_success\",\n    \"notificationType\": \"billing\"\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -230,11 +230,11 @@
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "emails"]
             },
-            "description": "Send a payment success notification email with billing details and invoice information."
+            "description": "Send a payment success notification email with billing details and invoice information using the new object-based structure."
           }
         },
         {
-          "name": "Send Email - Usage Warning",
+          "name": "Send Email - Usage Warning (Object-Based)",
           "request": {
             "method": "POST",
             "header": [
@@ -253,7 +253,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"from\": {\n    \"email\": \"marketing@waymore.io\",\n    \"name\": \"Waymore Team\"\n  },\n  \"subject\": \"You've used 80% of your Pro plan – Acme Corp\",\n  \"template\": {\n    \"key\": \"transactional\",\n    \"locale\": \"en\"\n  },\n  \"to\": [\n    {\n      \"email\": \"{{recipient_email}}\",\n      \"name\": \"{{recipient_name}}\"\n    }\n  ],\n  \"variables\": {\n    \"workspace_name\": \"Acme Corp\",\n    \"user_firstname\": \"{{user_firstname}}\",\n    \"product_name\": \"{{product_name}}\",\n    \"support_email\": \"support@waymore.io\",\n    \"email_title\": \"Usage Alert\",\n    \"custom_content\": \"Hello {{user_firstname}},<br><br>⚠️ <strong>You've used 80% of your Pro plan</strong><br><br>You're approaching your monthly limit. Consider upgrading to avoid any service interruption.\",\n    \"facts\": [\n      {\"label\": \"Current Usage:\", \"value\": \"80%\"},\n      {\"label\": \"Plan Limit:\", \"value\": \"10,000 requests\"},\n      {\"label\": \"Used:\", \"value\": \"8,000 requests\"},\n      {\"label\": \"Remaining:\", \"value\": \"2,000 requests\"}\n    ],\n    \"cta_primary\": {\n      \"label\": \"Upgrade Plan\",\n      \"url\": \"https://go.waymore.io/upgrade\"\n    },\n    \"cta_secondary\": {\n      \"label\": \"View Usage Details\",\n      \"url\": \"https://go.waymore.io/usage\"\n    }\n  },\n  \"metadata\": {\n    \"tenantId\": \"acme_corp\",\n    \"eventId\": \"usage_warning\",\n    \"notificationType\": \"usage\"\n  }\n}",
+              "raw": "{\n  \"from\": {\n    \"email\": \"marketing@waymore.io\",\n    \"name\": \"Waymore Team\"\n  },\n  \"subject\": \"You've used 80% of your Pro plan – Acme Corp\",\n  \"template\": {\n    \"key\": \"transactional\",\n    \"locale\": \"en\"\n  },\n  \"to\": [\n    {\n      \"email\": \"{{recipient_email}}\",\n      \"name\": \"{{recipient_name}}\"\n    }\n  ],\n  \"variables\": {\n    \"workspace_name\": \"Acme Corp\",\n    \"user_firstname\": \"{{user_firstname}}\",\n    \"product_name\": \"{{product_name}}\",\n    \"support_email\": \"support@waymore.io\",\n    \"title\": {\n      \"text\": \"Usage Alert\"\n    },\n    \"body\": {\n      \"content\": [\n        \"Hello {{user_firstname}},\",\n        \"\",\n        \"⚠️ <strong>You've used 80% of your Pro plan</strong>\",\n        \"\",\n        \"You're approaching your monthly limit. Consider upgrading to avoid any service interruption.\"\n      ]\n    },\n    \"visual\": {\n      \"type\": \"progress\",\n      \"progress_bars\": [\n        {\n          \"label\": \"API Requests\",\n          \"current\": 8000,\n          \"total\": 10000,\n          \"percentage\": 80,\n          \"unit\": \"requests\",\n          \"color\": \"#f59e0b\",\n          \"description\": \"Monthly usage\"\n        }\n      ]\n    },\n    \"snapshot\": {\n      \"title\": \"Usage Summary\",\n      \"style\": \"table\",\n      \"facts\": [\n        {\"label\": \"Current Usage:\", \"value\": \"80%\"},\n        {\"label\": \"Plan Limit:\", \"value\": \"10,000 requests\"},\n        {\"label\": \"Used:\", \"value\": \"8,000 requests\"},\n        {\"label\": \"Remaining:\", \"value\": \"2,000 requests\"}\n      ]\n    },\n    \"actions\": {\n      \"primary\": {\n        \"label\": \"Upgrade Plan\",\n        \"url\": \"https://go.waymore.io/upgrade\",\n        \"style\": \"button\"\n      },\n      \"secondary\": {\n        \"label\": \"View Usage Details\",\n        \"url\": \"https://go.waymore.io/usage\",\n        \"style\": \"link\"\n      }\n    }\n  },\n  \"metadata\": {\n    \"tenantId\": \"acme_corp\",\n    \"eventId\": \"usage_warning\",\n    \"notificationType\": \"usage\"\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -265,7 +265,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "emails"]
             },
-            "description": "Send a usage warning email when users approach their plan limits."
+            "description": "Send a usage warning email when users approach their plan limits using the new object-based structure with progress bars."
           }
         }
       ]

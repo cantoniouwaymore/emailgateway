@@ -156,7 +156,7 @@ export class AIController {
         }
       }
 
-      const systemPrompt = `You are an expert email template generator for the Waymore Transactional Email System. Generate JSON templates that follow the EXACT structure and features documented in the Waymore Transactional Template Guide.
+      const systemPrompt = `You are an expert email template generator for the Waymore Transactional Email System. Generate JSON templates that follow the EXACT object-based structure documented in the Waymore Transactional Template Guide.
 
 ## TEMPLATE STRUCTURE (REQUIRED)
 {
@@ -165,19 +165,54 @@ export class AIController {
     "locale": "en"
   },
   "variables": {
-    "workspace_name": "string" (REQUIRED - company name),
-    "user_firstname": "string" (REQUIRED - recipient's first name),
-    "product_name": "string" (REQUIRED - product/service name),
-    "support_email": "string" (REQUIRED - support contact),
-    "email_title": "string" (REQUIRED - main heading),
-    "custom_content": "string" (optional - HTML content for email body),
-    "image_url": "string" (optional - custom image URL, PNG/JPG only),
-    "image_alt": "string" (optional - image alt text for accessibility),
-    "facts": [{"label": "string", "value": "string"}] (optional - key-value data table, 2-4 items max),
-    "cta_primary": {"label": "string", "url": "string"} (optional - primary button),
-    "cta_secondary": {"label": "string", "url": "string"} (optional - secondary button),
-    "social_links": [{"platform": "twitter|linkedin|github|facebook|instagram", "url": "string"}] (optional - social media links, 2-4 platforms max),
-    "content": {"en": "string", "es": "string", "fr": "string", "de": "string", "it": "string", "pt": "string"} (optional - multi-language content),
+    "header": {
+      "logo_url": "string" (optional - company logo URL, PNG/JPG only),
+      "logo_alt": "string" (optional - logo alt text),
+      "tagline": "string" (optional - company tagline)
+    },
+    "hero": {
+      "type": "none|icon|image" (optional - hero section type),
+      "icon": "string" (optional - emoji or icon, e.g., "🚀"),
+      "icon_size": "string" (optional - e.g., "48px"),
+      "image_url": "string" (optional - hero image URL, PNG/JPG only),
+      "image_alt": "string" (optional - image alt text)
+    },
+    "title": {
+      "text": "string" (optional - main email heading),
+      "size": "string" (optional - e.g., "28px"),
+      "weight": "string" (optional - e.g., "700"),
+      "color": "string" (optional - hex color, e.g., "#1f2937"),
+      "align": "string" (optional - e.g., "center")
+    },
+    "body": {
+      "paragraphs": ["string"] (optional - array of paragraph text),
+      "font_size": "string" (optional - e.g., "16px"),
+      "line_height": "string" (optional - e.g., "26px")
+    },
+    "snapshot": {
+      "title": "string" (optional - facts section title),
+      "facts": [{"label": "string", "value": "string"}] (optional - key-value data, 2-4 items max),
+      "style": "table|cards|list" (optional - display style)
+    },
+    "visual": {
+      "type": "none|progress|countdown|badge" (optional - visual element type),
+      "progress_bars": [{"label": "string", "current": number, "total": number, "color": "string"}] (optional - progress bars),
+      "countdown": {"message": "string", "target_date": "string", "show_days": boolean, "show_hours": boolean} (optional - countdown timer)
+    },
+    "actions": {
+      "primary": {"label": "string", "url": "string", "style": "button|link", "color": "string", "text_color": "string"} (optional - primary button),
+      "secondary": {"label": "string", "url": "string", "style": "button|link", "color": "string", "text_color": "string"} (optional - secondary button)
+    },
+    "support": {
+      "title": "string" (optional - support section title),
+      "links": [{"label": "string", "url": "string"}] (optional - support links)
+    },
+    "footer": {
+      "tagline": "string" (optional - footer tagline),
+      "social_links": [{"platform": "twitter|linkedin|github|facebook|instagram", "url": "string"}] (optional - social media links, 2-4 platforms max),
+      "legal_links": [{"label": "string", "url": "string"}] (optional - legal links),
+      "copyright": "string" (optional - copyright text)
+    },
     "theme": {
       "font_family": "string" (optional - e.g., "'Inter', 'Helvetica Neue', Arial, sans-serif"),
       "font_size": "string" (optional - e.g., "16px"),
@@ -198,51 +233,54 @@ export class AIController {
 ## WAYMORE TEMPLATE FEATURES (from documentation)
 
 ### Visual Features
-- Dynamic Logo: Custom image with fallback to default (image_url + image_alt)
-- Multi-Button Layout: Side-by-side primary and secondary buttons (cta_primary + cta_secondary)
-- Social Media Links: Built-in social media integration (social_links array)
-- Facts Table: Structured data display (facts array)
+- Dynamic Logo: Custom logo in header section (header.logo_url + header.logo_alt)
+- Hero Section: Icon or image hero elements (hero.type, hero.icon, hero.image_url)
+- Multi-Button Layout: Primary and secondary action buttons (actions.primary + actions.secondary)
+- Social Media Links: Built-in social media integration (footer.social_links array)
+- Facts Table: Structured data display (snapshot.facts array)
+- Progress Bars: Visual progress indicators (visual.progress_bars array)
+- Countdown Timers: Time-sensitive countdown displays (visual.countdown object)
 - Custom Themes: Complete visual customization (theme object)
 
 ### Content Features
-- Multi-Language: Dynamic content based on locale (content object + locale)
-- HTML Content: Rich HTML content support (custom_content string)
-- Dynamic Headings: Customizable email titles (email_title string)
-- Personalization: User-specific content (user_firstname + variables)
+- Structured Sections: Organized content sections (header, hero, title, body, snapshot, visual, actions, support, footer)
+- Dynamic Headings: Customizable email titles (title.text)
+- Paragraph Content: Multi-paragraph body text (body.paragraphs array)
+- Personalization: User-specific content throughout all sections
 
 ## EMAIL TYPE PATTERNS
 
 ### Welcome Emails
 - Title: "Welcome to [Product]!"
-- Content: Account setup, getting started steps
-- CTAs: "Get Started", "View Dashboard"
+- Body: Account setup, getting started steps
+- Actions: "Get Started", "View Dashboard"
 - Theme: Blue/primary brand colors
 
 ### Order Confirmations
 - Title: "Order Confirmation - #[ORDER_ID]"
-- Content: Thank you message, order details
-- Facts: Order ID, Items, Delivery Date, Status
-- CTAs: "Track Order", "View Details"
-- Theme: Soft pastel colors, shipping illustrations
+- Body: Thank you message, order details
+- Snapshot: Order ID, Items, Delivery Date, Status
+- Actions: "Track Order", "View Details"
+- Theme: Soft pastel colors
 
 ### Payment Emails
 - Title: "Payment Successful - Receipt #[ID]"
-- Content: Transaction confirmation
-- Facts: Transaction ID, Amount, Date, Status
-- CTAs: "Download Receipt", "View Account"
+- Body: Transaction confirmation
+- Snapshot: Transaction ID, Amount, Date, Status
+- Actions: "Download Receipt", "View Account"
 - Theme: Green success colors
 
 ### Password Reset
 - Title: "Reset Your Password"
-- Content: Security instructions, reset link
-- CTAs: "Reset Password"
+- Body: Security instructions, reset link
+- Actions: "Reset Password"
 - Theme: Orange/alert colors
 
 ### Reports/Analytics
 - Title: "Your [Period] Report"
-- Content: Data summary, insights
-- Facts: Metrics, percentages, counts
-- CTAs: "View Full Report", "Export Data"
+- Body: Data summary, insights
+- Snapshot: Metrics, percentages, counts
+- Actions: "View Full Report", "Export Data"
 - Theme: Blue/info colors
 
 ## IMAGE GUIDELINES (from documentation)
@@ -258,13 +296,13 @@ export class AIController {
 ## BEST PRACTICES (from documentation)
 
 ### DO's
-1. Always provide required variables: workspace_name, user_firstname, product_name, support_email, email_title
+1. Use structured sections (header, hero, title, body, snapshot, visual, actions, support, footer)
 2. Use PNG/JPG images for better email client compatibility
-3. Use semantic HTML in custom_content (br, strong, em, p tags)
-4. Provide fallback content for missing variables
-5. Use consistent branding with theme colors
-6. Test multi-language content for all supported locales
-7. Use realistic URLs and data
+3. Provide meaningful content in each section
+4. Use consistent branding with theme colors
+5. Use realistic URLs and data
+6. Keep sections focused and relevant
+7. Use appropriate icons and colors for email type
 
 ### DON'Ts
 1. Don't use SVG images (poor email client support)
@@ -288,13 +326,42 @@ export class AIController {
 {
   "template": {"key": "transactional", "locale": "en"},
   "variables": {
-    "workspace_name": "Waymore",
-    "user_firstname": "John",
-    "product_name": "Waymore Platform",
-    "support_email": "support@waymore.io",
-    "email_title": "Welcome to Waymore!",
-    "custom_content": "Hello John,<br><br>Welcome to our platform! Your account is ready to use.",
-    "cta_primary": {"label": "Get Started", "url": "https://app.waymore.io/dashboard"}
+    "header": {
+      "logo_url": "https://i.ibb.co/8LfvqPk7/Waymore-logo-Colour.png",
+      "logo_alt": "Waymore",
+      "tagline": "Empowering your business"
+    },
+    "title": {
+      "text": "Welcome to Waymore!",
+      "size": "28px",
+      "weight": "700",
+      "color": "#1f2937",
+      "align": "center"
+    },
+    "body": {
+      "paragraphs": [
+        "Hello John, welcome to Waymore Platform!",
+        "Your account is ready to use. Here are some tips to get started:",
+        "• Explore your dashboard\n• Set up your profile\n• Connect your first integration"
+      ]
+    },
+    "actions": {
+      "primary": {
+        "label": "Get Started",
+        "url": "https://app.waymore.io/dashboard",
+        "style": "button",
+        "color": "#3b82f6",
+        "text_color": "#ffffff"
+      }
+    },
+    "footer": {
+      "tagline": "Empowering your business",
+      "social_links": [
+        {"platform": "twitter", "url": "https://twitter.com/waymore"},
+        {"platform": "linkedin", "url": "https://linkedin.com/company/waymore"}
+      ],
+      "copyright": "© 2024 Waymore Technologies Inc. All rights reserved."
+    }
   }
 }
 
@@ -302,17 +369,41 @@ export class AIController {
 {
   "template": {"key": "transactional", "locale": "en"},
   "variables": {
-    "workspace_name": "Waymore",
-    "user_firstname": "John",
-    "product_name": "Waymore Platform",
-    "support_email": "support@waymore.io",
-    "email_title": "Your Monthly Report",
-    "custom_content": "Hello John,<br><br>Here's your monthly activity summary.",
-    "facts": [
-      {"label": "Emails Sent", "value": "1,247"},
-      {"label": "Open Rate", "value": "23.4%"},
-      {"label": "Click Rate", "value": "5.2%"}
-    ],
+    "header": {
+      "logo_url": "https://i.ibb.co/8LfvqPk7/Waymore-logo-Colour.png",
+      "logo_alt": "Waymore"
+    },
+    "title": {
+      "text": "Your Monthly Report",
+      "size": "28px",
+      "weight": "700",
+      "color": "#1f2937",
+      "align": "center"
+    },
+    "body": {
+      "paragraphs": [
+        "Hello John, here's your monthly activity summary.",
+        "You've been making great progress with your email campaigns."
+      ]
+    },
+    "snapshot": {
+      "title": "Monthly Statistics",
+      "facts": [
+        {"label": "Emails Sent", "value": "1,247"},
+        {"label": "Open Rate", "value": "23.4%"},
+        {"label": "Click Rate", "value": "5.2%"}
+      ],
+      "style": "table"
+    },
+    "actions": {
+      "primary": {
+        "label": "View Full Report",
+        "url": "https://app.waymore.io/reports",
+        "style": "button",
+        "color": "#28a745",
+        "text_color": "#ffffff"
+      }
+    },
     "theme": {
       "font_family": "'Inter', 'Helvetica Neue', Arial, sans-serif",
       "text_color": "#2c3e50",
@@ -327,26 +418,41 @@ export class AIController {
 {
   "template": {"key": "transactional", "locale": "en"},
   "variables": {
-    "workspace_name": "Waymore",
-    "user_firstname": "John",
-    "product_name": "Waymore Platform",
-    "support_email": "support@waymore.io",
-    "email_title": "Follow Us for Updates",
-    "custom_content": "Hello John,<br><br>Stay connected with us on social media for the latest updates and news.",
-    "social_links": [
-      {"platform": "twitter", "url": "https://twitter.com/waymore_io"},
-      {"platform": "linkedin", "url": "https://linkedin.com/company/waymore"},
-      {"platform": "github", "url": "https://github.com/waymore"}
-    ]
+    "header": {
+      "logo_url": "https://i.ibb.co/8LfvqPk7/Waymore-logo-Colour.png",
+      "logo_alt": "Waymore"
+    },
+    "title": {
+      "text": "Follow Us for Updates",
+      "size": "28px",
+      "weight": "700",
+      "color": "#1f2937",
+      "align": "center"
+    },
+    "body": {
+      "paragraphs": [
+        "Hello John, stay connected with us on social media for the latest updates and news.",
+        "Follow us for tips, insights, and exclusive content."
+      ]
+    },
+    "footer": {
+      "tagline": "Empowering your business",
+      "social_links": [
+        {"platform": "twitter", "url": "https://twitter.com/waymore"},
+        {"platform": "linkedin", "url": "https://linkedin.com/company/waymore"},
+        {"platform": "github", "url": "https://github.com/waymore"}
+      ],
+      "copyright": "© 2024 Waymore Technologies Inc. All rights reserved."
+    }
   }
 }
 
 ## CRITICAL REQUIREMENTS
-1. ALWAYS include all 5 required fields: workspace_name, user_firstname, product_name, support_email, email_title
-2. Use HTML formatting in custom_content (br, strong, em, p tags)
-3. Generate appropriate facts array based on email type (2-4 items max)
-4. Add relevant CTAs based on email purpose (1-2 buttons max)
-5. Include social links for engagement emails (2-4 platforms max)
+1. ALWAYS use object-based structure with structured sections (header, hero, title, body, snapshot, visual, actions, support, footer)
+2. Generate appropriate content for each section based on email type
+3. Use meaningful facts in snapshot section (2-4 items max)
+4. Add relevant actions based on email purpose (1-2 buttons max)
+5. Include social links in footer for engagement emails (2-4 platforms max)
 6. Apply theme customization for branded emails
 7. Use realistic URLs and professional content
 8. Follow color schemes based on email type
@@ -384,11 +490,16 @@ Create an appropriate email template with relevant content, facts, and CTAs base
         throw new Error('Invalid template structure from AI');
       }
 
-      // Ensure required variables are present
-      template.variables.workspace_name = workspaceName;
-      template.variables.user_firstname = userName;
-      template.variables.product_name = productName;
-      template.variables.support_email = template.variables.support_email || 'support@waymore.io';
+      // Ensure required variables are present in object-based structure
+      if (!template.variables.header) template.variables.header = {};
+      if (!template.variables.title) template.variables.title = {};
+      if (!template.variables.body) template.variables.body = {};
+      if (!template.variables.footer) template.variables.footer = {};
+      
+      // Set default values for key sections
+      template.variables.header.logo_alt = workspaceName;
+      template.variables.title.text = template.variables.title.text || `Welcome to ${workspaceName}!`;
+      template.variables.footer.tagline = `Empowering your business`;
 
       return template;
 

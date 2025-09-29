@@ -50,6 +50,52 @@ export class TemplateEngine {
       }
       return d.toLocaleString();
     });
+
+    // Countdown calculation helper
+    Handlebars.registerHelper('countdown', function(targetDate: string, unit: string) {
+      try {
+        const target = new Date(targetDate);
+        const now = new Date();
+        const diff = target.getTime() - now.getTime();
+        
+        if (diff <= 0) {
+          return '0'; // Countdown expired
+        }
+        
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        
+        switch (unit.toLowerCase()) {
+          case 'days':
+            return days.toString();
+          case 'hours':
+            return hours.toString();
+          case 'minutes':
+            return minutes.toString();
+          case 'seconds':
+            return seconds.toString();
+          default:
+            return '0';
+        }
+      } catch (error) {
+        logger.warn({ error, targetDate, unit }, 'Countdown calculation failed');
+        return '0';
+      }
+    });
+
+    // Helper to check if countdown has expired
+    Handlebars.registerHelper('countdownExpired', function(targetDate: string) {
+      try {
+        const target = new Date(targetDate);
+        const now = new Date();
+        return target.getTime() <= now.getTime();
+      } catch (error) {
+        logger.warn({ error, targetDate }, 'Countdown expiry check failed');
+        return true;
+      }
+    });
   }
 
   async renderTemplate(options: TemplateRenderOptions): Promise<RenderedTemplate> {

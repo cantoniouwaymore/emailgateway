@@ -401,7 +401,7 @@ export function generateAIPlaygroundSection(data: any): string {
                 startAutoSave();
               }
               
-              // Example templates
+              // Example templates - simplified for clarity
               const examples = {
           'welcome': {
             description: 'A welcome email for new users that includes their name, a welcome message, account details, and a button to get started',

@@ -33,7 +33,7 @@ Authorization: Bearer <JWT_TOKEN>
 
 ### Required Scopes
 
-- `emails:send` - Required for sending emails
+- `emails:send` - Required for sending emails and validating templates
 - `emails:read` - Required for reading message status
 
 ## Endpoints
@@ -86,46 +86,79 @@ POST /api/v1/emails
   },
   "subject": "Welcome to Waymore!",
   "template": {
-    "key": "universal",
+    "key": "transactional",
     "locale": "en"
   },
   "variables": {
-    "workspace_name": "Waymore",
-    "user_firstname": "John",
-    "product_name": "Waymore Platform",
-    "support_email": "support@waymore.io",
-    "email_title": "Welcome to Waymore!",
-    "custom_content": "Hello {{user_firstname}},<br><br>Welcome to {{product_name}}! Your account is ready to use.",
-    "image_url": "https://example.com/welcome-image.png",
-    "image_alt": "Welcome Illustration",
-    "facts": [
-      {
-        "label": "Account Type",
-        "value": "Premium"
-      },
-      {
-        "label": "Created",
-        "value": "2024-01-01"
-      }
-    ],
-    "cta_primary": {
-      "label": "Get Started",
-      "url": "https://app.waymore.io/dashboard"
+    "header": {
+      "logo_url": "https://i.ibb.co/8LfvqPk7/Waymore-logo-Colour.png",
+      "logo_alt": "Waymore",
+      "tagline": "Empowering your business"
     },
-    "cta_secondary": {
-      "label": "Learn More",
-      "url": "https://docs.waymore.io"
+    "hero": {
+      "type": "none"
     },
-    "social_links": [
-      {
-        "platform": "twitter",
-        "url": "https://twitter.com/waymore_io"
+    "title": {
+      "text": "Welcome to Waymore!",
+      "size": "28px",
+      "weight": "700",
+      "color": "#1f2937",
+      "align": "center"
+    },
+    "body": {
+      "paragraphs": [
+        "Hello John, welcome to Waymore Platform!",
+        "Your account is ready to use. Here are some tips to get started:",
+        "• Explore your dashboard\n• Set up your profile\n• Connect your first integration"
+      ],
+      "font_size": "16px",
+      "line_height": "26px"
+    },
+    "snapshot": {
+      "title": "Account Summary",
+      "facts": [
+        { "label": "Account Type", "value": "Premium" },
+        { "label": "Created", "value": "2024-01-01" }
+      ],
+      "style": "table"
+    },
+    "visual": {
+      "type": "none"
+    },
+    "actions": {
+      "primary": {
+        "label": "Get Started",
+        "url": "https://app.waymore.io/dashboard",
+        "style": "button",
+        "color": "#3b82f6",
+        "text_color": "#ffffff"
       },
-      {
-        "platform": "linkedin",
-        "url": "https://linkedin.com/company/waymore"
+      "secondary": {
+        "label": "Learn More",
+        "url": "https://docs.waymore.io",
+        "style": "link",
+        "color": "#6b7280"
       }
-    ],
+    },
+    "support": {
+      "title": "Need help?",
+      "links": [
+        { "label": "FAQ", "url": "https://waymore.io/faq" },
+        { "label": "Contact Support", "url": "https://waymore.io/support" }
+      ]
+    },
+    "footer": {
+      "tagline": "Empowering your business",
+      "social_links": [
+        { "platform": "twitter", "url": "https://twitter.com/waymore" },
+        { "platform": "linkedin", "url": "https://linkedin.com/company/waymore" }
+      ],
+      "legal_links": [
+        { "label": "Privacy Policy", "url": "https://waymore.io/privacy" },
+        { "label": "Terms of Service", "url": "https://waymore.io/terms" }
+      ],
+      "copyright": "© 2024 Waymore Technologies Inc. All rights reserved."
+    },
     "theme": {
       "font_family": "'Roboto', 'Helvetica Neue', Arial, sans-serif",
       "font_size": "16px",
@@ -135,15 +168,10 @@ POST /api/v1/emails
       "body_background": "#f4f4f4",
       "muted_text_color": "#888888",
       "border_color": "#e0e0e0",
-      "primary_button_color": "#007bff",
+      "primary_button_color": "#3b82f6",
       "primary_button_text_color": "#ffffff",
       "secondary_button_color": "#6c757d",
       "secondary_button_text_color": "#ffffff"
-    },
-    "content": {
-      "en": "This is English content!",
-      "es": "¡Este es contenido en español!",
-      "fr": "Ceci est du contenu français!"
     }
   },
   "attachments": [
@@ -181,56 +209,224 @@ POST /api/v1/emails
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `key` | string | Yes | Template identifier (currently only "universal" supported) |
+| `key` | string | Yes | Template identifier (currently only "transactional" supported) |
 | `locale` | string | Yes | Language/locale (e.g., "en", "es", "fr") |
 
 #### Template Variables
 
-The universal template supports the following variables:
+The transactional template uses an object-based structure for organized and customizable emails.
 
-##### Core Variables
+##### Object-Based Structure
 
-| Variable | Type | Required | Description |
-|----------|------|----------|-------------|
-| `workspace_name` | string | Yes | Your workspace/company name |
-| `user_firstname` | string | Yes | Recipient's first name |
-| `product_name` | string | Yes | Your product/service name |
-| `support_email` | string | Yes | Support contact email |
-| `email_title` | string | Yes | Main email heading |
-| `custom_content` | string | No | HTML content for the email body |
+**Structured System**: The template supports organized objects for each section, making it easier to customize your emails.
 
-##### Image Variables
+| Section Object | Type | Required | Description |
+|----------------|------|----------|-------------|
+| `header` | object | No | Header section with logo and tagline |
+| `hero` | object | No | Hero image/icon section |
+| `title` | object | No | Email title section |
+| `body` | object | No | Body text with paragraphs |
+| `snapshot` | object | No | Facts/summary table section |
+| `visual` | object | No | Progress bars, countdown, or badges |
+| `actions` | object | No | Primary and secondary CTA buttons |
+| `support` | object | No | Support links and FAQ |
+| `footer` | object | No | Footer with logo, social links, and legal |
+| `theme` | object | No | Complete theme customization |
 
-| Variable | Type | Required | Description |
-|----------|------|----------|-------------|
-| `image_url` | string | No | Custom image URL (PNG/JPG recommended) |
-| `image_alt` | string | No | Alt text for the image |
+**Note**: All sections are optional. The template provides sensible defaults when sections are missing.
 
-##### Content Variables
+##### Object-Based Section Details
 
-| Variable | Type | Required | Description |
-|----------|------|----------|-------------|
-| `facts` | array | No | Key-value pairs displayed in a table |
-| `content` | object | No | Multi-language content object |
+**Header Section (`header`)**
+```json
+{
+  "header": {
+    "logo_url": "https://example.com/logo.png",
+    "logo_alt": "Company Logo",
+    "logo_width": "180px",
+    "tagline": "Your company tagline",
+    "show": true,
+    "padding": "40px 20px 20px 20px"
+  }
+}
+```
 
-##### Call-to-Action Variables
+**Hero Section (`hero`)**
+```json
+{
+  "hero": {
+    "type": "image", // "none" | "image" | "icon"
+    "image_url": "https://example.com/hero.png",
+    "image_alt": "Hero Image",
+    "image_width": "400px", // Use fixed pixel widths (600px, 400px, 300px, 200px, 150px)
+    "icon": "🚀",
+    "icon_size": "48px",
+    "show": true,
+    "padding": "20px 0px 30px 0px"
+  }
+}
+```
 
-| Variable | Type | Required | Description |
-|----------|------|----------|-------------|
-| `cta_primary` | object | No | Primary button (label + url) |
-| `cta_secondary` | object | No | Secondary button (label + url) |
+> **⚠️ Image Sizing Note**: Email clients (Gmail, Outlook, Apple Mail) do not reliably support percentage-based widths (`100%`, `50%`). Always use fixed pixel widths for consistent rendering across all email clients.
 
-##### Social Media Variables
+**Title Section (`title`)**
+```json
+{
+  "title": {
+    "text": "Welcome to Our Platform!",
+    "size": "28px",
+    "weight": "700",
+    "color": "#1f2937",
+    "align": "center",
+    "line_height": "36px",
+    "show": true,
+    "padding": "40px 0px 20px 0px"
+  }
+}
+```
 
-| Variable | Type | Required | Description |
-|----------|------|----------|-------------|
-| `social_links` | array | No | Social media links array |
+**Body Section (`body`)**
+```json
+{
+  "body": {
+    "paragraphs": [
+      "First paragraph with {{variables}}...",
+      "Second paragraph...",
+      "Third paragraph..."
+    ],
+    "font_size": "16px",
+    "line_height": "26px",
+    "color": "#374151",
+    "show": true,
+    "padding": "0px 0px 30px 0px"
+  }
+}
+```
 
-##### Theme Variables
+**Snapshot Section (`snapshot`)**
+```json
+{
+  "snapshot": {
+    "title": "Account Summary",
+    "facts": [
+      { "label": "Plan", "value": "Pro Monthly" },
+      { "label": "Amount", "value": "$29.99" }
+    ],
+    "style": "table", // "table" | "cards" | "list"
+    "show": true,
+    "padding": "0px 0px 30px 0px"
+  }
+}
+```
 
-| Variable | Type | Required | Description |
-|----------|------|----------|-------------|
-| `theme` | object | No | Complete theme customization object |
+**Visual Section (`visual`)**
+```json
+{
+  "visual": {
+    "type": "progress", // "none" | "progress" | "countdown" | "badge"
+    "progress_bars": [
+      {
+        "label": "Usage",
+        "current": 80,
+        "max": 100,
+        "unit": "%",
+        "color": "#ef4444",
+        "description": "80% of limit reached"
+      }
+    ],
+    "countdown": {
+      "message": "Offer expires in",
+      "target_date": "2024-12-31T23:59:59Z",
+      "show_days": true,
+      "show_hours": true
+    },
+    "show": true,
+    "padding": "0px 0px 30px 0px"
+  }
+}
+```
+
+**Actions Section (`actions`)**
+```json
+{
+  "actions": {
+    "primary": {
+      "label": "Get Started",
+      "url": "https://app.example.com/dashboard",
+      "style": "button", // "button" | "link"
+      "color": "#3b82f6",
+      "text_color": "#ffffff",
+      "show": true
+    },
+    "secondary": {
+      "label": "Learn More",
+      "url": "https://docs.example.com",
+      "style": "link",
+      "color": "#6b7280",
+      "text_color": "#ffffff",
+      "show": false
+    },
+    "show": true,
+    "padding": "0px 0px 40px 0px"
+  }
+}
+```
+
+**Support Section (`support`)**
+```json
+{
+  "support": {
+    "title": "Need help?",
+    "links": [
+      { "label": "FAQ", "url": "https://example.com/faq" },
+      { "label": "Contact Support", "url": "https://example.com/support" }
+    ],
+    "show": true,
+    "padding": "30px 0px 20px 0px"
+  }
+}
+```
+
+**Footer Section (`footer`)**
+```json
+{
+  "footer": {
+    "logo": {
+      "url": "https://example.com/logo.png",
+      "alt": "Company Logo",
+      "width": "120px",
+      "show": true
+    },
+    "tagline": "Empowering your business",
+    "social_links": [
+      { "platform": "twitter", "url": "https://twitter.com/company" },
+      { "platform": "linkedin", "url": "https://linkedin.com/company/company" }
+    ],
+    "legal_links": [
+      { "label": "Privacy Policy", "url": "https://example.com/privacy" },
+      { "label": "Terms of Service", "url": "https://example.com/terms" }
+    ],
+    "copyright": "© 2024 Company. All rights reserved.",
+    "show": true,
+    "padding": "40px 20px 60px 20px"
+  }
+}
+```
+
+##### Section Properties
+
+Each section object contains specific properties for customization:
+
+**Header Properties**: `logo_url`, `logo_alt`, `tagline`  
+**Hero Properties**: `type`, `icon`, `icon_size`, `image_url`, `image_alt`  
+**Title Properties**: `text`, `size`, `weight`, `color`, `align`  
+**Body Properties**: `paragraphs`, `font_size`, `line_height`  
+**Snapshot Properties**: `title`, `facts`, `style`  
+**Visual Properties**: `type`, `progress_bars`, `countdown`  
+**Actions Properties**: `primary`, `secondary`  
+**Support Properties**: `title`, `links`  
+**Footer Properties**: `tagline`, `social_links`, `legal_links`, `copyright`  
+**Theme Properties**: Complete visual customization options
 
 #### Theme Object
 
@@ -267,22 +463,20 @@ Each social link object should contain:
 | `platform` | string | Yes | Platform name (twitter, linkedin, github, facebook, instagram) |
 | `url` | string | Yes | Link URL |
 
-#### Multi-Language Content
+#### Multi-Language Support
 
-The `content` object supports multiple languages:
+The template supports multiple languages through the `template.locale` field:
 
 ```json
 {
-  "content": {
-    "en": "This is English content!",
-    "es": "¡Este es contenido en español!",
-    "fr": "Ceci est du contenu français!",
-    "de": "Dies ist deutscher Inhalt!"
+  "template": {
+    "key": "transactional",
+    "locale": "es"
   }
 }
 ```
 
-If no matching locale is found, falls back to `custom_content`.
+Supported locales: `en`, `es`, `fr`, `de`, `it`, `pt`
 
 #### Recipient Object
 
@@ -361,6 +555,148 @@ Retrieve the status and details of a previously sent email.
 ```http
 GET /api/v1/messages/{messageId}
 ```
+
+### Validate Template
+
+Validate email template structure and variables without sending an email.
+
+```http
+POST /api/v1/templates/validate
+```
+
+#### Headers
+
+| Header | Required | Description |
+|--------|----------|-------------|
+| `Authorization` | Yes | Bearer JWT token |
+| `Content-Type` | Yes | `application/json` |
+
+#### Request Body
+
+```json
+{
+  "template": {
+    "key": "transactional",
+    "locale": "en"
+  },
+  "variables": {
+    "workspace_name": "Waymore",
+    "user_firstname": "John",
+    "product_name": "Waymore Platform",
+    "support_email": "support@waymore.io",
+    "email_title": "Welcome to Waymore!",
+    "custom_content": "Hello John,<br><br>Welcome to our platform!",
+    "facts": [
+      {"label": "Account Type", "value": "Premium"}
+    ],
+    "progress_bars": [
+      {
+        "label": "Storage Usage",
+        "current": 75,
+        "max": 100,
+        "unit": "GB",
+        "percentage": 75,
+        "color": "#3b82f6",
+        "description": "75% of your storage quota used"
+      }
+    ],
+    "cta_primary": {
+      "label": "Get Started",
+      "url": "https://app.waymore.io/dashboard"
+    },
+    "footer_links": [
+      {"label": "Privacy Policy", "url": "https://waymore.io/privacy"}
+    ]
+  }
+}
+```
+
+#### Response
+
+**Success (200 OK):**
+```json
+{
+  "valid": true,
+  "errors": [],
+  "warnings": [
+    {
+      "type": "missing_optional_variable",
+      "field": "footer_links",
+      "message": "Consider adding footer links for better user experience",
+      "suggestion": "Add privacy policy, terms of service, and unsubscribe links"
+    }
+  ],
+  "suggestions": [
+    "Review warnings for best practices and accessibility",
+    "Add footer links for legal compliance and user experience"
+  ]
+}
+```
+
+**Validation Errors (200 OK):**
+```json
+{
+  "valid": false,
+  "errors": [
+    {
+      "type": "invalid_variable_format",
+      "field": "support_email",
+      "message": "support_email must be a valid email address",
+      "suggestion": "Use a valid email format like 'support@example.com'"
+    },
+    {
+      "type": "invalid_progress_bar",
+      "field": "progress_bars[0].max",
+      "message": "Progress bar missing required 'max' field",
+      "suggestion": "Add max value for progress bar"
+    },
+    {
+      "type": "redundant_information",
+      "field": "facts and progress_bars",
+      "message": "Information is duplicated between facts table and progress bars",
+      "suggestion": "Remove duplicate information from facts table, keep progress bars for visual metrics"
+    }
+  ],
+  "warnings": [],
+  "suggestions": [
+    "Fix all validation errors before using this template"
+  ]
+}
+```
+
+#### Validation Error Types
+
+| Error Type | Description |
+|------------|-------------|
+| `invalid_variable_format` | Variable format is invalid (email, URL, etc.) |
+| `invalid_variable_type` | Variable has incorrect data type |
+| `redundant_information` | Information is duplicated between sections |
+| `invalid_progress_bar` | Progress bar missing required fields |
+| `invalid_cta` | Call-to-action button has invalid configuration |
+| `invalid_social_link` | Social media link has invalid platform or URL |
+| `invalid_footer_link` | Footer link has invalid URL |
+| `invalid_countdown` | Countdown timer has invalid configuration |
+| `invalid_theme` | Theme has invalid color values |
+| `exceeds_limit` | Array exceeds maximum allowed items |
+| `invalid_url` | URL format is invalid |
+| `invalid_color` | Color format is invalid (must be hex) |
+| `invalid_date` | Date format is invalid (must be ISO) |
+
+#### Validation Warning Types
+
+| Warning Type | Description |
+|--------------|-------------|
+| `missing_optional_variable` | Optional but recommended field is missing |
+| `best_practice_violation` | Template doesn't follow best practices |
+| `accessibility_concern` | Accessibility issue detected |
+| `performance_concern` | Potential performance issue |
+
+#### Use Cases
+
+- **AI Template Generation**: Validate templates generated by AI systems
+- **Template Development**: Check templates before deployment
+- **Quality Assurance**: Ensure templates meet standards
+- **Integration Testing**: Validate templates in CI/CD pipelines
 
 #### Path Parameters
 
@@ -730,6 +1066,27 @@ curl -H "Authorization: Bearer your-jwt-token" \
   https://api.waymore.io/email-gateway/api/v1/messages/msg_abc123
 ```
 
+#### Validate Template
+```bash
+curl -X POST https://api.waymore.io/email-gateway/api/v1/templates/validate \
+  -H "Authorization: Bearer your-jwt-token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "template": {
+      "key": "transactional",
+      "locale": "en"
+    },
+    "variables": {
+      "workspace_name": "Waymore",
+      "user_firstname": "John",
+      "product_name": "Waymore Platform",
+      "support_email": "support@waymore.io",
+      "email_title": "Welcome to Waymore!",
+      "custom_content": "Hello John,<br><br>Welcome to our platform!"
+    }
+  }'
+```
+
 ## Changelog
 
 ### v1.1.0 (2025-09-26)
@@ -910,11 +1267,233 @@ Ready-to-use API collection for your team:
 1. Download and import the Postman collection
 2. Follow `POSTMAN_SETUP.md` guide
 3. Start with "Get JWT Token" request
-4. Use "Send Email - Universal Template" to send emails
+4. Use "Send Email - Transactional Template" to send emails
 
 ### Usage Examples
 
-**JavaScript**:
+#### Welcome Email Example
+
+```json
+{
+  "to": [{"email": "user@example.com", "name": "John Doe"}],
+  "from": {"email": "no-reply@waymore.io", "name": "Waymore"},
+  "subject": "Welcome to Waymore!",
+  "template": {"key": "transactional", "locale": "en"},
+  "variables": {
+    "header": {
+      "logo_url": "https://i.ibb.co/8LfvqPk7/Waymore-logo-Colour.png",
+      "logo_alt": "Waymore",
+      "tagline": "Empowering your business"
+    },
+    "title": {
+      "text": "Welcome to Waymore!",
+      "size": "28px",
+      "weight": "700",
+      "color": "#1f2937",
+      "align": "center"
+    },
+    "body": {
+      "paragraphs": [
+        "Hello John, welcome to Waymore Platform!",
+        "Your account is ready to use. Here are some tips to get started:",
+        "• Explore your dashboard\n• Set up your profile\n• Connect your first integration"
+      ],
+      "font_size": "16px",
+      "line_height": "26px"
+    },
+    "actions": {
+      "primary": {
+        "label": "Get Started",
+        "url": "https://app.waymore.io/dashboard",
+        "style": "button",
+        "color": "#3b82f6",
+        "text_color": "#ffffff"
+      }
+    },
+    "footer": {
+      "tagline": "Empowering your business",
+      "social_links": [
+        { "platform": "twitter", "url": "https://twitter.com/waymore" },
+        { "platform": "linkedin", "url": "https://linkedin.com/company/waymore" }
+      ],
+      "legal_links": [
+        { "label": "Privacy Policy", "url": "https://waymore.io/privacy" },
+        { "label": "Terms of Service", "url": "https://waymore.io/terms" }
+      ],
+      "copyright": "© 2024 Waymore Technologies Inc. All rights reserved."
+    }
+  }
+}
+```
+
+#### Payment Success Email Example
+
+```json
+{
+  "to": [{"email": "customer@example.com", "name": "Jane Customer"}],
+  "from": {"email": "billing@waymore.io", "name": "Waymore Billing"},
+  "subject": "Payment Successful - Receipt #INV-2024-001",
+  "template": {"key": "transactional", "locale": "en"},
+  "variables": {
+    "header": {
+      "logo_url": "https://i.ibb.co/8LfvqPk7/Waymore-logo-Colour.png",
+      "logo_alt": "Waymore",
+      "tagline": "Empowering your business"
+    },
+    "hero": {
+      "type": "icon",
+      "icon": "✅",
+      "icon_size": "48px"
+    },
+    "title": {
+      "text": "Payment Successful - Receipt #INV-2024-001",
+      "size": "28px",
+      "weight": "700",
+      "color": "#10b981",
+      "align": "center"
+    },
+    "body": {
+      "paragraphs": [
+        "Hello Jane, your payment has been processed successfully!",
+        "Thank you for your business and continued trust in Waymore Platform.",
+        "Your receipt and transaction details are included below."
+      ],
+      "font_size": "16px",
+      "line_height": "26px"
+    },
+    "snapshot": {
+      "title": "Transaction Details",
+      "facts": [
+        { "label": "Transaction ID", "value": "TXN-12345" },
+        { "label": "Amount", "value": "$29.99" },
+        { "label": "Plan", "value": "Pro Monthly" },
+        { "label": "Payment Method", "value": "**** 4242" },
+        { "label": "Date", "value": "January 15, 2024" }
+      ],
+      "style": "table"
+    },
+    "actions": {
+      "primary": {
+        "label": "Download Receipt",
+        "url": "https://app.waymore.io/receipts/TXN-12345",
+        "style": "button",
+        "color": "#10b981",
+        "text_color": "#ffffff"
+      },
+      "secondary": {
+        "label": "View Billing History",
+        "url": "https://app.waymore.io/billing",
+        "style": "link",
+        "color": "#6b7280"
+      }
+    },
+    "footer": {
+      "tagline": "Empowering your business",
+      "legal_links": [
+        { "label": "Privacy Policy", "url": "https://waymore.io/privacy" },
+        { "label": "Terms of Service", "url": "https://waymore.io/terms" }
+      ],
+      "copyright": "© 2024 Waymore Technologies Inc. All rights reserved."
+    }
+  }
+}
+```
+
+#### Usage Alert Email Example
+
+```json
+{
+  "to": [{"email": "admin@example.com", "name": "Admin User"}],
+  "from": {"email": "alerts@waymore.io", "name": "Waymore Alerts"},
+  "subject": "Usage Alert - 80% Limit Reached",
+  "template": {"key": "transactional", "locale": "en"},
+  "variables": {
+    "header": {
+      "logo_url": "https://i.ibb.co/8LfvqPk7/Waymore-logo-Colour.png",
+      "logo_alt": "Waymore",
+      "tagline": "Empowering your business"
+    },
+    "hero": {
+      "type": "icon",
+      "icon": "⚠️",
+      "icon_size": "48px"
+    },
+    "title": {
+      "text": "Usage Alert - 80% Limit Reached",
+      "size": "28px",
+      "weight": "700",
+      "color": "#f59e0b",
+      "align": "center"
+    },
+    "body": {
+      "paragraphs": [
+        "Hello Admin, you've used 80% of your Pro plan.",
+        "You're approaching your monthly limit. Consider upgrading to avoid any service interruption.",
+        "Your current usage breakdown is shown below."
+      ],
+      "font_size": "16px",
+      "line_height": "26px"
+    },
+    "visual": {
+      "type": "progress",
+      "progress_bars": [
+        {
+          "label": "API Requests",
+          "current": 8000,
+          "total": 10000,
+          "percentage": 80,
+          "unit": "requests",
+          "color": "#f59e0b",
+          "description": "Monthly usage"
+        }
+      ]
+    },
+    "snapshot": {
+      "title": "Usage Summary",
+      "facts": [
+        { "label": "Current Usage", "value": "80%" },
+        { "label": "Plan Limit", "value": "10,000 requests" },
+        { "label": "Used", "value": "8,000 requests" },
+        { "label": "Remaining", "value": "2,000 requests" }
+      ],
+      "style": "table"
+    },
+    "actions": {
+      "primary": {
+        "label": "Upgrade Plan",
+        "url": "https://app.waymore.io/upgrade",
+        "style": "button",
+        "color": "#f59e0b",
+        "text_color": "#ffffff"
+      },
+      "secondary": {
+        "label": "View Usage Details",
+        "url": "https://app.waymore.io/usage",
+        "style": "link",
+        "color": "#6b7280"
+      }
+    },
+    "support": {
+      "title": "Need help?",
+      "links": [
+        { "label": "Usage FAQ", "url": "https://waymore.io/usage-faq" },
+        { "label": "Contact Support", "url": "https://waymore.io/support" }
+      ]
+    },
+    "footer": {
+      "tagline": "Empowering your business",
+      "legal_links": [
+        { "label": "Privacy Policy", "url": "https://waymore.io/privacy" },
+        { "label": "Terms of Service", "url": "https://waymore.io/terms" }
+      ],
+      "copyright": "© 2024 Waymore Technologies Inc. All rights reserved."
+    }
+  }
+}
+```
+
+#### JavaScript SDK Example
+
 ```javascript
 // See example-usage.js for complete examples
 const { sendEmail, checkMessageStatus } = require('./example-usage.js');
@@ -926,7 +1505,8 @@ const messageId = await sendEmail(jwtToken);
 const status = await checkMessageStatus(messageId, jwtToken);
 ```
 
-**Python**:
+#### Python Example
+
 ```python
 # See example-usage.js for Python examples
 import requests
@@ -947,4 +1527,4 @@ def send_email(token, email_data):
 ---
 
 **Last Updated**: September 2025  
-**API Version**: v1.0.0
+**API Version**: v2.0.0 (Object-Based Structure)
