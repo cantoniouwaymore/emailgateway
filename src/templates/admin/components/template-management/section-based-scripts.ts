@@ -44,6 +44,18 @@ export function generateSectionBasedTemplateScripts(): string {
             });
           }
         });
+        
+        // Add specific event listeners for title text input
+        const titleTextInput = document.getElementById('title-text');
+        if (titleTextInput) {
+          titleTextInput.addEventListener('input', function() {
+            console.log('🔍 Title text input changed:', this.value);
+            // Trigger preview update
+            if (typeof debouncedPreviewUpdate === 'function') {
+              debouncedPreviewUpdate();
+            }
+          });
+        }
       }
 
       // Initialize section visibility based on checkbox state

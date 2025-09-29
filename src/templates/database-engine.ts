@@ -460,7 +460,26 @@ export class DatabaseTemplateEngine {
           // Deep merge objects
           (finalStructure as any)[key] = { ...(finalStructure as any)[key], ...value };
         } else {
-          (finalStructure as any)[key] = value;
+          // Special handling for title variable - merge into title.text instead of replacing the entire title object
+          if (key === 'title' && typeof value === 'string') {
+            if (finalStructure.title && typeof finalStructure.title === 'object') {
+              finalStructure.title.text = value;
+            } else {
+              // If title doesn't exist as an object, create it
+              finalStructure.title = {
+                show: true,
+                text: value,
+                size: '28px',
+                weight: '700',
+                color: '#1f2937',
+                align: 'center',
+                padding: '12px 0px 8px 0px',
+                line_height: '36px'
+              };
+            }
+          } else {
+            (finalStructure as any)[key] = value;
+          }
         }
       }
     }

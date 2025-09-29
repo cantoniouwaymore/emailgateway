@@ -428,36 +428,48 @@ export function generateTemplateEditorHTML(): string {
         }
 
         function setupChangeDetection() {
-          const form = document.getElementById('template-editor-form');
-          if (form) {
-            // Listen for all input changes
-            form.addEventListener('input', (event) => {
-              console.log('🔍 Form input event triggered by:', event.target.id);
+          // Listen to both forms for changes
+          const templateForm = document.getElementById('template-editor-form');
+          const sectionForm = document.getElementById('section-template-form');
+          
+          function handleFormChange(event) {
+            console.log('🔍 Form input event triggered by:', event.target.id);
+            hasUnsavedChanges = true;
+            debouncedPreviewUpdate();
+            // Refresh detected variables when form content changes
+            refreshDetectedVariables();
+          }
+          
+          function handleFormCheckboxChange(event) {
+            if (event.target.type === 'checkbox') {
               hasUnsavedChanges = true;
               debouncedPreviewUpdate();
-              // Refresh detected variables when form content changes
+              // Refresh detected variables when sections are enabled/disabled
               refreshDetectedVariables();
-            });
-            
-            // Listen for checkbox changes (section enable/disable)
-            form.addEventListener('change', (event) => {
-              if (event.target.type === 'checkbox') {
-                hasUnsavedChanges = true;
-                debouncedPreviewUpdate();
-                // Refresh detected variables when sections are enabled/disabled
-                refreshDetectedVariables();
-              }
-            });
-            
-            // Listen for select changes
-            form.addEventListener('change', (event) => {
-              if (event.target.tagName === 'SELECT') {
-                hasUnsavedChanges = true;
-                debouncedPreviewUpdate();
-                // Refresh detected variables when selects change
-                refreshDetectedVariables();
-              }
-            });
+            }
+          }
+          
+          function handleFormSelectChange(event) {
+            if (event.target.tagName === 'SELECT') {
+              hasUnsavedChanges = true;
+              debouncedPreviewUpdate();
+              // Refresh detected variables when selects change
+              refreshDetectedVariables();
+            }
+          }
+          
+          // Add listeners to template form
+          if (templateForm) {
+            templateForm.addEventListener('input', handleFormChange);
+            templateForm.addEventListener('change', handleFormCheckboxChange);
+            templateForm.addEventListener('change', handleFormSelectChange);
+          }
+          
+          // Add listeners to section form
+          if (sectionForm) {
+            sectionForm.addEventListener('input', handleFormChange);
+            sectionForm.addEventListener('change', handleFormCheckboxChange);
+            sectionForm.addEventListener('change', handleFormSelectChange);
           }
         }
 
@@ -488,8 +500,10 @@ export function generateTemplateEditorHTML(): string {
             const detectedVars = getVariableValues();
             
             // Get the actual title from the form if available
-            const actualTitle = document.getElementById('title-text')?.value || 'Sample Title';
-            console.log('🔍 UpdatePreview - Title text field value:', document.getElementById('title-text')?.value);
+            const titleTextElement = document.getElementById('title-text');
+            const actualTitle = titleTextElement?.value || 'Sample Title';
+            console.log('🔍 UpdatePreview - Title text element found:', !!titleTextElement);
+            console.log('🔍 UpdatePreview - Title text field value:', titleTextElement?.value);
             console.log('🔍 UpdatePreview - Title enabled:', document.getElementById('title-enabled')?.checked);
             console.log('🔍 UpdatePreview using title:', actualTitle);
             
@@ -509,6 +523,7 @@ export function generateTemplateEditorHTML(): string {
             console.log('🔍 UpdatePreview - Preview Variables:', previewVariables);
             
             // Use the existing MJML preview API
+            console.log('🚀 Sending preview API request...');
             const response = await fetch('/api/v1/templates/preview', {
               method: 'POST',
               headers: {
@@ -521,19 +536,34 @@ export function generateTemplateEditorHTML(): string {
               })
             });
             
+            console.log('📡 Preview API response status:', response.status);
+            console.log('📡 Preview API response ok:', response.ok);
+            
             if (!response.ok) {
+              const errorText = await response.text();
+              console.error('❌ Preview API error response:', errorText);
               throw new Error(\`HTTP \${response.status}: \${response.statusText}\`);
             }
             
             const data = await response.json();
+            console.log('📦 Preview API response data:', data);
+            console.log('📦 Preview HTML length:', data.preview?.length || 0);
+            
             const previewContainer = document.getElementById('preview-container');
+            console.log('🎯 Preview container found:', !!previewContainer);
             
             if (previewContainer) {
+              console.log('✅ Updating preview container with new HTML');
               previewContainer.innerHTML = data.preview;
+              console.log('✅ Preview container updated successfully');
+            } else {
+              console.error('❌ Preview container not found!');
             }
             
           } catch (error) {
-            console.error('Error updating preview:', error);
+            console.error('❌ Error updating preview:', error);
+            console.error('❌ Error message:', error.message);
+            console.error('❌ Error stack:', error.stack);
             // Don't show error messages for real-time updates to avoid spam
           }
         }
@@ -790,7 +820,10 @@ export function generateTemplateEditorHTML(): string {
           const titleEnabled = document.getElementById('title-enabled')?.checked;
           console.log('🔍 Title section enabled:', titleEnabled);
           if (titleEnabled) {
-            const titleText = document.getElementById('title-text')?.value;
+            const titleTextElement = document.getElementById('title-text');
+            const titleText = titleTextElement?.value;
+            console.log('🔍 Title text element found:', !!titleTextElement);
+            console.log('🔍 Title text element value:', titleText);
             console.log('🔍 Title section enabled, title text:', titleText);
             structure.title = {
               text: titleText || '{{title}}',
@@ -1102,14 +1135,27 @@ export function generateTemplateEditorHTML(): string {
             console.log('🎯 Preview Container Style:', previewContainer.style.cssText);
           }
           
+          // Test title text input
+          const titleTextElement = document.getElementById('title-text');
+          console.log('🎯 Title Text Element Found:', !!titleTextElement);
+          console.log('🎯 Title Text Element Value:', titleTextElement?.value);
+          
+          // Test form detection
+          const templateForm = document.getElementById('template-editor-form');
+          const sectionForm = document.getElementById('section-template-form');
+          console.log('🎯 Template Form Found:', !!templateForm);
+          console.log('🎯 Section Form Found:', !!sectionForm);
+          
           // Test simple HTML injection
           if (previewContainer) {
             const currentTime = new Date().toLocaleTimeString();
+            const titleValue = titleTextElement?.value || 'No Title';
             previewContainer.innerHTML = 
               '<div class="text-center text-green-500 py-8">' +
                 '<i class="fas fa-check-circle text-4xl mb-4"></i>' +
                 '<p class="text-lg font-medium">Debug Test Successful!</p>' +
                 '<p class="text-sm">Preview container is working</p>' +
+                '<p class="text-sm">Title Text Value: "' + titleValue + '"</p>' +
                 '<p class="text-xs text-gray-500 mt-2">Time: ' + currentTime + '</p>' +
               '</div>';
             console.log('✅ Debug HTML injected successfully');
