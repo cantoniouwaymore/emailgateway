@@ -111,11 +111,8 @@ export function generateTemplateManagementScripts(): string {
                 <button onclick="editSectionBasedTemplate('\${template.key}')" class="text-green-600 hover:text-green-900" title="Edit in Visual Builder">
                   <i class="fas fa-magic"></i>
                 </button>
-                <button onclick="editTemplate('\${template.key}')" class="text-indigo-600 hover:text-indigo-900" title="Edit JSON">
+                <button onclick="editTemplate('\${template.key}')" class="text-indigo-600 hover:text-indigo-900" title="View JSON">
                   <i class="fas fa-code"></i>
-                </button>
-                <button onclick="manageLocales('\${template.key}')" class="text-purple-600 hover:text-purple-900" title="Manage Locales">
-                  <i class="fas fa-globe"></i>
                 </button>
                 <button onclick="deleteTemplate('\${template.key}')" class="text-red-600 hover:text-red-900" title="Delete Template">
                   <i class="fas fa-trash"></i>
@@ -212,6 +209,25 @@ export function generateTemplateManagementScripts(): string {
         document.getElementById('template-form-title').textContent = 'Create Template';
         document.getElementById('template-form').reset();
         document.getElementById('template-key').readOnly = false;
+        
+        // Load a default template example
+        loadTemplateExample();
+        
+        // Generate initial email request JSON
+        generateEmailRequestExample();
+        
+        // Add event listener to regenerate email request JSON when template structure changes
+        const jsonStructureField = document.getElementById('template-json-structure');
+        if (jsonStructureField) {
+          jsonStructureField.addEventListener('input', function() {
+            // Debounce the regeneration
+            clearTimeout(window.emailRequestTimeout);
+            window.emailRequestTimeout = setTimeout(() => {
+              generateEmailRequestExample();
+            }, 500);
+          });
+        }
+        
         document.getElementById('template-form-modal').classList.remove('hidden');
         currentTemplate = null;
       }
@@ -235,14 +251,58 @@ export function generateTemplateManagementScripts(): string {
           currentTemplate = data.template;
           
           // Populate form
-          document.getElementById('template-form-title').textContent = 'Edit Template';
+          document.getElementById('template-form-title').textContent = 'View JSON';
           document.getElementById('template-key').value = currentTemplate.key;
           document.getElementById('template-key').readOnly = true;
-          document.getElementById('template-name').value = currentTemplate.name;
-          document.getElementById('template-description').value = currentTemplate.description || '';
-          document.getElementById('template-category').value = currentTemplate.category;
-          document.getElementById('template-json-structure').value = JSON.stringify(currentTemplate.jsonStructure, null, 2);
-          document.getElementById('template-variable-schema').value = JSON.stringify(currentTemplate.variableSchema, null, 2);
+          document.getElementById('template-name-display').textContent = currentTemplate.name || 'Unknown';
+          document.getElementById('template-description-display').textContent = currentTemplate.description || 'No description provided';
+          document.getElementById('template-category-display').textContent = currentTemplate.category || 'Unknown';
+          // Populate template JSON structure
+          let templateStructure = currentTemplate.jsonStructure;
+          if (!templateStructure || Object.keys(templateStructure).length === 0) {
+            // Show a default structure if template is empty
+            templateStructure = {
+              "title": {
+                "text": "{{email_title}}",
+                "size": "28px",
+                "color": "#1f2937"
+              },
+              "body": {
+                "paragraphs": [
+                  "Hello {{user_name}},",
+                  "{{email_content}}"
+                ],
+                "font_size": "16px"
+              },
+              "actions": {
+                "primary": {
+                  "label": "{{cta_label}}",
+                  "url": "{{cta_url}}",
+                  "style": "button"
+                }
+              }
+            };
+          }
+          document.getElementById('template-json-structure').value = JSON.stringify(templateStructure, null, 2);
+          
+          // Populate variable schema
+          const variableSchema = currentTemplate.variableSchema || {};
+          document.getElementById('template-variable-schema').value = JSON.stringify(variableSchema, null, 2);
+          
+          // Generate email request JSON for developer reference
+          generateEmailRequestExample();
+          
+          // Add event listener to regenerate email request JSON when template structure changes
+          const jsonStructureField = document.getElementById('template-json-structure');
+          if (jsonStructureField) {
+            jsonStructureField.addEventListener('input', function() {
+              // Debounce the regeneration
+              clearTimeout(window.emailRequestTimeout);
+              window.emailRequestTimeout = setTimeout(() => {
+                generateEmailRequestExample();
+              }, 500);
+            });
+          }
           
           document.getElementById('template-form-modal').classList.remove('hidden');
         } catch (error) {
@@ -308,13 +368,149 @@ export function generateTemplateManagementScripts(): string {
       async function viewTemplate(templateKey) {
         console.log('viewTemplate called with key:', templateKey);
         try {
-          // Open template preview in a new window/tab
-          const previewUrl = \`/api/v1/templates/\${templateKey}/preview\`;
-          console.log('Opening preview URL:', previewUrl);
-          window.open(previewUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+          showLoading('Loading template preview...');
+          
+          // Get template data first
+          const templateData = await window.EmailGatewayAPI.getTemplate(templateKey);
+          const template = templateData.template;
+          
+          console.log('Template data:', template);
+          console.log('Template jsonStructure:', template.jsonStructure);
+          
+          // Check if template has valid structure
+          if (!template.jsonStructure || Object.keys(template.jsonStructure).length === 0) {
+            throw new Error('Template has no JSON structure defined. Please edit the template first to add content.');
+          }
+          
+          // Prepare preview request with template structure and sample variables
+          const requestBody = {
+            templateStructure: template.jsonStructure,
+            variables: {
+              companyName: 'Your Company',
+              title: template.name || 'Sample Title',
+              bodyText: 'This is a sample email body text that demonstrates how your template will look.',
+              primaryButtonLabel: 'Primary Action',
+              primaryButtonUrl: '#',
+              secondaryButtonLabel: 'Secondary Action',
+              secondaryButtonUrl: '#',
+              copyright: '&copy; 2024 Your Company. All rights reserved.',
+              user_name: 'John Doe',
+              email_title: template.name || 'Sample Email',
+              workspace_name: 'Your Workspace'
+            }
+          };
+          
+          // Call the preview API using the API client
+          console.log('Calling generatePreview with:', requestBody);
+          const response = await window.EmailGatewayAPI.generatePreview(requestBody.templateStructure, requestBody.variables);
+          console.log('Preview API response:', response);
+          
+          // Show the preview in a modal
+          showTemplatePreviewModal(template.name || templateKey, response.preview);
+          
+          hideLoading();
         } catch (error) {
-          console.error('Failed to open template preview:', error);
-          showStatus('Failed to open template preview: ' + error.message, 'error');
+          console.error('Failed to generate template preview:', error);
+          alert('Failed to generate template preview: ' + error.message);
+          hideLoading();
+        }
+      }
+
+      // Show template preview modal
+      function showTemplatePreviewModal(templateName, previewHtml) {
+        console.log('showTemplatePreviewModal called with:', { templateName, previewHtml });
+        
+        // Use the existing modal from the HTML template
+        const modal = document.getElementById('template-preview-modal');
+        if (!modal) {
+          console.error('Template preview modal not found in DOM');
+          return;
+        }
+        
+        // Update the modal title
+        const titleElement = modal.querySelector('h3');
+        if (titleElement) {
+          titleElement.textContent = \`Template Preview: \${templateName}\`;
+        }
+        
+        // Update the email preview content
+        const emailPreviewDiv = modal.querySelector('#preview-email-content');
+        if (emailPreviewDiv) {
+          console.log('Setting preview content to:', previewHtml);
+          emailPreviewDiv.innerHTML = previewHtml || '<p class="text-gray-500">No preview content available</p>';
+          
+          // Make the email preview content div full width
+          emailPreviewDiv.style.width = '100%';
+          emailPreviewDiv.style.maxWidth = '100%';
+          emailPreviewDiv.style.padding = '0';
+          emailPreviewDiv.style.margin = '0';
+        } else {
+          console.error('Could not find preview-email-content div');
+        }
+        
+        // Hide the JSON structure section and make email preview full width
+        const gridContainer = modal.querySelector('.grid');
+        if (gridContainer) {
+          // Hide the first div (JSON structure)
+          const jsonSection = gridContainer.children[0];
+          if (jsonSection) {
+            jsonSection.style.display = 'none';
+          }
+          
+          // Make the second div (email preview) take full width
+          const emailSection = gridContainer.children[1];
+          if (emailSection) {
+            emailSection.style.width = '100%';
+            emailSection.style.maxWidth = '100%';
+            emailSection.style.flex = '1';
+            emailSection.style.gridColumn = '1 / -1';
+          }
+          
+          // Make the grid container itself full width
+          gridContainer.style.width = '100%';
+          gridContainer.style.maxWidth = '100%';
+          gridContainer.style.display = 'block';
+        }
+        
+        // Show the modal
+        modal.classList.remove('hidden');
+      }
+
+      // Close template preview modal
+      function closeTemplatePreviewModal() {
+        const modal = document.getElementById('template-preview-modal');
+        if (modal) {
+          modal.classList.add('hidden');
+        }
+      }
+
+
+      // Show loading state
+      function showLoading(message) {
+        // Create or update loading overlay
+        let loading = document.getElementById('loading-overlay');
+        if (!loading) {
+          loading = document.createElement('div');
+          loading.id = 'loading-overlay';
+          loading.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center';
+          loading.innerHTML = \`
+            <div class="bg-white p-6 rounded-lg shadow-xl flex items-center">
+              <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mr-4"></div>
+              <p class="text-gray-900 font-medium" id="loading-message">\${message}</p>
+            </div>
+          \`;
+          document.body.appendChild(loading);
+        } else {
+          loading.querySelector('#loading-message').textContent = message;
+          loading.classList.remove('hidden');
+        }
+      }
+
+      // Hide loading state
+      function hideLoading() {
+        const loading = document.getElementById('loading-overlay');
+        if (loading) {
+          loading.classList.add('hidden');
         }
       }
 
@@ -325,25 +521,9 @@ export function generateTemplateManagementScripts(): string {
         alert(\`Template: \${template.name}\\nKey: \${template.key}\\nCategory: \${template.category}\\nLocales: \${template.availableLocales?.join(', ') || 'None'}\`);
       }
 
-      // Manage locales
-      async function manageLocales(templateKey) {
-        try {
-          const data = await window.EmailGatewayAPI.getTemplate(templateKey);
-          currentTemplate = data.template;
-          currentLocales = data.template.locales || [];
-          
-          document.getElementById('locale-template-name').textContent = \`Template: \${currentTemplate.name}\`;
-          document.getElementById('locale-management-modal').classList.remove('hidden');
-          
-          await loadLocales();
-        } catch (error) {
-          console.error('Failed to load template for locale management:', error);
-          showStatus('Failed to load template: ' + error.message, 'error');
-        }
-      }
 
-      // Load locales
-      async function loadLocales() {
+      // JSON Tab Management
+      function showJsonTab(tabName, event) {
         const tbody = document.getElementById('locales-tbody');
         const emptyState = document.getElementById('locales-empty');
         const table = document.getElementById('locales-table');
@@ -576,6 +756,195 @@ export function generateTemplateManagementScripts(): string {
         document.getElementById('locale-json-structure').value = JSON.stringify(example, null, 2);
         updateLocalePreview();
       }
+
+      // JSON Tab Management
+      function showJsonTab(tabName, event) {
+        // Prevent default behavior to avoid form submission
+        if (event) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        
+        // Hide all tab contents
+        document.querySelectorAll('.json-tab-content').forEach(content => {
+          content.classList.add('hidden');
+        });
+        
+        // Remove active styling from all tabs
+        document.querySelectorAll('[id^="json-tab-"]').forEach(tab => {
+          tab.classList.remove('border-purple-500', 'text-purple-600');
+          tab.classList.add('border-transparent', 'text-gray-500');
+        });
+        
+        // Show selected tab content
+        const content = document.getElementById(\`json-content-\${tabName}\`);
+        if (content) {
+          content.classList.remove('hidden');
+        }
+        
+        // Add active styling to selected tab
+        const tab = document.getElementById(\`json-tab-\${tabName}\`);
+        if (tab) {
+          tab.classList.remove('border-transparent', 'text-gray-500');
+          tab.classList.add('border-purple-500', 'text-purple-600');
+        }
+        
+        // Generate email request JSON if switching to request tab
+        if (tabName === 'request') {
+          generateEmailRequestExample();
+        }
+      }
+
+      // Generate email request JSON example
+      function generateEmailRequestExample() {
+        const templateKey = document.getElementById('template-key')?.value || 'your-template-key';
+        const templateName = document.getElementById('template-name')?.value || 'Your Template';
+        
+        // Get template structure to extract variables
+        const templateStructure = document.getElementById('template-json-structure')?.value;
+        let variables = {};
+        
+        try {
+          if (templateStructure && templateStructure.trim()) {
+            const structure = JSON.parse(templateStructure);
+            variables = extractVariablesFromStructure(structure);
+          }
+        } catch (e) {
+          console.warn('Could not parse template structure:', e);
+        }
+        
+        // If no variables found from template structure, use default variables
+        if (Object.keys(variables).length === 0) {
+          variables = {
+            user_name: "{{ user_name }}",
+            email_subject: "{{ email_subject }}",
+            company_name: "{{ company_name }}",
+            workspace_name: "{{ workspace_name }}",
+            tenant_id: "{{ tenant_id }}",
+            event_id: "{{ event_id }}"
+          };
+        }
+        
+        // Generate example email request
+        const emailRequest = {
+          to: [
+            {
+              email: "user@example.com",
+              name: "{{user_name}}"
+            }
+          ],
+          from: {
+            email: "noreply@yourcompany.com",
+            name: "{{company_name}}"
+          },
+          subject: \`{{email_subject}} - \${templateName}\`,
+          template: {
+            key: templateKey,
+            locale: "en"
+          },
+          variables: variables,
+          metadata: {
+            tenantId: "{{tenant_id}}",
+            source: "api",
+            eventId: "{{event_id}}"
+          }
+        };
+        
+        // Display the JSON
+        const jsonElement = document.getElementById('email-request-json');
+        if (jsonElement) {
+          jsonElement.textContent = JSON.stringify(emailRequest, null, 2);
+        }
+      }
+
+      // Extract variables from template structure
+      function extractVariablesFromStructure(structure) {
+        const variables = {};
+        
+        // Helper function to extract variables from any object
+        function extractVars(obj, prefix = '') {
+          if (typeof obj === 'string') {
+            // Find {{variable}} patterns
+            const matches = obj.match(/\\{\\{([^}]+)\\}\\}/g);
+            if (matches) {
+              matches.forEach(match => {
+                const varName = match.replace(/\\{\\{|\\}\\}/g, '');
+                if (varName && !varName.includes(' ')) {
+                  variables[varName] = \`{{ \${varName} }}\`;
+                }
+              });
+            }
+          } else if (Array.isArray(obj)) {
+            obj.forEach((item, index) => extractVars(item, \`\${prefix}[\${index}]\`));
+          } else if (obj && typeof obj === 'object') {
+            Object.keys(obj).forEach(key => {
+              extractVars(obj[key], prefix ? \`\${prefix}.\${key}\` : key);
+            });
+          }
+        }
+        
+        extractVars(structure);
+        
+        // Add common variables if none found
+        if (Object.keys(variables).length === 0) {
+          variables.user_name = "{{ user_name }}";
+          variables.email_subject = "{{ email_subject }}";
+          variables.company_name = "{{ company_name }}";
+          variables.tenant_id = "{{ tenant_id }}";
+          variables.event_id = "{{ event_id }}";
+        }
+        
+        return variables;
+      }
+
+      // Copy email request JSON to clipboard
+      async function copyEmailRequestJSON() {
+        const jsonElement = document.getElementById('email-request-json');
+        if (jsonElement) {
+          try {
+            await navigator.clipboard.writeText(jsonElement.textContent);
+            showStatus('Email request JSON copied to clipboard!', 'success');
+          } catch (err) {
+            console.error('Failed to copy:', err);
+            showStatus('Failed to copy to clipboard', 'error');
+          }
+        }
+      }
+
+      // Copy template JSON to clipboard
+      async function copyTemplateJSON() {
+        const jsonElement = document.getElementById('template-json-structure');
+        if (jsonElement) {
+          try {
+            await navigator.clipboard.writeText(jsonElement.value);
+            showStatus('Template JSON copied to clipboard!', 'success');
+          } catch (err) {
+            console.error('Failed to copy:', err);
+            showStatus('Failed to copy to clipboard', 'error');
+          }
+        }
+      }
+
+      // Copy variable schema to clipboard
+      async function copyVariableSchema() {
+        const jsonElement = document.getElementById('template-variable-schema');
+        if (jsonElement) {
+          try {
+            await navigator.clipboard.writeText(jsonElement.value);
+            showStatus('Variable schema copied to clipboard!', 'success');
+          } catch (err) {
+            console.error('Failed to copy:', err);
+            showStatus('Failed to copy to clipboard', 'error');
+          }
+        }
+      }
+
+      // Make functions globally available
+      window.viewTemplate = viewTemplate;
+      window.showTemplatePreviewModal = showTemplatePreviewModal;
+      window.closeTemplatePreviewModal = closeTemplatePreviewModal;
+      window.showLoading = showLoading;
+      window.hideLoading = hideLoading;
 
       // Initialize when DOM is loaded
       document.addEventListener('DOMContentLoaded', function() {

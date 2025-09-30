@@ -34,94 +34,100 @@ export function generateTemplateFormModal(): string {
                   </div>
 
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Template Name *</label>
-                    <input 
-                      type="text" 
-                      id="template-name" 
-                      name="name"
-                      required
-                      placeholder="e.g., Welcome Email"
-                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                    />
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Template Name</label>
+                    <div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 font-medium">
+                      <span id="template-name-display">-</span>
+                    </div>
                   </div>
 
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                    <textarea 
-                      id="template-description" 
-                      name="description"
-                      rows="3"
-                      placeholder="Brief description of the template..."
-                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                    ></textarea>
+                    <div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 min-h-[80px]">
+                      <span id="template-description-display">-</span>
+                    </div>
                   </div>
 
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Category *</label>
-                    <select 
-                      id="template-category" 
-                      name="category"
-                      required
-                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                    >
-                      <option value="">Select a category</option>
-                      <option value="transactional">Transactional</option>
-                      <option value="marketing">Marketing</option>
-                      <option value="notification">Notification</option>
-                      <option value="test">Test</option>
-                    </select>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                    <div class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 font-medium">
+                      <span id="template-category-display">-</span>
+                    </div>
                   </div>
 
                 </div>
 
-                <!-- Template Structure -->
-                <div class="space-y-4">
-                  <h4 class="text-md font-medium text-gray-900">Template Structure</h4>
-                  
+              </div>
+
+              <!-- Developer JSON Section -->
+              <div class="mt-6 pt-6 border-t border-gray-200">
+                <h4 class="text-md font-medium text-gray-900 mb-4">Developer JSON</h4>
+                
+                <!-- Tab Navigation -->
+                <div class="mb-4">
+                  <nav class="flex space-x-8" aria-label="Tabs">
+                    <button type="button" onclick="showJsonTab('template', event)" id="json-tab-template" class="whitespace-nowrap py-2 px-1 border-b-2 border-purple-500 font-medium text-sm text-purple-600">
+                      Template Structure
+                    </button>
+                    <button type="button" onclick="showJsonTab('request', event)" id="json-tab-request" class="whitespace-nowrap py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                      Email Request JSON
+                    </button>
+                    <button type="button" onclick="showJsonTab('variables', event)" id="json-tab-variables" class="whitespace-nowrap py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                      Variable Schema
+                    </button>
+                  </nav>
+                </div>
+
+                <!-- Template Structure Tab -->
+                <div id="json-content-template" class="json-tab-content">
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">JSON Structure</label>
                     <textarea 
                       id="template-json-structure" 
                       name="jsonStructure"
                       rows="12"
-                      placeholder="Enter template JSON structure..."
-                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-mono text-sm"
+                      placeholder="Template JSON structure will be displayed here..."
+                      readonly
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 font-mono text-sm"
                     ></textarea>
                     <div class="flex space-x-2 mt-2">
-                      <button type="button" onclick="formatTemplateJSON()" class="px-3 py-1 bg-gray-100 text-gray-700 rounded text-sm hover:bg-gray-200 transition-colors">
-                        <i class="fas fa-code mr-1"></i>Format
-                      </button>
-                      <button type="button" onclick="validateTemplateJSON()" class="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors">
-                        <i class="fas fa-check-circle mr-1"></i>Validate
-                      </button>
-                      <button type="button" onclick="loadTemplateExample()" class="px-3 py-1 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200 transition-colors">
-                        <i class="fas fa-file-import mr-1"></i>Load Example
+                      <button type="button" onclick="copyTemplateJSON()" class="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors">
+                        <i class="fas fa-copy mr-1"></i>Copy JSON
                       </button>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <!-- Variable Schema Section -->
-              <div class="mt-6 pt-6 border-t border-gray-200">
-                <h4 class="text-md font-medium text-gray-900 mb-4">Variable Schema</h4>
-                
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">JSON Schema for Variables</label>
-                  <textarea 
-                    id="template-variable-schema" 
-                    name="variableSchema"
-                    rows="8"
-                    placeholder="Enter JSON schema for template variables..."
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-mono text-sm"
-                  ></textarea>
-                  <div class="flex space-x-2 mt-2">
-                    <button type="button" onclick="formatVariableSchema()" class="px-3 py-1 bg-gray-100 text-gray-700 rounded text-sm hover:bg-gray-200 transition-colors">
-                      <i class="fas fa-code mr-1"></i>Format
-                    </button>
-                    <button type="button" onclick="generateVariableSchema()" class="px-3 py-1 bg-purple-100 text-purple-700 rounded text-sm hover:bg-purple-200 transition-colors">
-                      <i class="fas fa-magic mr-1"></i>Generate from Structure
-                    </button>
+                <!-- Email Request JSON Tab -->
+                <div id="json-content-request" class="json-tab-content hidden">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Email Request JSON (for sending emails)</label>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                      <pre id="email-request-json" class="text-sm text-gray-800 overflow-auto max-h-96 whitespace-pre-wrap"></pre>
+                    </div>
+                    <div class="flex space-x-2 mt-2">
+                      <button type="button" onclick="copyEmailRequestJSON()" class="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors">
+                        <i class="fas fa-copy mr-1"></i>Copy JSON
+                      </button>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">This JSON shows the complete request format for sending emails with this template</p>
+                  </div>
+                </div>
+
+                <!-- Variable Schema Tab -->
+                <div id="json-content-variables" class="json-tab-content hidden">
+                  <div>
+                    <textarea 
+                      id="template-variable-schema" 
+                      name="variableSchema"
+                      rows="8"
+                      placeholder="Variable schema will be displayed here..."
+                      readonly
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 font-mono text-sm"
+                    ></textarea>
+                    <div class="flex space-x-2 mt-2">
+                      <button type="button" onclick="copyVariableSchema()" class="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors">
+                        <i class="fas fa-copy mr-1"></i>Copy Schema
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -133,20 +139,7 @@ export function generateTemplateFormModal(): string {
                   onclick="closeTemplateFormModal()" 
                   class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
                 >
-                  Cancel
-                </button>
-                <button 
-                  type="button" 
-                  onclick="previewTemplate()" 
-                  class="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
-                >
-                  <i class="fas fa-eye mr-2"></i>Preview
-                </button>
-                <button 
-                  type="submit" 
-                  class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                >
-                  <i class="fas fa-save mr-2"></i>Save Template
+                  Close
                 </button>
               </div>
             </form>
@@ -191,18 +184,12 @@ export function generateTemplateFormModal(): string {
             </div>
 
             <!-- Preview Actions -->
-            <div class="mt-6 flex justify-end space-x-3">
+            <div class="mt-6 flex justify-end">
               <button 
                 onclick="closeTemplatePreviewModal()" 
                 class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
               >
                 Close
-              </button>
-              <button 
-                onclick="testTemplatePreview()" 
-                class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-              >
-                <i class="fas fa-paper-plane mr-2"></i>Send Test Email
               </button>
             </div>
           </div>
