@@ -86,9 +86,29 @@ export class VariableDetector {
   }
   
   /**
+   * Get nested value from object using dot notation (e.g., "user.name")
+   * @param obj - The object to query
+   * @param path - Dot-notated path (e.g., "user.name")
+   * @returns The value at the path, or undefined if not found
+   */
+  private static getNestedValue(obj: any, path: string): any {
+    const parts = path.split('.');
+    let current = obj;
+    
+    for (const part of parts) {
+      if (current === null || current === undefined) {
+        return undefined;
+      }
+      current = current[part];
+    }
+    
+    return current;
+  }
+
+  /**
    * Replace variables in a string with provided values
    * @param text - The text containing {{variableName}} patterns
-   * @param variables - Object with variable values
+   * @param variables - Object with variable values (can be nested)
    * @returns Text with variables replaced
    */
   static replaceVariables(text: string, variables: Record<string, any>): string {
@@ -96,11 +116,15 @@ export class VariableDetector {
       const cleanName = this.cleanVariableName(variableName);
       const fallback = this.extractFallback(variableName);
       
+      // Try to get value from nested object (supports dot notation like "user.name")
+      const value = this.getNestedValue(variables, cleanName);
+      
       // Priority: user-provided value → fallback from template → show variable name
-      const value = variables.hasOwnProperty(cleanName)
-        ? variables[cleanName]
+      const finalValue = value !== undefined
+        ? value
         : (fallback !== undefined ? fallback : `{{${cleanName}}}`);
-      return String(value);
+      
+      return String(finalValue);
     });
   }
   
