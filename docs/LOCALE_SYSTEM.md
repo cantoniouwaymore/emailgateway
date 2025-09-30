@@ -4,6 +4,102 @@
 
 The Waymore Transactional Emails Service supports a comprehensive locale system with intelligent fallback strategies and special base template functionality for testing and development.
 
+## Fallback Syntax Guidelines
+
+### Variable Fallback Format
+
+The system supports fallback values using the format `{{variableName|fallbackValue}}`:
+
+```json
+{
+  "title": {
+    "text": "{{title.text|Reset your password}}"
+  },
+  "body": {
+    "paragraphs": [
+      "{{greeting|Hi}} {{user.name|John}},"
+    ]
+  }
+}
+```
+
+### ✅ Correct Fallback Syntax
+
+**Simple Variables with Fallbacks:**
+```json
+{
+  "user_name": "{{user.name|John Doe}}",
+  "company_name": "{{company.name|Waymore}}",
+  "button_label": "{{actions.primary.label|Reset Password}}"
+}
+```
+
+**Nested Object Variables:**
+```json
+{
+  "security": {
+    "request_ip": "{{security.request_ip|192.168.1.1}}",
+    "device": "{{security.device|MacBook Pro}}"
+  }
+}
+```
+
+### ❌ Incorrect Fallback Syntax
+
+**Nested Variables in Fallbacks (CAUSES ERRORS):**
+```json
+// ❌ WRONG - This will cause Handlebars parsing errors
+{
+  "body": {
+    "paragraphs": [
+      "{{instruction|Click here to reset password for {{company.name|Waymore}}}}"
+    ]
+  }
+}
+```
+
+**Multiple Nested Braces:**
+```json
+// ❌ WRONG - Nested {{}} braces confuse the parser
+{
+  "footer": {
+    "tagline": "{{footer.tagline|Powered by {{company.name|Waymore}}}}"
+  }
+}
+```
+
+### Best Practices
+
+1. **Keep Fallbacks Simple**: Use static text or simple values in fallbacks
+2. **Avoid Nested Variables**: Don't use `{{variable}}` syntax inside fallback values
+3. **Use Separate Variables**: Create separate variables for complex content
+4. **Test Fallbacks**: Always test template rendering with missing variables
+
+### Example: Correct Implementation
+
+Instead of nested fallbacks, use separate variables:
+
+```json
+// ✅ CORRECT - Separate variables for complex content
+{
+  "body": {
+    "paragraphs": [
+      "{{greeting|Hi}} {{user.name|John}},",
+      "{{body.intro|We received a request to reset your password for your account.}}",
+      "{{body.instruction|Click the button below to set a new password. For security, this link will expire in 30 minutes.}}"
+    ]
+  },
+  "footer": {
+    "tagline": "{{footer.tagline|Powered by Waymore}}",
+    "copyright": "{{footer.copyright|© 2025 Waymore. All rights reserved.}}"
+  }
+}
+```
+
+### Validation and Error Prevention
+
+The system automatically validates fallback syntax and will reject templates with nested variable patterns that could cause parsing errors. This ensures reliable template rendering across all locales.
+
 ## Supported Locales
 
 ### Standard Locales

@@ -1,38 +1,123 @@
 # 🎨 Transactional Template Guide
 
-> Complete guide to the enhanced transactional email template with advanced features, customization options, and best practices.
+> Complete guide to the enhanced transactional email template with advanced features, customization options, and best practices for developers.
 
 ## 📋 Table of Contents
 
-- [Overview](#overview)
+- [Quick Start](#quick-start)
+- [Developer Overview](#developer-overview)
 - [Template Creation](#template-creation)
-- [Template Validation](#template-validation)
-- [Template Features](#template-features)
-- [Variable Reference](#variable-reference)
-- [Theme Customization](#theme-customization)
+- [Template Structure](#template-structure)
+- [Variable System](#variable-system)
 - [Multi-Language Support](#multi-language-support)
-- [Examples](#examples)
-- [Complete Template Example](#complete-template-example)
+- [Theme Customization](#theme-customization)
+- [Showcase Examples](#showcase-examples)
+- [API Reference](#api-reference)
 - [Best Practices](#best-practices)
 - [Troubleshooting](#troubleshooting)
 
-## 🎯 Overview
+## 🚀 Quick Start
+
+### For Template Creation
+```bash
+curl -X POST http://localhost:3000/api/v1/templates \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "key": "my-template",
+    "name": "My Template",
+    "category": "transactional",
+    "variableSchema": { "type": "object", "properties": {} },
+    "jsonStructure": {
+      "header": { "logo_url": "{{header.logo_url}}" },
+      "title": { "text": "{{title.text}}" },
+      "body": { "paragraphs": "{{body.paragraphs}}" }
+    }
+  }'
+```
+
+### For Email Sending
+```bash
+curl -X POST http://localhost:3000/api/v1/emails \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "to": [{"email": "user@example.com", "name": "John Doe"}],
+    "from": {"email": "noreply@company.com", "name": "Company"},
+    "subject": "Your Email Subject",
+    "template": {"key": "my-template", "locale": "en"},
+    "variables": {
+      "header": {"logo_url": "https://example.com/logo.png"},
+      "title": {"text": "Welcome!"},
+      "body": {"paragraphs": ["Hello John!"]}
+    }
+  }'
+```
+
+## 🎯 Developer Overview
 
 The Transactional Template is a powerful, feature-rich email template built with MJML and Handlebars. It provides:
 
+- **Object-Based Structure**: Organized sections (`header`, `hero`, `title`, `body`, `snapshot`, `visual`, `actions`, `support`, `footer`)
 - **Responsive Design**: Works across all email clients and devices
-- **Dynamic Content**: Support for custom HTML content and multi-language
+- **Multi-Language Support**: 40+ locales with intelligent fallback system
 - **Visual Customization**: Complete theme control with colors, fonts, and styling
-- **Interactive Elements**: Multi-button support and social media integration
-- **Data Display**: Structured facts table for key-value information
-- **Image Support**: Dynamic images with fallback to default branding
+- **Data Visualization**: Progress bars, countdown timers, and structured facts tables
+- **Developer-Friendly**: Base template testing with `__base__` locale
 
 ## 📋 Important Note
 
 **This guide covers both template creation and email sending.** 
 
 - **Template Creation**: Use the examples in the [Template Creation](#template-creation) section to create reusable templates in the system
-- **Email Sending**: Use the examples in the [Examples](#examples) section to send emails using existing templates
+- **Email Sending**: Use the examples in the [Showcase Examples](#showcase-examples) section to send emails using existing templates
+
+## ⚠️ Critical: Fallback Syntax Guidelines
+
+### Avoid Nested Variables in Fallbacks
+
+When creating templates with fallback values, **never use nested `{{variable}}` syntax inside fallback values**. This causes Handlebars parsing errors and will prevent template rendering.
+
+#### ✅ Correct Fallback Syntax
+
+```json
+{
+  "title": {
+    "text": "{{title.text|Reset your password}}"
+  },
+  "body": {
+    "paragraphs": [
+      "{{greeting|Hi}} {{user.name|John}},",
+      "{{body.instruction|Click the button below to set a new password. For security, this link will expire in 30 minutes.}}"
+    ]
+  }
+}
+```
+
+#### ❌ Incorrect Fallback Syntax (CAUSES ERRORS)
+
+```json
+// ❌ WRONG - Nested variables in fallback values
+{
+  "body": {
+    "paragraphs": [
+      "{{instruction|Click here to reset password for {{company.name|Waymore}}}}"
+    ]
+  },
+  "footer": {
+    "tagline": "{{footer.tagline|Powered by {{company.name|Waymore}}}}"
+  }
+}
+```
+
+#### Best Practices
+
+1. **Keep fallbacks simple**: Use static text or simple values only
+2. **Create separate variables**: Use `{{company.name}}` and `{{footer.tagline}}` as separate variables
+3. **Test rendering**: Always test template rendering with missing variables
+4. **Follow the examples**: Use the patterns shown in this guide
+
+For more details, see the [Locale System Documentation](./LOCALE_SYSTEM.md#fallback-syntax-guidelines).
 
 For complete email payloads when sending emails, wrap the variables in the full email structure:
 
@@ -54,6 +139,14 @@ For complete email payloads when sending emails, wrap the variables in the full 
 
 Templates are created using the `/api/v1/templates` endpoint. This allows you to create reusable templates that can be referenced by key when sending emails.
 
+### Template Creation Workflow
+
+1. **Design your template structure** using the object-based sections
+2. **Define your variable schema** with proper types and validation
+3. **Create the template** using the API endpoint
+4. **Test with `__base__` locale** to verify structure
+5. **Add locale-specific content** as needed
+
 ### Required Fields
 
 When creating a template, you must provide these required fields:
@@ -66,15 +159,32 @@ When creating a template, you must provide these required fields:
 | `category` | string | ✅ | Template category for organization and filtering |
 | `jsonStructure` | object | ✅ | Complete template definition (see structure below) |
 
-### Template Structure Breakdown
+## 📋 Template Structure
+
+### Object-Based Architecture
+
+The template system uses an organized, object-based structure with clear sections:
+
+| Section | Purpose | Key Properties |
+|---------|---------|----------------|
+| `header` | Branding & logo | `logo_url`, `logo_alt`, `tagline` |
+| `hero` | Visual element | `type`, `icon`, `image_url`, `image_width` |
+| `title` | Main heading | `text`, `size`, `weight`, `color`, `align` |
+| `body` | Content paragraphs | `paragraphs`, `font_size`, `line_height` |
+| `snapshot` | Data display | `title`, `facts`, `style` |
+| `visual` | Progress/countdown | `type`, `progress_bars`, `countdown` |
+| `actions` | Call-to-action buttons | `primary`, `secondary` |
+| `support` | Help links | `title`, `links` |
+| `footer` | Footer content | `tagline`, `social_links`, `legal_links`, `copyright` |
+
+### API Structure
 
 The API expects a **flat structure** with these top-level fields:
 
-#### **Correct API Structure**:
 ```json
 {
   "key": "template-key",
-  "name": "Template Name",
+  "name": "Template Name", 
   "description": "Optional description",
   "category": "transactional",
   "variableSchema": {
@@ -86,19 +196,28 @@ The API expects a **flat structure** with these top-level fields:
 }
 ```
 
-#### **Template Structure** (What goes inside `jsonStructure`):
+### Template Structure Example
+
 The `jsonStructure` contains the actual template definition with Handlebars variables:
+
 ```json
 {
   "header": {
     "logo_url": "{{header.logo_url}}",
+    "logo_alt": "{{header.logo_alt}}",
     "tagline": "{{header.tagline}}"
   },
   "title": {
-    "text": "{{title.text}}"
+    "text": "{{title.text}}",
+    "size": "{{title.size}}",
+    "weight": "{{title.weight}}",
+    "color": "{{title.color}}",
+    "align": "{{title.align}}"
   },
   "body": {
-    "paragraphs": ["{{body.paragraphs}}"]
+    "paragraphs": "{{body.paragraphs}}",
+    "font_size": "{{body.font_size}}",
+    "line_height": "{{body.line_height}}"
   }
 }
 ```
@@ -453,9 +572,9 @@ curl --location 'http://localhost:3000/api/v1/templates/validate' \
 | **Dynamic Headings** | Customizable email titles | `email_title` string |
 | **Personalization** | User-specific content | `user_firstname` + variables |
 
-## 📝 Variable Reference
+## 📝 Variable System
 
-### 🚨 Quick Reference for LLMs
+### 🚨 Quick Reference for Developers
 
 **Template Structure:**
 ```json
@@ -516,49 +635,29 @@ curl --location 'http://localhost:3000/api/v1/templates/validate' \
 }
 ```
 
-**Key Rules:**
+### Variable Naming Conventions
+
+**Best Practices:**
 - ✅ **Object-Based Structure**: Use structured objects for each section (`header`, `hero`, `title`, `body`, `snapshot`, `visual`, `actions`, `support`, `footer`)
-- ✅ **Flexible Variables**: Define any variables you want! Full Handlebars support
-- ✅ Use proper JSON structure with template and variables objects
-- ✅ Don't duplicate information between facts and progress bars
-- ✅ Use consistent variable naming
-- ❌ Don't mix template key/locale with variables
-- ❌ Don't use SVG images
-- ❌ Don't exceed 2 buttons or 5 social links
+- ✅ **Consistent Naming**: Use snake_case for variable names (`user_name`, `company_name`)
+- ✅ **Descriptive Names**: Use clear, descriptive variable names
+- ✅ **Fallback Values**: Always provide fallback values using `{{variable|fallback}}` syntax
+- ❌ **No Nested Fallbacks**: Never use `{{variable}}` inside fallback values
+- ❌ **No Mixed Structure**: Don't mix template key/locale with variables
 
-### 🔧 Object-Based Structure
+### Section Properties Reference
 
-**NEW STRUCTURED SYSTEM**: The template now supports organized object-based sections with comprehensive defaults.
-
-**SECTION OBJECTS:**
-| Section | Type | Description | Default Behavior |
-|---------|------|-------------|------------------|
-| `header` | object | Logo and tagline | Shows company logo with default tagline |
-| `hero` | object | Hero image/icon | Hidden by default, can show image or icon |
-| `title` | object | Email title | Large, bold heading with fallback text |
-| `body` | object | Body paragraphs | 2-3 paragraphs with proper spacing |
-| `snapshot` | object | Facts table | Structured key-value display |
-| `visual` | object | Progress/countdown | Optional visual elements |
-| `actions` | object | CTA buttons | Primary and secondary actions |
-| `support` | object | Help links | FAQ and support resources |
-| `footer` | object | Footer content | Logo, social, legal links |
-
-### 🔧 Object-Based Structure Details
-
-**STRUCTURED SECTIONS**: Each section is a self-contained object with its own properties and styling options.
-
-**SECTION OBJECTS:**
-| Section | Type | Description | Properties |
-|---------|------|-------------|------------|
-| `header` | object | Logo and tagline | `logo_url`, `logo_alt`, `tagline` |
-| `hero` | object | Hero image/icon | `type`, `icon`, `icon_size`, `image_url`, `image_alt`, `image_width` |
-| `title` | object | Email title | `text`, `size`, `weight`, `color`, `align` |
-| `body` | object | Body paragraphs | `paragraphs`, `font_size`, `line_height` |
-| `snapshot` | object | Facts table | `title`, `facts`, `style` |
-| `visual` | object | Progress/countdown | `type`, `progress_bars`, `countdown` |
-| `actions` | object | CTA buttons | `primary`, `secondary` |
-| `support` | object | Help links | `title`, `links` |
-| `footer` | object | Footer content | `tagline`, `social_links`, `legal_links`, `copyright` |
+| Section | Properties | Description |
+|---------|------------|-------------|
+| `header` | `logo_url`, `logo_alt`, `tagline` | Branding and company identity |
+| `hero` | `type`, `icon`, `icon_size`, `image_url`, `image_alt`, `image_width` | Visual elements (icons or images) |
+| `title` | `text`, `size`, `weight`, `color`, `align` | Main email heading |
+| `body` | `paragraphs`, `font_size`, `line_height` | Email content and formatting |
+| `snapshot` | `title`, `facts`, `style` | Structured data display |
+| `visual` | `type`, `progress_bars`, `countdown` | Progress indicators and timers |
+| `actions` | `primary`, `secondary` | Call-to-action buttons |
+| `support` | `title`, `links` | Help and support resources |
+| `footer` | `tagline`, `social_links`, `legal_links`, `copyright` | Footer content and links |
 
 
 ## 🎨 Theme Customization
@@ -632,34 +731,47 @@ The `theme` object allows complete visual customization:
 
 ## 🌍 Multi-Language Support
 
-### Content Object
+### Supported Locales
 
-The `content` object supports multiple languages with automatic fallback:
+The system supports 40+ standard ISO 639-1 language codes:
 
-```json
-{
-  "content": {
-    "en": "Welcome to our platform!",
-    "es": "¡Bienvenido a nuestra plataforma!",
-    "fr": "Bienvenue sur notre plateforme!",
-    "de": "Willkommen auf unserer Plattform!",
-    "it": "Benvenuto nella nostra piattaforma!",
-    "pt": "Bem-vindo à nossa plataforma!"
-  }
-}
-```
+**Primary Locales:**
+- `en` - English, `es` - Spanish, `fr` - French, `de` - German, `it` - Italian, `pt` - Portuguese
 
-### Locale Support
+**Extended Locales:**
+- `ru` - Russian, `ja` - Japanese, `ko` - Korean, `zh` - Chinese, `ar` - Arabic, `hi` - Hindi
 
-The template automatically selects content based on the `locale` parameter:
+**European Locales:**
+- `nl` - Dutch, `sv` - Swedish, `da` - Danish, `no` - Norwegian, `fi` - Finnish, `pl` - Polish, `tr` - Turkish, `cs` - Czech, `sk` - Slovak, `hu` - Hungarian, `ro` - Romanian, `bg` - Bulgarian, `hr` - Croatian, `sl` - Slovenian, `et` - Estonian, `lv` - Latvian, `lt` - Lithuanian, `el` - Greek, `mt` - Maltese, `cy` - Welsh, `ga` - Irish, `is` - Icelandic, `fo` - Faroese, `eu` - Basque
 
-- **Standard locales**: `"en"`, `"es"`, `"fr"`, `"de"`, `"it"`, `"pt"`, `"ru"`, `"ja"`, `"ko"`, `"zh"`, `"ar"`, `"hi"`, `"nl"`, `"sv"`, `"da"`, `"no"`, `"fi"`, `"pl"`, `"tr"`, `"cs"`, `"sk"`, `"hu"`, `"ro"`, `"bg"`, `"hr"`, `"sl"`, `"et"`, `"lv"`, `"lt"`, `"el"`, `"mt"`, `"cy"`, `"ga"`, `"is"`, `"fo"`, `"eu"`
-- **Special locale**: `"__base__"` - Uses the base template structure with variables (no locale-specific content)
-- **Fallback Strategy**: If locale not found, falls back to the **base template structure** (not a specific locale like "en")
-- **Base Template**: Contains the original variables and structure defined when the template was created
+### Special Locale: `__base__`
 
-### Implementation
+The `__base__` locale is a special identifier that uses the base template structure with variables intact.
 
+**When to Use `__base__`:**
+- **Testing**: Verify template structure and variable detection
+- **Debugging**: Check how variables are processed
+- **Development**: Preview the template with variable placeholders
+- **Documentation**: Show the template structure to developers
+
+### Fallback Strategy
+
+The system uses an intelligent fallback strategy:
+
+1. **Request for specific locale** (e.g., "es")
+2. **Check if locale exists** in the database
+3. **If locale exists**: Use locale-specific content merged with base template
+4. **If locale doesn't exist**: Use **base template structure only** (no locale merging)
+
+**Benefits:**
+- **Predictable**: Always falls back to what the developer originally defined
+- **No Assumptions**: Doesn't assume "en" exists or is the default
+- **Variable Preservation**: Variables remain intact in fallback scenarios
+- **Developer-Friendly**: Matches natural template creation workflow
+
+### Implementation Examples
+
+**Standard Locale Usage:**
 ```json
 {
   "template": {
@@ -676,7 +788,7 @@ The template automatically selects content based on the `locale` parameter:
 }
 ```
 
-**Using Base Template Structure:**
+**Base Template Usage (for testing/debugging):**
 ```json
 {
   "template": {
@@ -691,11 +803,13 @@ The template automatically selects content based on the `locale` parameter:
 }
 ```
 
-When using `__base__`, the email will contain the original variable placeholders (e.g., `{{user.name}}`) instead of resolved values. This is useful for:
-- **Testing**: Verify template structure and variable detection
-- **Debugging**: Check how variables are processed
-- **Development**: Preview the template with variable placeholders
-- **Documentation**: Show the template structure to developers
+### Best Practices for Multi-Language
+
+1. **Start with Base Template**: Create the base template structure first
+2. **Add Locales Gradually**: Add locale-specific content as needed
+3. **Test with `__base__`**: Always test with base template first
+4. **Use Consistent Variables**: Keep variables consistent across all locales
+5. **Provide Fallbacks**: Always have fallback content for missing variables
 
 ## 📊 Data Structures
 
@@ -831,7 +945,119 @@ Add countdown timers for time-sensitive content:
 ```
 
 
-## 💡 Examples
+## 🎯 Showcase Examples
+
+### SaaS Quota Research Showcase
+
+The **SaaS Quota Research Showcase** (`saas-quota-research-showcase`) demonstrates all template capabilities with realistic SaaS content and multi-language support.
+
+#### Features Demonstrated
+
+| Feature | Implementation | Description |
+|---------|----------------|-------------|
+| **Header** | Logo + Tagline | Company branding with dynamic logo |
+| **Hero** | Icon Display | 📊 Research icon with custom sizing |
+| **Title** | Dynamic Styling | Customizable title with full styling options |
+| **Body** | Multi-Paragraph | 4 paragraphs with custom fonts and spacing |
+| **Snapshot** | Facts Table | 6 usage metrics in structured table |
+| **Visual** | Progress Bars | API usage visualization with percentage |
+| **Actions** | Dual Buttons | Primary (survey) + Secondary (dashboard) |
+| **Support** | Help Links | 3 support links with proper URLs |
+| **Footer** | Complete | Social links + Legal links + Copyright |
+| **Theme** | Custom Styling | Professional SaaS color scheme |
+| **Multi-Language** | EL/ES | Full translations for both locales |
+
+#### Greek Email Example
+
+```json
+{
+  "to": [{"email": "john.doe@example.com", "name": "Γιάννης Δημητρίου"}],
+  "from": {"email": "research@waymore.io", "name": "Ομάδα Έρευνας Waymore"},
+  "subject": "Βοηθήστε μας να βελτιώσουμε την εμπειρία σας - Έρευνα",
+  "template": {"key": "saas-quota-research-showcase", "locale": "el"},
+  "variables": {
+    "user": {
+      "name": "Γιάννης",
+      "email": "john.doe@example.com",
+      "role": "Διευθυντής Προϊόντος",
+      "department": "Μηχανική"
+    },
+    "company": {
+      "name": "Waymore",
+      "logo_url": "https://i.ibb.co/8LfvqPk7/Waymore-logo-Colour.png",
+      "website": "https://waymore.io"
+    },
+    "quota": {
+      "current_usage": 7500,
+      "limit": 10000,
+      "percentage": 75,
+      "period": "Μηνιαίος",
+      "reset_date": "1 Μαρτίου 2024"
+    },
+    "usage": {
+      "api_calls": 7500,
+      "storage_gb": 12.5,
+      "users_count": 8,
+      "integrations": 5
+    },
+    "research": {
+      "title": "Βοηθήστε μας να βελτιώσουμε την εμπειρία σας",
+      "description": "Διεξάγουμε έρευνα για να κατανοήσουμε καλύτερα πώς χρησιμοποιείτε την πλατφόρμα μας και πώς μπορούμε να βελτιώσουμε την εμπειρία σας.",
+      "incentive": "θα λάβετε πίστωση $50 στον λογαριασμό σας",
+      "survey_url": "https://waymore.io/research/survey?token=abc123&lang=el"
+    }
+  }
+}
+```
+
+#### Spanish Email Example
+
+```json
+{
+  "to": [{"email": "juan.perez@example.com", "name": "Juan Pérez"}],
+  "from": {"email": "research@waymore.io", "name": "Equipo de Investigación Waymore"},
+  "subject": "Ayúdanos a Mejorar Tu Experiencia - Encuesta de Investigación",
+  "template": {"key": "saas-quota-research-showcase", "locale": "es"},
+  "variables": {
+    "user": {
+      "name": "Juan",
+      "email": "juan.perez@example.com",
+      "role": "Gerente de Producto",
+      "department": "Ingeniería"
+    },
+    "quota": {
+      "current_usage": 7500,
+      "limit": 10000,
+      "percentage": 75,
+      "period": "Mensual",
+      "reset_date": "1 de marzo, 2024"
+    },
+    "research": {
+      "title": "Ayúdanos a Mejorar Tu Experiencia",
+      "description": "Estamos realizando una investigación para entender mejor cómo usas nuestra plataforma y cómo podemos mejorar tu experiencia.",
+      "incentive": "recibirás un crédito de $50 en tu cuenta",
+      "survey_url": "https://waymore.io/research/survey?token=abc123&lang=es"
+    }
+  }
+}
+```
+
+### Professional Design Features
+
+#### Color Scheme
+- **Primary**: `#10b981` (Green) - Research survey button
+- **Secondary**: `#6b7280` (Gray) - Dashboard button  
+- **Progress**: `#3b82f6` (Blue) - Usage progress bar
+- **Text**: `#2c3e50` (Dark Blue) - Body text
+- **Headings**: `#1a1a1a` (Black) - Title and headings
+
+#### Typography
+- **Font Family**: `'Inter', 'Helvetica Neue', Arial, sans-serif`
+- **Title Size**: `32px` with `700` weight
+- **Body Size**: `16px` with `26px` line height
+- **Professional**: Clean, modern SaaS typography
+
+## 💡 Additional Examples
 
 ### Welcome Email
 
@@ -1815,6 +2041,39 @@ Categories must be one of the predefined values:
 | `/api/v1/templates/:key/validate` | POST | Validate template variables |
 | `/api/v1/templates/validate` | POST | Validate template structure |
 
+## 📚 API Reference
+
+### Template Management Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/templates` | GET | List all templates |
+| `/api/v1/templates` | POST | Create new template |
+| `/api/v1/templates/:key` | GET | Get specific template |
+| `/api/v1/templates/:key` | PUT | Update template |
+| `/api/v1/templates/:key` | DELETE | Delete template |
+| `/api/v1/templates/:key/validate` | POST | Validate template variables |
+| `/api/v1/templates/validate` | POST | Validate template structure |
+
+### Email Sending Endpoint
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/emails` | POST | Send email using template |
+
+### Template Categories
+
+**Valid Categories:**
+- ✅ `transactional` - Essential account-related emails
+- ✅ `marketing` - Promotional and marketing emails  
+- ✅ `notification` - System-generated notifications
+- ✅ `test` - Development and testing templates
+
+**Invalid Categories:**
+- ❌ Custom categories (e.g., `custom`, `my-category`)
+- ❌ Empty or null values
+- ❌ Non-string values
+
 ## 🎯 Best Practices
 
 ### ✅ Do's
@@ -1828,7 +2087,7 @@ Categories must be one of the predefined values:
 6. **Choose appropriate categories**: Use correct category for template type (transactional, marketing, notification, test)
 7. **Test template creation**: Verify templates are created successfully before using
 
-#### Template Structure
+#### Template Structure (Based on Showcase Template)
 8. **Use object-based structure**: Use structured sections (`header`, `hero`, `title`, `body`, `snapshot`, `visual`, `actions`, `support`, `footer`)
 9. **Use proper JSON structure**: Wrap template key/locale in `template` object, variables in `variables` object
 10. **Avoid redundancy**: Don't duplicate information between facts table and progress bars
@@ -1841,6 +2100,16 @@ Categories must be one of the predefined values:
 17. **Provide fallbacks**: Always have fallback content for missing variables
 18. **Include footer links**: Add privacy policy, terms, and unsubscribe links
 19. **Use structured data**: Leverage the object-based structure for better organization
+20. **Test with `__base__` locale**: Always test base template structure first
+21. **Use realistic data**: Include realistic usage metrics and professional content
+22. **Implement proper theming**: Use consistent color schemes and typography
+
+#### Multi-Language Best Practices
+23. **Start with base template**: Create base template structure first
+24. **Add locales gradually**: Add locale-specific content as needed
+25. **Use consistent variables**: Keep variables consistent across all locales
+26. **Test fallback behavior**: Verify fallback behavior works correctly
+27. **Use proper locale codes**: Use standard ISO 639-1 language codes
 
 ### ❌ Don'ts
 
@@ -1854,20 +2123,26 @@ Categories must be one of the predefined values:
 7. **Don't use custom categories**: Stick to predefined categories only
 
 #### Template Structure
-7. **Don't use SVG images**: Poor email client support
-8. **Don't use external CSS**: Email clients strip external stylesheets
-9. **Don't use complex layouts**: Keep it simple for better compatibility
-10. **Don't forget alt text**: Important for accessibility
-11. **Don't use too many buttons**: Max 2 buttons for better UX
-12. **Don't use long URLs**: Shorten URLs for better display
-13. **Don't forget mobile**: Test on mobile devices
-14. **Don't use too many social links**: 3-5 links maximum
-15. **Don't forget footer links**: Include unsubscribe and privacy policy links
-16. **Don't use too many footer links**: 3-4 links maximum for better readability
-17. **Don't duplicate information**: Avoid showing the same data in both facts table and progress bars
-18. **Don't mix template structure**: Keep template key/locale separate from variables
+8. **Don't use SVG images**: Poor email client support
+9. **Don't use external CSS**: Email clients strip external stylesheets
+10. **Don't use complex layouts**: Keep it simple for better compatibility
+11. **Don't forget alt text**: Important for accessibility
+12. **Don't use too many buttons**: Max 2 buttons for better UX
+13. **Don't use long URLs**: Shorten URLs for better display
+14. **Don't forget mobile**: Test on mobile devices
+15. **Don't use too many social links**: 3-5 links maximum
+16. **Don't forget footer links**: Include unsubscribe and privacy policy links
+17. **Don't use too many footer links**: 3-4 links maximum for better readability
+18. **Don't duplicate information**: Avoid showing the same data in both facts table and progress bars
+19. **Don't mix template structure**: Keep template key/locale separate from variables
+20. **Don't use nested fallbacks**: Never use `{{variable}}` inside fallback values
 
-### 🎨 Design Guidelines
+#### Multi-Language Don'ts
+21. **Don't assume "en" fallback**: System falls back to base template structure, not "en"
+22. **Don't skip base template testing**: Always test with `__base__` locale first
+23. **Don't use invalid locale codes**: Stick to supported ISO 639-1 codes
+
+### 🎨 Design Guidelines (From Showcase Template)
 
 1. **Color Contrast**: Ensure sufficient contrast for readability
 2. **Font Sizes**: Use at least 14px for body text
@@ -1875,6 +2150,10 @@ Categories must be one of the predefined values:
 4. **Spacing**: Use consistent spacing between elements
 5. **Images**: Optimize for retina displays (2x resolution)
 6. **Loading**: Keep total email size under 100KB
+7. **Professional Typography**: Use modern font families like Inter or Helvetica Neue
+8. **Consistent Branding**: Apply brand colors consistently across all elements
+9. **Data Visualization**: Use progress bars and structured tables for data display
+10. **Accessibility**: Include proper alt text and semantic HTML structure
 
 ## 🔧 Template Validation
 
@@ -2205,6 +2484,34 @@ If you encounter issues:
 
 ---
 
-**Last Updated**: September 2025  
-**Template Version**: Transactional v2.1.0 (Object-Based Structure with Template Creation)  
-**Guide Version**: 2.1.0 - Added comprehensive template creation and validation documentation
+**Last Updated**: January 2025  
+**Template Version**: Transactional v2.2.0 (Enhanced Developer Experience with Showcase Examples)  
+**Guide Version**: 2.2.0 - Restructured for developers with showcase template best practices and enhanced locale system documentation
+
+## 🎯 Key Improvements in This Version
+
+### For Developers
+- **Quick Start Section**: Immediate examples for template creation and email sending
+- **Restructured Content**: Developer-focused organization with clear sections
+- **Showcase Examples**: Real-world SaaS quota research template with multi-language support
+- **Enhanced API Reference**: Complete endpoint documentation and category validation
+- **Best Practices Integration**: Showcase template best practices integrated throughout
+
+### Template System Enhancements
+- **Object-Based Architecture**: Clear section organization and properties reference
+- **Enhanced Locale System**: 40+ locales with intelligent fallback and `__base__` testing
+- **Professional Examples**: Realistic SaaS content with Greek and Spanish translations
+- **Comprehensive Validation**: Template structure validation and error handling
+- **Developer-Friendly Testing**: Base template testing with `__base__` locale
+
+### Documentation Structure
+- **Quick Start**: Immediate examples for getting started
+- **Developer Overview**: System capabilities and features
+- **Template Creation**: Step-by-step workflow and requirements
+- **Template Structure**: Object-based architecture and API structure
+- **Variable System**: Naming conventions and section properties
+- **Multi-Language Support**: Locale system with fallback strategies
+- **Showcase Examples**: Real-world template demonstrations
+- **API Reference**: Complete endpoint documentation
+- **Best Practices**: Comprehensive do's and don'ts with showcase insights
+- **Troubleshooting**: Common issues and solutions

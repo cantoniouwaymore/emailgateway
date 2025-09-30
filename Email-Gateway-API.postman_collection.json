@@ -1,9 +1,9 @@
 {
   "info": {
     "name": "Waymore Transactional Emails Service API",
-    "description": "Complete API collection for the Waymore Transactional Emails Service v2.1. Updated to reflect the actual implemented API endpoints including authentication, email sending, comprehensive template management, admin monitoring, webhook testing, and system health checks.",
+    "description": "Complete API collection for the Waymore Transactional Emails Service v2.2. Updated to reflect the actual implemented API endpoints including authentication, email sending, comprehensive template management with fallback syntax validation, admin monitoring, webhook testing, and system health checks.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "version": "2.1.0"
+    "version": "2.2.0"
   },
   "auth": {
     "type": "bearer",
@@ -202,6 +202,41 @@
               "body": "{\n  \"messageId\": \"msg_abc123\",\n  \"status\": \"queued\"\n}"
             }
           ]
+        },
+        {
+          "name": "Send Email - Base Template (Variables)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$timestamp}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": {\n    \"email\": \"noreply@waymore.io\",\n    \"name\": \"Waymore System\"\n  },\n  \"subject\": \"Password Reset Request\",\n  \"template\": {\n    \"key\": \"forgot-password\",\n    \"locale\": \"__base__\"\n  },\n  \"to\": [\n    {\n      \"email\": \"{{recipient_email}}\",\n      \"name\": \"{{recipient_name}}\"\n    }\n  ],\n  \"variables\": {\n    \"user.name\": \"{{user_firstname}}\",\n    \"company.name\": \"Waymore\",\n    \"company.logo_url\": \"https://i.ibb.co/8LfvqPk7/Waymore-logo-Colour.png\",\n    \"title.text\": \"Reset your password\",\n    \"greeting\": \"Hello\",\n    \"body.intro\": \"We received a request to reset your password\",\n    \"body.instruction\": \"Click the button below to set a new password\",\n    \"body.security_note\": \"If you did not request this, please ignore this email\",\n    \"reset.url\": \"https://app.waymore.io/reset-password?token=abc123\",\n    \"reset.expiry_minutes\": \"30\",\n    \"security.request_ip\": \"192.168.1.1\",\n    \"security.request_location\": \"New York, NY\",\n    \"security.device\": \"MacBook Pro\",\n    \"security.browser\": \"Chrome 120.0\",\n    \"security.request_time\": \"Dec 15, 2024 at 2:30 PM\",\n    \"footer.tagline\": \"Powered by Waymore\",\n    \"footer.copyright\": \"© 2024 Waymore. All rights reserved.\",\n    \"footer.legal.privacy.url\": \"https://waymore.io/privacy\",\n    \"footer.legal.privacy.label\": \"Privacy Policy\",\n    \"footer.legal.terms.url\": \"https://waymore.io/terms\",\n    \"footer.legal.terms.label\": \"Terms of Service\"\n  },\n  \"metadata\": {\n    \"tenantId\": \"acme_corp\",\n    \"eventId\": \"password_reset\",\n    \"notificationType\": \"security\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/emails",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "emails"]
+            },
+            "description": "Send email using the base template structure with variables (__base__ locale). This demonstrates how to use the base template that contains Handlebars variables instead of resolved values. The system will use the base template structure and render it with the provided variables."
+          }
         },
         {
           "name": "Send Email - Payment Success (Database Template)",
@@ -912,7 +947,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"key\": \"welcome-email\",\n  \"name\": \"Welcome Email\",\n  \"description\": \"Welcome new users to the platform\",\n  \"category\": \"onboarding\",\n  \"locale\": \"{{locale}}\",\n  \"variableSchema\": {\n    \"type\": \"object\",\n    \"properties\": {\n      \"user_name\": {\"type\": \"string\"},\n      \"company_name\": {\"type\": \"string\"},\n      \"dashboard_url\": {\"type\": \"string\"}\n    },\n    \"required\": [\"user_name\", \"company_name\", \"dashboard_url\"]\n  },\n  \"jsonStructure\": {\n    \"title\": {\n      \"text\": \"Welcome to {{company_name}}!\",\n      \"size\": \"28px\",\n      \"weight\": \"700\",\n      \"color\": \"#1f2937\",\n      \"align\": \"center\"\n    },\n    \"body\": {\n      \"paragraphs\": [\n        \"Hello {{user_name}}, welcome to {{company_name}}!\",\n        \"We're excited to have you on board. Click the button below to get started:\"\n      ],\n      \"fontSize\": \"16px\",\n      \"lineHeight\": \"26px\"\n    },\n    \"actions\": {\n      \"primary\": {\n        \"label\": \"Get Started\",\n        \"url\": \"{{dashboard_url}}\",\n        \"style\": \"button\",\n        \"color\": \"#3b82f6\",\n        \"text_color\": \"#ffffff\"\n      }\n    },\n    \"footer\": {\n      \"tagline\": \"{{company_name}} - Your Success Partner\",\n      \"copyright\": \"© 2024 {{company_name}}. All rights reserved.\"\n    }\n  }\n}",
+              "raw": "{\n  \"key\": \"welcome-email\",\n  \"name\": \"Welcome Email\",\n  \"description\": \"Welcome new users to the platform with proper fallback syntax\",\n  \"category\": \"onboarding\",\n  \"variableSchema\": {\n    \"type\": \"object\",\n    \"properties\": {\n      \"user_name\": {\"type\": \"string\"},\n      \"company_name\": {\"type\": \"string\"},\n      \"dashboard_url\": {\"type\": \"string\"}\n    },\n    \"required\": [\"user_name\", \"company_name\", \"dashboard_url\"]\n  },\n  \"jsonStructure\": {\n    \"title\": {\n      \"text\": \"{{title.text|Welcome to Waymore!}}\",\n      \"size\": \"{{title.size|28px}}\",\n      \"weight\": \"{{title.weight|700}}\",\n      \"color\": \"{{title.color|#1f2937}}\",\n      \"align\": \"{{title.align|center}}\"\n    },\n    \"body\": {\n      \"paragraphs\": [\n        \"{{greeting|Hello}} {{user_name|John}}, {{welcome.message|welcome to our platform!}}\",\n        \"{{body.instruction|We're excited to have you on board. Click the button below to get started:}}\"\n      ],\n      \"fontSize\": \"{{body.fontSize|16px}}\",\n      \"lineHeight\": \"{{body.lineHeight|26px}}\"\n    },\n    \"actions\": {\n      \"primary\": {\n        \"label\": \"{{actions.primary.label|Get Started}}\",\n        \"url\": \"{{dashboard_url|https://app.example.com}}\",\n        \"style\": \"{{actions.primary.style|button}}\",\n        \"color\": \"{{actions.primary.color|#3b82f6}}\",\n        \"text_color\": \"{{actions.primary.text_color|#ffffff}}\"\n      }\n    },\n    \"footer\": {\n      \"tagline\": \"{{footer.tagline|Waymore - Your Success Partner}}\",\n      \"copyright\": \"{{footer.copyright|© 2024 Waymore. All rights reserved.}}\"\n    }\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -924,7 +959,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "templates"]
             },
-            "description": "Create a new email template. Locale must be a valid ISO 639-1 language code (e.g., 'en', 'es', 'fr', 'de'). Defaults to 'en' if not provided."
+            "description": "Create a new email template with fallback syntax validation. \n\n⚠️ **IMPORTANT**: The system validates fallback syntax to prevent Handlebars parsing errors.\n\n✅ **Valid fallback syntax**: `{{variable|fallback_value}}`\n❌ **Invalid fallback syntax**: `{{variable|text with {{nested}} variables}}`\n\n**Error codes**:\n- `INVALID_FALLBACK_SYNTAX`: Nested variables in fallback values\n- `VALIDATION_ERROR`: Missing required fields\n- `TEMPLATE_EXISTS`: Template key already exists"
           }
         },
         {
@@ -990,7 +1025,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"locale\": \"{{locale}}\",\n  \"jsonStructure\": {\n    \"title\": {\n      \"text\": \"¡Bienvenido a {{company_name}}!\",\n      \"size\": \"28px\",\n      \"weight\": \"700\",\n      \"color\": \"#1f2937\",\n      \"align\": \"center\"\n    },\n    \"body\": {\n      \"paragraphs\": [\n        \"¡Hola {{user_name}}, bienvenido a {{company_name}}!\",\n        \"Estamos emocionados de tenerte a bordo. Haz clic en el botón de abajo para comenzar:\"\n      ],\n      \"fontSize\": \"16px\",\n      \"lineHeight\": \"26px\"\n    },\n    \"actions\": {\n      \"primary\": {\n        \"label\": \"Comenzar\",\n        \"url\": \"{{dashboard_url}}\",\n        \"style\": \"button\",\n        \"color\": \"#3b82f6\",\n        \"text_color\": \"#ffffff\"\n      }\n    },\n    \"footer\": {\n      \"tagline\": \"{{company_name}} - Tu Socio de Éxito\",\n      \"copyright\": \"© 2024 {{company_name}}. Todos los derechos reservados.\"\n    }\n  }\n}",
+              "raw": "{\n  \"locale\": \"{{locale}}\",\n  \"jsonStructure\": {\n    \"title\": {\n      \"text\": \"{{title.text|¡Bienvenido a Waymore!}}\",\n      \"size\": \"{{title.size|28px}}\",\n      \"weight\": \"{{title.weight|700}}\",\n      \"color\": \"{{title.color|#1f2937}}\",\n      \"align\": \"{{title.align|center}}\"\n    },\n    \"body\": {\n      \"paragraphs\": [\n        \"{{greeting|¡Hola}} {{user_name|Juan}}, {{welcome.message|bienvenido a nuestra plataforma!}}\",\n        \"{{body.instruction|Estamos emocionados de tenerte a bordo. Haz clic en el botón de abajo para comenzar:}}\"\n      ],\n      \"fontSize\": \"{{body.fontSize|16px}}\",\n      \"lineHeight\": \"{{body.lineHeight|26px}}\"\n    },\n    \"actions\": {\n      \"primary\": {\n        \"label\": \"{{actions.primary.label|Comenzar}}\",\n        \"url\": \"{{dashboard_url|https://app.example.com}}\",\n        \"style\": \"{{actions.primary.style|button}}\",\n        \"color\": \"{{actions.primary.color|#3b82f6}}\",\n        \"text_color\": \"{{actions.primary.text_color|#ffffff}}\"\n      }\n    },\n    \"footer\": {\n      \"tagline\": \"{{footer.tagline|Waymore - Tu Socio de Éxito}}\",\n      \"copyright\": \"{{footer.copyright|© 2024 Waymore. Todos los derechos reservados.}}\"\n    }\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1002,7 +1037,39 @@
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "templates", "{{template_key}}", "locales"]
             },
-            "description": "Add a locale-specific version of a template. Locale must be a valid ISO 639-1 language code (e.g., 'en', 'es', 'fr', 'de')."
+            "description": "Add a locale-specific version of a template with fallback syntax validation.\n\n⚠️ **IMPORTANT**: The system validates fallback syntax to prevent Handlebars parsing errors.\n\n✅ **Valid fallback syntax**: `{{variable|fallback_value}}`\n❌ **Invalid fallback syntax**: `{{variable|text with {{nested}} variables}}`\n\n**Error codes**:\n- `INVALID_FALLBACK_SYNTAX`: Nested variables in fallback values\n- `INVALID_LOCALE`: Invalid locale code format\n- `TEMPLATE_NOT_FOUND`: Template key doesn't exist"
+          }
+        },
+        {
+          "name": "Add Locale (Invalid Fallback - Will Fail)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"locale\": \"{{locale}}\",\n  \"jsonStructure\": {\n    \"title\": {\n      \"text\": \"{{title.text|Welcome to {{company_name|Waymore}}}}\",\n      \"size\": \"{{title.size|28px}}\",\n      \"weight\": \"{{title.weight|700}}\",\n      \"color\": \"{{title.color|#1f2937}}\",\n      \"align\": \"{{title.align|center}}\"\n    },\n    \"body\": {\n      \"paragraphs\": [\n        \"{{greeting|Hello}} {{user_name|John}}, {{welcome.message|welcome to {{company_name|Waymore}}!}}\",\n        \"{{body.instruction|Click here to reset password for {{company.name|Waymore}}}}\"\n      ],\n      \"fontSize\": \"{{body.fontSize|16px}}\",\n      \"lineHeight\": \"{{body.lineHeight|26px}}\"\n    },\n    \"footer\": {\n      \"tagline\": \"{{footer.tagline|Powered by {{company.name|Waymore}}}}\",\n      \"copyright\": \"{{footer.copyright|© 2024 {{company.name|Waymore}}. All rights reserved.}}\"\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/templates/{{template_key}}/locales",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "templates", "{{template_key}}", "locales"]
+            },
+            "description": "❌ **DEMONSTRATION**: This request will FAIL due to invalid nested fallback syntax.\n\n**Expected Error**: `INVALID_FALLBACK_SYNTAX`\n\n**Invalid patterns in this request**:\n- `{{title.text|Welcome to {{company_name|Waymore}}}}`\n- `{{welcome.message|welcome to {{company_name|Waymore}}!}}`\n- `{{body.instruction|Click here to reset password for {{company.name|Waymore}}}}`\n- `{{footer.tagline|Powered by {{company.name|Waymore}}}}`\n\n**Fix**: Use separate variables instead of nested fallbacks."
           }
         },
         {
@@ -1034,7 +1101,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "templates", "{{template_key}}", "locales", "{{locale}}"]
             },
-            "description": "Update a locale-specific version of a template. Locale in URL must be a valid ISO 639-1 language code (e.g., 'en', 'es', 'fr', 'de')."
+            "description": "Update a locale-specific version of a template with fallback syntax validation.\n\n⚠️ **IMPORTANT**: The system validates fallback syntax to prevent Handlebars parsing errors.\n\n✅ **Valid fallback syntax**: `{{variable|fallback_value}}`\n❌ **Invalid fallback syntax**: `{{variable|text with {{nested}} variables}}`\n\n**Error codes**:\n- `INVALID_FALLBACK_SYNTAX`: Nested variables in fallback values\n- `INVALID_LOCALE`: Invalid locale code format\n- `TEMPLATE_NOT_FOUND`: Template key doesn't exist"
           }
         },
         {

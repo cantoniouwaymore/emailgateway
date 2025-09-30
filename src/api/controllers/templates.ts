@@ -112,6 +112,20 @@ export class TemplateController {
         return;
       }
 
+      // Validate fallback syntax to prevent nested variable errors
+      const fallbackValidation = this.validateFallbackSyntax(templateData.jsonStructure);
+      if (!fallbackValidation.valid) {
+        reply.code(400).send({
+          error: {
+            code: 'INVALID_FALLBACK_SYNTAX',
+            message: fallbackValidation.message,
+            details: fallbackValidation.details,
+            traceId: request.id
+          }
+        });
+        return;
+      }
+
       // Check if template already exists (including inactive ones)
       const existingTemplate = await this.templateEngine.getTemplateForCreation(templateData.key);
       if (existingTemplate) {
@@ -189,6 +203,22 @@ export class TemplateController {
           }
         });
         return;
+      }
+
+      // Validate fallback syntax to prevent nested variable errors
+      if (templateData.jsonStructure) {
+        const fallbackValidation = this.validateFallbackSyntax(templateData.jsonStructure);
+        if (!fallbackValidation.valid) {
+          reply.code(400).send({
+            error: {
+              code: 'INVALID_FALLBACK_SYNTAX',
+              message: fallbackValidation.message,
+              details: fallbackValidation.details,
+              traceId: request.id
+            }
+          });
+          return;
+        }
       }
 
       // Detect variables in the template structure
@@ -275,6 +305,20 @@ export class TemplateController {
           error: {
             code: 'INVALID_LOCALE',
             message: `Invalid locale: ${locale}. Must be a valid ISO 639-1 language code (e.g., 'en', 'es', 'fr')`,
+            traceId: request.id
+          }
+        });
+        return;
+      }
+
+      // Validate fallback syntax to prevent nested variable errors
+      const fallbackValidation = this.validateFallbackSyntax(jsonStructure);
+      if (!fallbackValidation.valid) {
+        reply.code(400).send({
+          error: {
+            code: 'INVALID_FALLBACK_SYNTAX',
+            message: fallbackValidation.message,
+            details: fallbackValidation.details,
             traceId: request.id
           }
         });
@@ -1060,6 +1104,68 @@ export class TemplateController {
         details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
+  }
+
+  /**
+   * Validates fallback syntax to prevent nested variable errors
+   * @param obj - The template structure to validate
+   * @param path - Current path in the object (for error reporting)
+   * @returns Validation result with details about any issues found
+   */
+  private validateFallbackSyntax(obj: any, path: string = ''): { valid: boolean; message?: string; details?: any } {
+    if (obj === null || obj === undefined) {
+      return { valid: true };
+    }
+    
+    if (typeof obj === 'string') {
+      // Check for nested {{}} patterns in fallback values
+      // Look for patterns like {{variable|fallback with {{nested}} content}}
+      const fallbackPattern = /\{\{([^|}]+)\|([^}]*\{\{[^}]*\}\}[^}]*)\}\}/g;
+      let match;
+      
+      while ((match = fallbackPattern.exec(obj)) !== null) {
+        const variable = match[1].trim();
+        const fallback = match[2].trim();
+        
+        return {
+          valid: false,
+          message: 'Nested variables in fallback values are not allowed',
+          details: {
+            path: path || 'root',
+            variable: variable,
+            fallback: fallback,
+            issue: 'Fallback value contains nested {{variable}} syntax which causes Handlebars parsing errors',
+            fix: 'Use separate variables instead of nested fallbacks'
+          }
+        };
+      }
+      
+      return { valid: true };
+    }
+    
+    if (Array.isArray(obj)) {
+      for (let i = 0; i < obj.length; i++) {
+        const itemPath = path ? `${path}[${i}]` : `[${i}]`;
+        const result = this.validateFallbackSyntax(obj[i], itemPath);
+        if (!result.valid) {
+          return result;
+        }
+      }
+      return { valid: true };
+    }
+    
+    if (typeof obj === 'object') {
+      for (const key of Object.keys(obj)) {
+        const keyPath = path ? `${path}.${key}` : key;
+        const result = this.validateFallbackSyntax(obj[key], keyPath);
+        if (!result.valid) {
+          return result;
+        }
+      }
+      return { valid: true };
+    }
+    
+    return { valid: true };
   }
 
   private generatePreviewHTML(templateStructure: any, variables: Record<string, any> = {}): string {
