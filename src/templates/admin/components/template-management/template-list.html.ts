@@ -16,9 +16,6 @@ export function generateTemplateListSection(): string {
               <button onclick="showSectionBasedTemplateModal()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
                 <i class="fas fa-magic mr-2"></i>Visual Builder
               </button>
-              <button onclick="showCreateTemplateModal()" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
-                <i class="fas fa-code mr-2"></i>JSON Editor
-              </button>
             </div>
           </div>
         </div>
