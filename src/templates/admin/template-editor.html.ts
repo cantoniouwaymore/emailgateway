@@ -88,6 +88,9 @@ export function generateTemplateEditorHTML(): string {
                   <button onclick="showCreateLocaleDialog()" class="btn btn-secondary" title="Create New Locale">
                     <i class="fas fa-plus"></i>
                   </button>
+                  <button id="delete-locale-btn" onclick="deleteCurrentLocale()" class="btn btn-danger" title="Delete Current Locale" style="display: none;">
+                    <i class="fas fa-trash"></i>
+                  </button>
                 </div>
                 <div id="create-locale-dialog" class="mt-2 hidden">
                   <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
@@ -428,6 +431,97 @@ export function generateTemplateEditorHTML(): string {
           }
           
           console.log('🌍 Locale dropdown populated');
+          
+          // Update delete button visibility based on current selection
+          updateDeleteLocaleButtonVisibility();
+        }
+
+        // Update delete locale button visibility
+        function updateDeleteLocaleButtonVisibility() {
+          const deleteBtn = document.getElementById('delete-locale-btn');
+          const localeSelect = document.getElementById('template-locale');
+          
+          if (deleteBtn && localeSelect) {
+            const selectedLocale = localeSelect.value;
+            // Show delete button only for actual locales (not base template)
+            if (selectedLocale && selectedLocale !== '__base__') {
+              deleteBtn.style.display = 'inline-flex';
+            } else {
+              deleteBtn.style.display = 'none';
+            }
+          }
+        }
+
+        // Delete current locale
+        async function deleteCurrentLocale() {
+          const localeSelect = document.getElementById('template-locale');
+          const templateKey = document.getElementById('template-key')?.value;
+          
+          if (!localeSelect || !templateKey) {
+            showStatus('No locale selected or template key missing', 'error');
+            return;
+          }
+          
+          const currentLocale = localeSelect.value;
+          
+          if (!currentLocale || currentLocale === '__base__') {
+            showStatus('Cannot delete base template', 'error');
+            return;
+          }
+          
+          // Get locale name for confirmation
+          const localeNames = {
+            'en': 'English', 'es': 'Spanish', 'fr': 'French', 'de': 'German',
+            'it': 'Italian', 'pt': 'Portuguese', 'nl': 'Dutch', 'sv': 'Swedish',
+            'da': 'Danish', 'no': 'Norwegian', 'fi': 'Finnish', 'pl': 'Polish',
+            'ru': 'Russian', 'ja': 'Japanese', 'ko': 'Korean', 'zh': 'Chinese',
+            'ar': 'Arabic', 'hi': 'Hindi', 'tr': 'Turkish', 'cs': 'Czech',
+            'sk': 'Slovak', 'hu': 'Hungarian', 'ro': 'Romanian', 'bg': 'Bulgarian',
+            'hr': 'Croatian', 'sl': 'Slovenian', 'et': 'Estonian', 'lv': 'Latvian',
+            'lt': 'Lithuanian', 'el': 'Greek', 'mt': 'Maltese', 'cy': 'Welsh',
+            'ga': 'Irish', 'is': 'Icelandic', 'fo': 'Faroese', 'eu': 'Basque'
+          };
+          
+          const localeName = localeNames[currentLocale] || currentLocale.toUpperCase();
+          
+          // Confirm deletion
+          const confirmed = confirm('Are you sure you want to delete the "' + localeName + ' (' + currentLocale + ')" locale?\\n\\nThis action cannot be undone.');
+          if (!confirmed) {
+            return;
+          }
+          
+          try {
+            showLoading('Deleting locale...');
+            
+            const response = await fetch('/api/v1/templates/' + templateKey + '/locales/' + currentLocale, {
+              method: 'DELETE',
+              headers: {
+                'Authorization': 'Bearer ' + getAuthToken()
+              }
+            });
+            
+            if (!response.ok) {
+              const errorData = await response.json().catch(() => ({}));
+              throw new Error(errorData.error?.message || 'HTTP ' + response.status + ': ' + response.statusText);
+            }
+            
+            console.log('🌍 Locale deleted successfully:', currentLocale);
+            
+            // Switch to base template
+            localeSelect.value = '__base__';
+            updateDeleteLocaleButtonVisibility();
+            
+            // Reload the template to get updated locales
+            await loadTemplateForEditing(templateKey);
+            
+            showStatus('Locale "' + localeName + ' (' + currentLocale + ')" deleted successfully!', 'success');
+            
+          } catch (error) {
+            console.error('🌍 Failed to delete locale:', error);
+            showStatus('Failed to delete locale: ' + error.message, 'error');
+          } finally {
+            hideLoading();
+          }
         }
 
         // Show create locale dialog
@@ -1031,6 +1125,9 @@ export function generateTemplateEditorHTML(): string {
               const localeEntry = locales.find(l => l.locale === newLocale);
               showStatus(localeEntry ? ('Loaded locale ' + newLocale) : ('Locale ' + newLocale + ' not found. Starting empty.'), 'info');
             }
+            
+            // Update delete button visibility
+            updateDeleteLocaleButtonVisibility();
           } catch (error) {
             const msg = (error && error.message) ? error.message : 'Unknown error';
             showStatus('Failed to switch locale: ' + msg, 'error');
@@ -2012,6 +2109,8 @@ export function generateTemplateEditorHTML(): string {
           // Preview hooks used by other scripts
           window.updatePreview = updatePreview;
           window.generatePreview = generatePreview;
+          // Locale management
+          window.deleteCurrentLocale = deleteCurrentLocale;
           // Provide a stable previewTemplate entry point
           window.previewTemplate = function() {
             try {

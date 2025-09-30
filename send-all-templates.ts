@@ -254,7 +254,11 @@ function generateSampleVariables(templateKey: string, locale: string, variableSc
         manage_subscription_url: 'https://app.waymore.io/billing/manage?sub=sub_pro_20250923',
         billing_portal_url: 'https://app.waymore.io/billing',
         contact_support_url: 'https://waymore.io/support?topic=renewal'
-      }
+      },
+      // Progress bar and countdown variables
+      currentValue: '7',
+      countdownMessage: locale === 'el' ? 'Η συνδρομή σας λήγει σε' : 'Your subscription expires in',
+      targetDate: futureDate.toISOString()
     },
     'subscription-renewal-success': {
       ...commonVars,

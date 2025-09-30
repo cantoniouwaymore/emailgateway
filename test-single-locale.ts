@@ -44,7 +44,11 @@ async function sendSingleTest() {
         manage_subscription_url: 'https://app.waymore.io/billing/manage?sub=sub_pro_20250923',
         billing_portal_url: 'https://app.waymore.io/billing',
         contact_support_url: 'https://waymore.io/support?topic=renewal'
-      }
+      },
+      // Progress bar variables
+      currentValue: '7',
+      countdownMessage: 'Your subscription expires in',
+      targetDate: futureDate.toISOString()
     };
 
     const emailRequest = {

@@ -44,7 +44,11 @@ async function sendGreekTest() {
         manage_subscription_url: 'https://app.waymore.io/billing/manage?sub=sub_pro_20250923&lang=el',
         billing_portal_url: 'https://app.waymore.io/billing?lang=el',
         contact_support_url: 'https://waymore.io/support?topic=renewal&lang=el'
-      }
+      },
+      // Progress bar variables
+      currentValue: '7',
+      countdownMessage: 'Η συνδρομή σας λήγει σε',
+      targetDate: futureDate.toISOString()
     };
 
     const emailRequest = {
