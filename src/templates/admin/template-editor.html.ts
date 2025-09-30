@@ -969,18 +969,25 @@ export function generateTemplateEditorHTML(): string {
           
           // Footer section
           if (document.getElementById('footer-enabled')?.checked) {
-            const socialLinks = Array.from(document.querySelectorAll('#social-links-container .flex'))
-              .map(row => {
+            console.log('📋 Footer section enabled, collecting social links...');
+            const socialLinkRows = document.querySelectorAll('#social-links-container .flex');
+            console.log('📋 Social link rows found:', socialLinkRows.length);
+            
+            const socialLinks = Array.from(socialLinkRows)
+              .map((row, index) => {
                 const select = row.querySelector('select');
-                const input = row.querySelector('input[type="text"]');
+                const input = row.querySelector('input[type="url"]');
                 const platform = select?.value;
                 const url = input?.value?.trim();
+                console.log('📋 Social link ' + index + ': platform="' + platform + '", url="' + url + '"');
                 if (platform && url) {
                   return { platform, url };
                 }
                 return null;
               })
               .filter(link => link !== null);
+            
+            console.log('📋 Collected social links:', socialLinks);
               
             const legalLinks = Array.from(document.querySelectorAll('#legal-links-container .flex'))
               .map(row => {
@@ -996,10 +1003,12 @@ export function generateTemplateEditorHTML(): string {
             
             structure.footer = {
               tagline: document.getElementById('footer-tagline')?.value || '{{footerTagline}}',
-              socialLinks: socialLinks.length > 0 ? socialLinks : undefined,
-              legalLinks: legalLinks.length > 0 ? legalLinks : undefined,
+              social_links: socialLinks.length > 0 ? socialLinks : undefined,
+              legal_links: legalLinks.length > 0 ? legalLinks : undefined,
               copyright: document.getElementById('footer-copyright')?.value || '{{copyright}}'
             };
+            
+            console.log('📋 Footer structure created:', structure.footer);
           }
           
           console.log('📋 FINAL TEMPLATE STRUCTURE:', structure);
@@ -1162,6 +1171,42 @@ export function generateTemplateEditorHTML(): string {
           } else {
             console.error('❌ Preview container not found!');
           }
+        }
+
+        // Debug function specifically for social links
+        function debugSocialLinks() {
+          console.log('🔗 DEBUG SOCIAL LINKS FUNCTION CALLED');
+          
+          // Check if footer is enabled
+          const footerEnabled = document.getElementById('footer-enabled')?.checked;
+          console.log('🔗 Footer enabled:', footerEnabled);
+          
+          if (!footerEnabled) {
+            console.log('🔗 Footer is disabled, enabling it first...');
+            document.getElementById('footer-enabled').checked = true;
+          }
+          
+          // Check social links container
+          const socialContainer = document.getElementById('social-links-container');
+          console.log('🔗 Social links container found:', !!socialContainer);
+          
+          if (socialContainer) {
+            const socialRows = socialContainer.querySelectorAll('.flex');
+            console.log('🔗 Social link rows found:', socialRows.length);
+            
+            socialRows.forEach((row, index) => {
+              const select = row.querySelector('select');
+              const input = row.querySelector('input[type="url"]');
+              console.log('🔗 Row ' + index + ' - Select found:', !!select, 'Input found:', !!input);
+              if (select) console.log('🔗 Row ' + index + ' - Platform value:', select.value);
+              if (input) console.log('🔗 Row ' + index + ' - URL value:', input.value);
+            });
+          }
+          
+          // Generate template structure and check social links
+          const structure = generateTemplateStructureFromForm();
+          console.log('🔗 Generated structure footer:', structure.footer);
+          console.log('🔗 Social links in structure:', structure.footer?.social_links);
         }
 
         function goBack() {

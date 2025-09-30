@@ -943,15 +943,39 @@ export class TemplateController {
       dbEngine.setMockTemplate(mockTemplate);
       
       // Render using the same engine as emails
+      console.log('🔍 Preview generation - templateStructure:', JSON.stringify(templateStructure, null, 2));
+      console.log('🔍 Preview generation - variables:', JSON.stringify(variables, null, 2));
+      
       const rendered = await dbEngine.renderTemplate({
         key: 'preview-template',
         locale: 'en',
         variables: variables || {}
       });
+      
+      console.log('🔍 Preview generation - rendered HTML length:', rendered.html?.length || 0);
+
+      // Wrap the preview HTML with Font Awesome CSS for proper icon rendering
+      const previewWithCSS = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+          <style>
+            body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
+            .preview-container { max-width: 600px; margin: 0 auto; }
+          </style>
+        </head>
+        <body>
+          <div class="preview-container">
+            ${rendered.html}
+          </div>
+        </body>
+        </html>
+      `;
 
       return reply.send({
         success: true,
-        preview: rendered.html
+        preview: previewWithCSS
       });
 
     } catch (error) {
@@ -1234,21 +1258,21 @@ export class TemplateController {
           ` : ''}
           
           <!-- Social Links -->
-          ${processedStructure.footer.socialLinks ? `
+          ${processedStructure.footer.social_links ? `
             <div class="flex justify-center space-x-2 mb-5">
-              ${processedStructure.footer.socialLinks.map((link: any) => `
+              ${processedStructure.footer.social_links.map((link: any) => `
                 <a href="${link.url || '#'}" 
                    style="display: inline-block; padding: 4px; background-color: #f3f4f6; border-radius: 3px; width: 24px; height: 24px; text-align: center;">
-                  <i class="fab fa-${link.platform}" style="color: #6b7280; font-size: 12px;"></i>
+                  <i class="fab fa-${link.platform}" style="color: #1f2937; font-size: 12px;"></i>
                 </a>
               `).join('')}
             </div>
           ` : ''}
           
           <!-- Legal Links -->
-          ${processedStructure.footer.legalLinks ? `
+          ${processedStructure.footer.legal_links ? `
             <p class="text-center mb-5" style="font-size: 12px; color: #6b7280; line-height: 20px;">
-              ${processedStructure.footer.legalLinks.map((link: any, index: number) => 
+              ${processedStructure.footer.legal_links.map((link: any, index: number) => 
                 `${index > 0 ? ' • ' : ''}<a href="${link.url || '#'}" style="color: #3b82f6; text-decoration: none;">${link.label || '{{linkLabel}}'}</a>`
               ).join('')}
             </p>

@@ -444,7 +444,9 @@ export class DatabaseTemplateEngine {
         primary_button_color: '#3b82f6',
         primary_button_text_color: '#ffffff',
         secondary_button_color: '#6b7280',
-        secondary_button_text_color: '#ffffff'
+        secondary_button_text_color: '#ffffff',
+        social_button_color: '#f3f4f6',
+        social_icon_color: '#1f2937'
       }
     };
     
@@ -506,6 +508,28 @@ export class DatabaseTemplateEngine {
           color: finalStructure.actions.secondaryButton.backgroundColor || '#6b7280',
           text_color: finalStructure.actions.secondaryButton.textColor || '#ffffff'
         };
+      }
+    }
+    
+    // Handle backward compatibility for footer links (camelCase vs snake_case)
+    if (finalStructure.footer) {
+      // Convert socialLinks to social_links if needed
+      if (finalStructure.footer.socialLinks && !finalStructure.footer.social_links) {
+        console.log('🔄 Converting socialLinks to social_links for backward compatibility');
+        finalStructure.footer.social_links = finalStructure.footer.socialLinks;
+      }
+      // Convert legalLinks to legal_links if needed
+      if (finalStructure.footer.legalLinks && !finalStructure.footer.legal_links) {
+        console.log('🔄 Converting legalLinks to legal_links for backward compatibility');
+        finalStructure.footer.legal_links = finalStructure.footer.legalLinks;
+      }
+      
+      // Debug social links processing
+      if (finalStructure.footer.social_links) {
+        console.log('🔗 Social links found:', finalStructure.footer.social_links);
+        console.log('🔗 Social links count:', finalStructure.footer.social_links.length);
+      } else {
+        console.log('🔗 No social links found in footer');
       }
     }
     
