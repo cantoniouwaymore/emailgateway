@@ -58,12 +58,25 @@ export function generateTemplateEditorHTML(): string {
               </div>
               <div>
                 <label class="form-label">Category</label>
-                <select id="template-category" class="form-input">
-                  <option value="transactional">Transactional</option>
-                  <option value="marketing">Marketing</option>
-                  <option value="notification">Notification</option>
-                  <option value="system">System</option>
-                </select>
+                <div class="relative">
+                  <select id="template-category" class="form-input" onchange="handleCategoryChange()">
+                    <option value="">Select or create a category...</option>
+                    <!-- Existing categories will be populated here -->
+                  </select>
+                  <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <i class="fas fa-chevron-down text-gray-400"></i>
+                  </div>
+                </div>
+                <div id="new-category-input" class="mt-2 hidden">
+                  <input 
+                    type="text" 
+                    id="new-category-text" 
+                    placeholder="Enter new category name..."
+                    class="form-input"
+                    onkeyup="handleNewCategoryInput(event)"
+                  />
+                  <p class="text-xs text-gray-500 mt-1">Type a new category name and press Enter to create it</p>
+                </div>
               </div>
               <div>
                 <label class="form-label">Locale</label>
@@ -172,6 +185,139 @@ export function generateTemplateEditorHTML(): string {
       <script src="/admin/config.js"></script>
       <script src="/admin/api-client.js"></script>
       ${generateSectionBasedTemplateScripts()}
+      <script>
+        // Load existing categories for the dropdown
+        async function loadExistingCategories() {
+          try {
+            console.log('🔍 Loading existing categories...');
+            console.log('🔍 EmailGatewayAPI available:', !!window.EmailGatewayAPI);
+            
+            // Wait for API to be available
+            if (!window.EmailGatewayAPI) {
+              console.log('🔍 EmailGatewayAPI not ready, retrying in 500ms...');
+              setTimeout(loadExistingCategories, 500);
+              return;
+            }
+            
+            const data = await window.EmailGatewayAPI.getTemplates();
+            console.log('🔍 API response:', data);
+            
+            const templates = data.templates || [];
+            console.log('🔍 Templates found:', templates.length);
+            console.log('🔍 Templates:', templates.map(t => ({ key: t.key, category: t.category })));
+            
+            // Get unique categories from templates
+            const categories = [...new Set(templates.map(t => t.category))].sort();
+            console.log('🔍 Unique categories:', categories);
+            
+            const categorySelect = document.getElementById('template-category');
+            console.log('🔍 Category select element:', categorySelect);
+            
+            if (categorySelect) {
+              // Clear existing options except the first one
+              categorySelect.innerHTML = '<option value="">Select or create a category...</option>';
+              
+              // Add existing categories
+              categories.forEach(category => {
+                if (category) {
+                  const option = document.createElement('option');
+                  option.value = category;
+                  option.textContent = category;
+                  categorySelect.appendChild(option);
+                  console.log('🔍 Added category option:', category);
+                }
+              });
+              
+              // Add "Create new..." option at the end
+              const createNewOption = document.createElement('option');
+              createNewOption.value = '__create_new__';
+              createNewOption.textContent = 'Create new category...';
+              categorySelect.appendChild(createNewOption);
+              console.log('🔍 Added create new option');
+              
+              console.log('🔍 Final dropdown options:', categorySelect.innerHTML);
+            } else {
+              console.error('🔍 Category select element not found');
+            }
+          } catch (error) {
+            console.error('🔍 Failed to load categories:', error);
+            
+            // Fallback: add some default categories if API fails
+            const categorySelect = document.getElementById('template-category');
+            if (categorySelect) {
+              const defaultCategories = ['transactional', 'marketing', 'notification', 'system'];
+              defaultCategories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                categorySelect.appendChild(option);
+              });
+              
+              // Add "Create new..." option at the end
+              const createNewOption = document.createElement('option');
+              createNewOption.value = '__create_new__';
+              createNewOption.textContent = 'Create new category...';
+              categorySelect.appendChild(createNewOption);
+              
+              console.log('🔍 Added default categories as fallback');
+            }
+          }
+        }
+
+        // Handle category dropdown change
+        function handleCategoryChange() {
+          const categorySelect = document.getElementById('template-category');
+          const newCategoryInput = document.getElementById('new-category-input');
+          
+          if (categorySelect.value === '__create_new__') {
+            // Show the input field for creating a new category
+            newCategoryInput.classList.remove('hidden');
+            newCategoryInput.querySelector('input').focus();
+            categorySelect.value = ''; // Reset the select
+          } else {
+            // Hide the input field
+            newCategoryInput.classList.add('hidden');
+            newCategoryInput.querySelector('input').value = '';
+          }
+        }
+
+        // Handle new category input
+        function handleNewCategoryInput(event) {
+          if (event.key === 'Enter') {
+            const input = event.target;
+            const newCategory = input.value.trim();
+            
+            if (newCategory) {
+              const categorySelect = document.getElementById('template-category');
+              
+              // Add the new category to the dropdown
+              const option = document.createElement('option');
+              option.value = newCategory;
+              option.textContent = newCategory;
+              option.selected = true;
+              
+              // Insert before the "Create new..." option
+              const createNewOption = categorySelect.querySelector('option[value="__create_new__"]');
+              categorySelect.insertBefore(option, createNewOption);
+              
+              // Hide the input and clear it
+              document.getElementById('new-category-input').classList.add('hidden');
+              input.value = '';
+              
+              // Mark as having changes
+              if (typeof hasUnsavedChanges !== 'undefined') {
+                hasUnsavedChanges = true;
+              }
+            }
+          }
+        }
+
+        // Initialize categories when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+          // Load existing categories for the dropdown (with delay to ensure API is ready)
+          setTimeout(loadExistingCategories, 1000);
+        });
+      </script>
       <script>
         // Template Editor JavaScript Functions
         let currentTemplate = null;
@@ -601,12 +747,14 @@ export function generateTemplateEditorHTML(): string {
         }
 
         async function saveTemplate() {
+          console.log('💾 saveTemplate called');
           
           try {
             showLoading('Saving template...');
             
             // Get the current template structure from the form
             const templateStructure = generateTemplateStructureFromForm();
+            console.log('💾 Template structure to save:', templateStructure);
             
             // Get basic template info
             const key = document.getElementById('template-key')?.value || '';
@@ -614,6 +762,11 @@ export function generateTemplateEditorHTML(): string {
             const description = document.getElementById('template-description')?.value || '';
             const category = document.getElementById('template-category')?.value || 'transactional';
             
+            // Get current locale from the GUI selector
+            const selectedLocale = document.getElementById('template-locale')?.value || 'en';
+            
+            console.log('💾 Save parameters:', { key, name, description, category, selectedLocale });
+            console.log('💾 Selected locale for saving:', selectedLocale);
             
             // Prepare the template data
             const templateData = {
@@ -625,37 +778,87 @@ export function generateTemplateEditorHTML(): string {
               variableSchema: currentTemplate?.variableSchema || {}
             };
             
-            
             // Determine if this is a new template or updating existing
             const isNewTemplate = !currentTemplate || !currentTemplate.key;
-            const url = isNewTemplate ? '/api/v1/templates' : '/api/v1/templates/' + key;
-            const method = isNewTemplate ? 'POST' : 'PUT';
+            let result;
             
+            console.log('💾 Is new template:', isNewTemplate);
+            console.log('💾 Current template:', currentTemplate);
             
-            const response = await fetch(url, {
-              method: method,
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + getAuthToken()
-              },
-              body: JSON.stringify(templateData)
-            });
-            
-            
-            if (!response.ok) {
-              const errorData = await response.json().catch(() => ({}));
-              throw new Error(errorData.message || ('HTTP ' + response.status + ': ' + response.statusText));
+            if (isNewTemplate) {
+              // Create new template with locale
+              const response = await fetch('/api/v1/templates', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': 'Bearer ' + getAuthToken()
+                },
+                body: JSON.stringify({
+                  ...templateData,
+                  locale: selectedLocale
+                })
+              });
+              
+              if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || ('HTTP ' + response.status + ': ' + response.statusText));
+              }
+              
+              result = await response.json();
+            } else {
+              // Update existing template - check if we should save to locale or base template
+              if (selectedLocale) {
+                // Save to locale-specific structure
+                console.log('💾 Saving to locale-specific endpoint:', '/api/v1/templates/' + key + '/locales/' + selectedLocale);
+                const response = await fetch('/api/v1/templates/' + key + '/locales/' + selectedLocale, {
+                  method: 'PUT',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + getAuthToken()
+                  },
+                  body: JSON.stringify({
+                    jsonStructure: templateStructure
+                  })
+                });
+                
+                if (!response.ok) {
+                  const errorData = await response.json().catch(() => ({}));
+                  console.error('💾 Locale save API error:', errorData);
+                  throw new Error(errorData.message || ('HTTP ' + response.status + ': ' + response.statusText));
+                }
+                
+                result = await response.json();
+                console.log('💾 Locale save API success:', result);
+              } else {
+                // Save to base template
+                console.log('💾 Saving to base template endpoint:', '/api/v1/templates/' + key);
+                const response = await fetch('/api/v1/templates/' + key, {
+                  method: 'PUT',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + getAuthToken()
+                  },
+                  body: JSON.stringify(templateData)
+                });
+                
+                if (!response.ok) {
+                  const errorData = await response.json().catch(() => ({}));
+                  console.error('💾 Base template save API error:', errorData);
+                  throw new Error(errorData.message || ('HTTP ' + response.status + ': ' + response.statusText));
+                }
+                
+                result = await response.json();
+                console.log('💾 Base template save API success:', result);
+              }
             }
-            
-            const result = await response.json();
             
             // Update current template reference - extract template from response
             currentTemplate = result.template;
             hasUnsavedChanges = false;
             justSaved = true; // Set flag to indicate we just saved
             
-            
-            showStatus('Template saved successfully!', 'success');
+            const localeMessage = selectedLocale && selectedLocale !== 'en' ? \` for locale \${selectedLocale}\` : '';
+            showStatus('Template saved successfully' + localeMessage + '!', 'success');
             hideLoading();
             
             // If this was a new template, update the URL to reflect the edit mode
@@ -746,6 +949,7 @@ export function generateTemplateEditorHTML(): string {
 
         // Generate template structure from form data
         function generateTemplateStructureFromForm() {
+          console.log('🚀 generateTemplateStructureFromForm called');
           const structure = {};
           
           // Get basic template info
@@ -754,15 +958,32 @@ export function generateTemplateEditorHTML(): string {
           const description = document.getElementById('template-description')?.value || '';
           const category = document.getElementById('template-category')?.value || 'transactional';
           
+          console.log('📋 Basic template info:', { key, name, description, category });
           
           // Header section
           const headerEnabled = document.getElementById('header-enabled')?.checked;
+          console.log('🔍 Header enabled:', headerEnabled);
+          
           if (headerEnabled) {
+            const headerTagline = document.getElementById('header-tagline')?.value || '{{companyName}}';
+            const headerLogoUrl = document.getElementById('header-logo-url')?.value || '';
+            const headerLogoAlt = document.getElementById('header-logo-alt')?.value || 'Company Logo';
+            
+            console.log('📋 Header form values:', {
+              tagline: headerTagline,
+              logoUrl: headerLogoUrl,
+              logoAlt: headerLogoAlt
+            });
+            
             structure.header = {
-              tagline: document.getElementById('header-tagline')?.value || '{{companyName}}',
-              logoUrl: document.getElementById('header-logo-url')?.value || '',
-              logoAlt: document.getElementById('header-logo-alt')?.value || 'Company Logo'
+              tagline: headerTagline,
+              logo_url: headerLogoUrl,
+              logo_alt: headerLogoAlt
             };
+            
+            console.log('✅ Header structure created:', structure.header);
+          } else {
+            console.log('❌ Header not enabled, skipping header section');
           }
           
           // Hero section
@@ -774,11 +995,11 @@ export function generateTemplateEditorHTML(): string {
             
             if (heroType === 'icon') {
               structure.hero.icon = document.getElementById('hero-icon')?.value || '🎨';
-              structure.hero.iconSize = document.getElementById('hero-icon-size')?.value || '48px';
+              structure.hero.icon_size = document.getElementById('hero-icon-size')?.value || '48px';
             } else if (heroType === 'image') {
-              structure.hero.imageUrl = document.getElementById('hero-image-url')?.value || '';
-              structure.hero.imageAlt = document.getElementById('hero-image-alt')?.value || 'Hero Image';
-              structure.hero.imageWidth = document.getElementById('hero-image-width')?.value || '600px';
+              structure.hero.image_url = document.getElementById('hero-image-url')?.value || '';
+              structure.hero.image_alt = document.getElementById('hero-image-alt')?.value || 'Hero Image';
+              structure.hero.image_width = document.getElementById('hero-image-width')?.value || '600px';
             }
           }
           
@@ -805,8 +1026,8 @@ export function generateTemplateEditorHTML(): string {
             
             structure.body = {
               paragraphs: paragraphs.length > 0 ? paragraphs : ['{{bodyText}}'],
-              fontSize: document.getElementById('body-font-size')?.value || '16px',
-              lineHeight: document.getElementById('body-line-height')?.value || '26px'
+              font_size: document.getElementById('body-font-size')?.value || '16px',
+              line_height: document.getElementById('body-line-height')?.value || '26px'
             };
           }
           
@@ -887,16 +1108,16 @@ export function generateTemplateEditorHTML(): string {
                 })
                 .filter(bar => bar !== null);
 
-            structure.visual.progressBars = progressBars.length > 0 ? progressBars : [];
+            structure.visual.progress_bars = progressBars.length > 0 ? progressBars : [];
 
             // Collect countdown regardless of selected type
             structure.visual.countdown = {
               message: document.getElementById('countdown-message')?.value || '{{countdownMessage}}',
-              targetDate: document.getElementById('countdown-target-date')?.value || '{{targetDate}}',
-              showDays: document.getElementById('countdown-show-days')?.checked || true,
-              showHours: document.getElementById('countdown-show-hours')?.checked || true,
-              showMinutes: document.getElementById('countdown-show-minutes')?.checked || true,
-              showSeconds: document.getElementById('countdown-show-seconds')?.checked || false
+              target_date: document.getElementById('countdown-target-date')?.value || '{{targetDate}}',
+              show_days: document.getElementById('countdown-show-days')?.checked || true,
+              show_hours: document.getElementById('countdown-show-hours')?.checked || true,
+              show_minutes: document.getElementById('countdown-show-minutes')?.checked || true,
+              show_seconds: document.getElementById('countdown-show-seconds')?.checked || false
             };
           }
           
@@ -987,6 +1208,10 @@ export function generateTemplateEditorHTML(): string {
               copyright: document.getElementById('footer-copyright')?.value || '{{copyright}}'
             };
           }
+          
+          console.log('🎯 Final generated structure:', structure);
+          console.log('🎯 Structure keys:', Object.keys(structure));
+          console.log('🎯 Header in final structure:', structure.header);
           
           return structure;
         }

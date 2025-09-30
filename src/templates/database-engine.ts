@@ -688,7 +688,9 @@ export class DatabaseTemplateEngine {
       description: template.description,
       category: template.category,
       availableLocales: template.locales.map(l => l.locale),
-      jsonStructure: template.jsonStructure
+      jsonStructure: template.jsonStructure,
+      createdAt: template.createdAt,
+      updatedAt: template.updatedAt
     }));
   }
 

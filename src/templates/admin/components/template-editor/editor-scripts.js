@@ -556,6 +556,9 @@ export function generateTemplateEditorScripts() {
         const templateKey = urlParams.get('template');
         const mode = urlParams.get('mode');
         
+        // Load existing categories for the dropdown (with delay to ensure API is ready)
+        setTimeout(loadExistingCategories, 1000);
+        
         if (templateKey && mode === 'edit') {
           isEditing = true;
           loadTemplateForEditing(templateKey);
@@ -577,28 +580,39 @@ export function generateTemplateEditorScripts() {
         try {
           showLoading('Loading template...');
           
+          // Get current locale from selector
+          const currentLocale = document.getElementById('template-locale').value || 'en';
+          
+          // Always load base template to get locales list
           const data = await window.EmailGatewayAPI.getTemplate(templateKey);
           currentTemplate = data.template;
           
+          // Try to pick locale-specific structure
+          const localeEntry = Array.isArray(currentTemplate?.locales)
+            ? currentTemplate.locales.find(l => l.locale === currentLocale)
+            : null;
+          const templateData = localeEntry?.jsonStructure || currentTemplate.jsonStructure || {};
+          
           // Populate basic information
-          document.getElementById('editor-title').textContent = \`Edit: \${currentTemplate.name}\`;
-          document.getElementById('editor-subtitle').textContent = \`Editing template \${currentTemplate.key}\`;
-          document.getElementById('template-key').value = currentTemplate.key;
+          document.getElementById('editor-title').textContent = \`Edit: \${currentTemplate.name || templateKey}\`;
+          document.getElementById('editor-subtitle').textContent = \`Editing template \${templateKey} (\${currentLocale})\`;
+          document.getElementById('template-key').value = templateKey;
           document.getElementById('template-key').readOnly = true;
-          document.getElementById('template-name').value = currentTemplate.name;
-          document.getElementById('template-description').value = currentTemplate.description || '';
-          document.getElementById('template-category').value = currentTemplate.category;
+          document.getElementById('template-name').value = currentTemplate?.name || '';
+          document.getElementById('template-description').value = currentTemplate?.description || '';
+          document.getElementById('template-category').value = currentTemplate?.category || 'transactional';
           
           // Load template structure into visual builder
           console.log('Template loaded:', currentTemplate);
-          console.log('JSON Structure:', currentTemplate.jsonStructure);
-          console.log('Variable Schema:', currentTemplate.variableSchema);
+          console.log('Current locale:', currentLocale);
+          console.log('Locale entry:', localeEntry);
+          console.log('Template data to load:', templateData);
           console.log('loadTemplateIntoVisualBuilder function available:', typeof loadTemplateIntoVisualBuilder);
           
           if (typeof loadTemplateIntoVisualBuilder === 'function') {
-            // Load the actual template structure from the database
-            console.log('Loading template structure from database:', currentTemplate.jsonStructure);
-            loadTemplateIntoVisualBuilder(currentTemplate.jsonStructure);
+            // Load the locale-specific template structure from the database
+            console.log('Loading template structure from database:', templateData);
+            loadTemplateIntoVisualBuilder(templateData);
           } else {
             console.error('loadTemplateIntoVisualBuilder function not found!');
             console.log('Available functions:', Object.keys(window).filter(key => typeof window[key] === 'function' && key.includes('load')));
@@ -621,7 +635,12 @@ export function generateTemplateEditorScripts() {
         const key = document.getElementById('template-key')?.value || '';
         const name = document.getElementById('template-name')?.value || '';
         const description = document.getElementById('template-description')?.value || '';
-        const category = document.getElementById('template-category')?.value || 'transactional';
+        let category = document.getElementById('template-category')?.value || '';
+        
+        // Handle new category creation
+        if (category === '__create_new__' || category === '') {
+          category = 'transactional'; // Default fallback
+        }
         
         // For now, return a basic structure - in a real implementation, you'd collect data from the visual builder
         return {
@@ -952,8 +971,137 @@ export function generateTemplateEditorScripts() {
         }
       });
 
+      // Load existing categories for the dropdown
+      async function loadExistingCategories() {
+        try {
+          console.log('🔍 Loading existing categories...');
+          console.log('🔍 EmailGatewayAPI available:', !!window.EmailGatewayAPI);
+          
+          // Wait for API to be available
+          if (!window.EmailGatewayAPI) {
+            console.log('🔍 EmailGatewayAPI not ready, retrying in 500ms...');
+            setTimeout(loadExistingCategories, 500);
+            return;
+          }
+          
+          const data = await window.EmailGatewayAPI.getTemplates();
+          console.log('🔍 API response:', data);
+          
+          const templates = data.templates || [];
+          console.log('🔍 Templates found:', templates.length);
+          console.log('🔍 Templates:', templates.map(t => ({ key: t.key, category: t.category })));
+          
+          // Get unique categories from templates
+          const categories = [...new Set(templates.map(t => t.category))].sort();
+          console.log('🔍 Unique categories:', categories);
+          
+          const categorySelect = document.getElementById('template-category');
+          console.log('🔍 Category select element:', categorySelect);
+          
+          if (categorySelect) {
+            // Clear existing options except the first one
+            categorySelect.innerHTML = '<option value="">Select or create a category...</option>';
+            
+            // Add existing categories
+            categories.forEach(category => {
+              if (category) {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                categorySelect.appendChild(option);
+                console.log('🔍 Added category option:', category);
+              }
+            });
+            
+            // Add "Create new..." option at the end
+            const createNewOption = document.createElement('option');
+            createNewOption.value = '__create_new__';
+            createNewOption.textContent = 'Create new category...';
+            categorySelect.appendChild(createNewOption);
+            console.log('🔍 Added create new option');
+            
+            console.log('🔍 Final dropdown options:', categorySelect.innerHTML);
+          } else {
+            console.error('🔍 Category select element not found');
+          }
+        } catch (error) {
+          console.error('🔍 Failed to load categories:', error);
+          
+          // Fallback: add some default categories if API fails
+          const categorySelect = document.getElementById('template-category');
+          if (categorySelect) {
+            const defaultCategories = ['transactional', 'marketing', 'notification', 'system'];
+            defaultCategories.forEach(category => {
+              const option = document.createElement('option');
+              option.value = category;
+              option.textContent = category;
+              categorySelect.appendChild(option);
+            });
+            
+            // Add "Create new..." option at the end
+            const createNewOption = document.createElement('option');
+            createNewOption.value = '__create_new__';
+            createNewOption.textContent = 'Create new category...';
+            categorySelect.appendChild(createNewOption);
+            
+            console.log('🔍 Added default categories as fallback');
+          }
+        }
+      }
+
+      // Handle category dropdown change
+      function handleCategoryChange() {
+        const categorySelect = document.getElementById('template-category');
+        const newCategoryInput = document.getElementById('new-category-input');
+        
+        if (categorySelect.value === '__create_new__') {
+          // Show the input field for creating a new category
+          newCategoryInput.classList.remove('hidden');
+          newCategoryInput.querySelector('input').focus();
+          categorySelect.value = ''; // Reset the select
+        } else {
+          // Hide the input field
+          newCategoryInput.classList.add('hidden');
+          newCategoryInput.querySelector('input').value = '';
+        }
+      }
+
+      // Handle new category input
+      function handleNewCategoryInput(event) {
+        if (event.key === 'Enter') {
+          const input = event.target;
+          const newCategory = input.value.trim();
+          
+          if (newCategory) {
+            const categorySelect = document.getElementById('template-category');
+            
+            // Add the new category to the dropdown
+            const option = document.createElement('option');
+            option.value = newCategory;
+            option.textContent = newCategory;
+            option.selected = true;
+            
+            // Insert before the "Create new..." option
+            const createNewOption = categorySelect.querySelector('option[value="__create_new__"]');
+            categorySelect.insertBefore(option, createNewOption);
+            
+            // Hide the input and clear it
+            document.getElementById('new-category-input').classList.add('hidden');
+            input.value = '';
+            
+            // Mark as having changes
+            hasUnsavedChanges = true;
+          }
+        }
+      }
+
       // Initialize when DOM is loaded
       document.addEventListener('DOMContentLoaded', initializeTemplateEditor);
+
+      // Expose functions globally for HTML onclick handlers
+      window.handleCategoryChange = handleCategoryChange;
+      window.handleNewCategoryInput = handleNewCategoryInput;
+      window.loadExistingCategories = loadExistingCategories; // For debugging
     </script>
   `;
 }

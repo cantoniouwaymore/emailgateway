@@ -230,10 +230,12 @@ export function generateSectionBasedTemplateScripts(): string {
 
       // Load existing template data into visual builder
       function loadTemplateIntoVisualBuilder(templateStructure) {
-        console.log('loadTemplateIntoVisualBuilder called with:', templateStructure);
+        console.log('🚀 loadTemplateIntoVisualBuilder called with:', templateStructure);
         try {
           const structure = typeof templateStructure === 'string' ? JSON.parse(templateStructure) : templateStructure;
-          console.log('Parsed structure:', structure);
+          console.log('📋 Parsed structure:', structure);
+          console.log('🔍 Header section in structure:', structure.header);
+          console.log('🔍 Hero section in structure:', structure.hero);
           console.log('🔍 Title section in structure:', structure.title);
           console.log('🔍 Title section type:', typeof structure.title);
           console.log('🔍 Title section keys:', structure.title ? Object.keys(structure.title) : 'null');
@@ -249,25 +251,76 @@ export function generateSectionBasedTemplateScripts(): string {
           // rather than variable placeholders. We'll use the variable schema defaults as the actual values.
           
           // Load basic template information
-          console.log('Looking for header section...');
+          console.log('🔍 Looking for header section...');
           const headerEnabled = document.getElementById('header-enabled');
           const headerContent = document.getElementById('header-section-content');
-          console.log('Header enabled element:', headerEnabled);
-          console.log('Header content element:', headerContent);
+          console.log('🔍 Header enabled element:', headerEnabled);
+          console.log('🔍 Header content element:', headerContent);
           
           if (structure.header) {
+            console.log('📋 Header section found:', structure.header);
+            console.log('📋 Header logoUrl:', structure.header.logoUrl);
+            console.log('📋 Header logo_url:', structure.header.logo_url);
+            console.log('📋 Header logoAlt:', structure.header.logoAlt);
+            console.log('📋 Header logo_alt:', structure.header.logo_alt);
+            console.log('📋 Header tagline:', structure.header.tagline);
+            
             if (headerEnabled) {
               headerEnabled.checked = true;
-              console.log('Header enabled checked');
+              console.log('✅ Header enabled checked');
             }
             if (headerContent) {
               headerContent.classList.remove('hidden');
-              console.log('Header content shown');
+              console.log('✅ Header content shown');
             }
+            
             // Support both camelCase and snake_case
-            if (structure.header.logoUrl || structure.header.logo_url) document.getElementById('header-logo-url').value = getTemplateValue(structure.header.logoUrl || structure.header.logo_url);
-            if (structure.header.logoAlt || structure.header.logo_alt) document.getElementById('header-logo-alt').value = getTemplateValue(structure.header.logoAlt || structure.header.logo_alt);
-            if (structure.header.tagline) document.getElementById('header-tagline').value = getTemplateValue(structure.header.tagline);
+            const logoUrlValue = structure.header.logoUrl || structure.header.logo_url;
+            const logoAltValue = structure.header.logoAlt || structure.header.logo_alt;
+            const taglineValue = structure.header.tagline;
+            
+            console.log('🔍 Processing header values:');
+            console.log('  - logoUrlValue:', logoUrlValue);
+            console.log('  - logoAltValue:', logoAltValue);
+            console.log('  - taglineValue:', taglineValue);
+            
+            if (logoUrlValue) {
+              const processedLogoUrl = getTemplateValue(logoUrlValue);
+              console.log('  - processedLogoUrl:', processedLogoUrl);
+              const logoUrlElement = document.getElementById('header-logo-url');
+              if (logoUrlElement) {
+                logoUrlElement.value = processedLogoUrl;
+                console.log('✅ Set header-logo-url to:', processedLogoUrl);
+              } else {
+                console.log('❌ header-logo-url element not found');
+              }
+            }
+            
+            if (logoAltValue) {
+              const processedLogoAlt = getTemplateValue(logoAltValue);
+              console.log('  - processedLogoAlt:', processedLogoAlt);
+              const logoAltElement = document.getElementById('header-logo-alt');
+              if (logoAltElement) {
+                logoAltElement.value = processedLogoAlt;
+                console.log('✅ Set header-logo-alt to:', processedLogoAlt);
+              } else {
+                console.log('❌ header-logo-alt element not found');
+              }
+            }
+            
+            if (taglineValue) {
+              const processedTagline = getTemplateValue(taglineValue);
+              console.log('  - processedTagline:', processedTagline);
+              const taglineElement = document.getElementById('header-tagline');
+              if (taglineElement) {
+                taglineElement.value = processedTagline;
+                console.log('✅ Set header-tagline to:', processedTagline);
+              } else {
+                console.log('❌ header-tagline element not found');
+              }
+            }
+          } else {
+            console.log('❌ No header section found in structure');
           }
 
           if (structure.hero) {
@@ -291,12 +344,12 @@ export function generateSectionBasedTemplateScripts(): string {
               document.getElementById('hero-type').dispatchEvent(new Event('change'));
               
               if (structure.hero.type === 'icon') {
-                if (structure.hero.icon) document.getElementById('hero-icon').value = structure.hero.icon;
-                if (structure.hero.iconSize || structure.hero.icon_size) document.getElementById('hero-icon-size').value = structure.hero.iconSize || structure.hero.icon_size;
+                if (structure.hero.icon) document.getElementById('hero-icon').value = getTemplateValue(structure.hero.icon);
+                if (structure.hero.iconSize || structure.hero.icon_size) document.getElementById('hero-icon-size').value = getTemplateValue(structure.hero.iconSize || structure.hero.icon_size);
               } else if (structure.hero.type === 'image') {
-                if (structure.hero.imageUrl || structure.hero.image_url) document.getElementById('hero-image-url').value = structure.hero.imageUrl || structure.hero.image_url;
-                if (structure.hero.imageAlt || structure.hero.image_alt) document.getElementById('hero-image-alt').value = structure.hero.imageAlt || structure.hero.image_alt;
-                if (structure.hero.imageWidth || structure.hero.image_width) document.getElementById('hero-image-width').value = structure.hero.imageWidth || structure.hero.image_width;
+                if (structure.hero.imageUrl || structure.hero.image_url) document.getElementById('hero-image-url').value = getTemplateValue(structure.hero.imageUrl || structure.hero.image_url);
+                if (structure.hero.imageAlt || structure.hero.image_alt) document.getElementById('hero-image-alt').value = getTemplateValue(structure.hero.imageAlt || structure.hero.image_alt);
+                if (structure.hero.imageWidth || structure.hero.image_width) document.getElementById('hero-image-width').value = getTemplateValue(structure.hero.imageWidth || structure.hero.image_width);
               }
             }
           }

@@ -40,18 +40,28 @@ export function generateDocumentationSection(data: any): string {
                 </button>
               </div>
               <div class="p-4">
-                <pre class="text-sm text-gray-100 overflow-x-auto"><code>const response = await fetch('/api/emails', {
+                <pre class="text-sm text-gray-100 overflow-x-auto"><code>// Send email with template
+const response = await fetch('/api/v1/emails', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer YOUR_API_KEY'
+    'Authorization': 'Bearer YOUR_JWT_TOKEN',
+    'Idempotency-Key': 'unique-key-123'
   },
   body: JSON.stringify({
-    to: 'user@example.com',
-    template: 'welcome',
-    data: { name: 'John' }
+    to: [{ email: 'user@example.com', name: 'John Doe' }],
+    subject: 'Welcome to Waymore!',
+    template: { key: 'transactional', locale: 'en' },
+    variables: {
+      workspace_name: 'Waymore',
+      user_firstname: 'John',
+      dashboard_url: 'https://app.waymore.io/dashboard'
+    }
   })
-});</code></pre>
+});
+
+const result = await response.json();
+console.log('Message ID:', result.messageId);</code></pre>
               </div>
             </div>
           </div>
@@ -113,7 +123,10 @@ export function generateDocumentationSection(data: any): string {
                 </div>
                 <h3 class="text-lg font-semibold text-gray-900">Authentication</h3>
               </div>
-              <p class="text-gray-600 text-sm mb-4">Learn how to authenticate with our API using API keys and JWT tokens.</p>
+              <p class="text-gray-600 text-sm mb-4">All requests require JWT authentication with required scopes.</p>
+              <div class="bg-gray-50 rounded p-3 mb-4">
+                <code class="text-sm text-gray-800">Authorization: Bearer YOUR_JWT_TOKEN</code>
+              </div>
               <a href="/docs/API.md#authentication" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
                 Learn more <i class="fas fa-arrow-right ml-1"></i>
               </a>
@@ -124,12 +137,65 @@ export function generateDocumentationSection(data: any): string {
                 <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-4">
                   <i class="fas fa-paper-plane text-green-600"></i>
                 </div>
-                <h3 class="text-lg font-semibold text-gray-900">Send Your First Email</h3>
+                <h3 class="text-lg font-semibold text-gray-900">Template Validation</h3>
               </div>
-              <p class="text-gray-600 text-sm mb-4">Follow our step-by-step guide to send your first email through our gateway.</p>
-              <a href="/docs/API.md#sending-emails" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                Get started <i class="fas fa-arrow-right ml-1"></i>
+              <p class="text-gray-600 text-sm mb-4">Validate templates before sending to ensure proper formatting.</p>
+              <div class="bg-gray-50 rounded p-3 mb-4">
+                <code class="text-sm text-gray-800">POST /api/v1/templates/validate</code>
+              </div>
+              <a href="/docs/API.md#template-validation" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                Learn more <i class="fas fa-arrow-right ml-1"></i>
               </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- API Examples Section -->
+        <div class="mb-12">
+          <h2 class="text-2xl font-semibold text-gray-900 mb-6">Common API Examples</h2>
+          <div class="space-y-6">
+            <!-- Send Email Example -->
+            <div class="bg-white rounded-lg border border-gray-200 p-6">
+              <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <i class="fas fa-envelope text-blue-600 mr-3"></i>
+                Send Email
+              </h3>
+              <div class="bg-gray-900 rounded-lg overflow-hidden">
+                <div class="px-4 py-2 bg-gray-800 border-b border-gray-700">
+                  <span class="text-sm text-gray-300">POST /api/v1/emails</span>
+                </div>
+                <div class="p-4">
+                  <pre class="text-sm text-gray-100 overflow-x-auto"><code>{
+  "to": [{ "email": "user@example.com", "name": "John Doe" }],
+  "subject": "Welcome!",
+  "template": { "key": "transactional", "locale": "en" },
+  "variables": {
+    "workspace_name": "Waymore",
+    "user_firstname": "John"
+  }
+}</code></pre>
+                </div>
+              </div>
+            </div>
+
+            <!-- Check Status Example -->
+            <div class="bg-white rounded-lg border border-gray-200 p-6">
+              <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <i class="fas fa-search text-green-600 mr-3"></i>
+                Check Message Status
+              </h3>
+              <div class="bg-gray-900 rounded-lg overflow-hidden">
+                <div class="px-4 py-2 bg-gray-800 border-b border-gray-700">
+                  <span class="text-sm text-gray-300">GET /api/v1/messages/{messageId}</span>
+                </div>
+                <div class="p-4">
+                  <pre class="text-sm text-gray-100 overflow-x-auto"><code>{
+  "messageId": "msg_abc123",
+  "status": "delivered",
+  "timestamp": "2024-01-01T10:00:00Z"
+}</code></pre>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -193,18 +259,28 @@ export function generateDocumentationSection(data: any): string {
 
       <script>
         function copyCodeSample() {
-          const codeSample = \`const response = await fetch('/api/emails', {
+          const codeSample = \`// Send email with template
+const response = await fetch('/api/v1/emails', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer YOUR_API_KEY'
+    'Authorization': 'Bearer YOUR_JWT_TOKEN',
+    'Idempotency-Key': 'unique-key-123'
   },
   body: JSON.stringify({
-    to: 'user@example.com',
-    template: 'welcome',
-    data: { name: 'John' }
+    to: [{ email: 'user@example.com', name: 'John Doe' }],
+    subject: 'Welcome to Waymore!',
+    template: { key: 'transactional', locale: 'en' },
+    variables: {
+      workspace_name: 'Waymore',
+      user_firstname: 'John',
+      dashboard_url: 'https://app.waymore.io/dashboard'
+    }
   })
-});\`;
+});
+
+const result = await response.json();
+console.log('Message ID:', result.messageId);\`;\`;
           
           navigator.clipboard.writeText(codeSample).then(() => {
             // Show a temporary success message

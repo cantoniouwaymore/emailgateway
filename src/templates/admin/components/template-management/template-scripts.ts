@@ -31,6 +31,7 @@ export function generateTemplateManagementScripts(): string {
           currentTemplates = data.templates || [];
           
           updateStats();
+          populateCategoryFilter();
           renderTemplates();
           showTemplatesLoading(false);
         } catch (error) {
@@ -51,6 +52,28 @@ export function generateTemplateManagementScripts(): string {
         document.getElementById('active-templates').textContent = activeTemplates;
         document.getElementById('total-locales').textContent = totalLocales;
         document.getElementById('total-categories').textContent = categories;
+      }
+
+      // Populate category filter with available categories
+      function populateCategoryFilter() {
+        const categoryFilter = document.getElementById('category-filter');
+        if (!categoryFilter) return;
+
+        // Get unique categories from templates
+        const categories = [...new Set(currentTemplates.map(t => t.category))].sort();
+        
+        // Clear existing options except "All Categories"
+        categoryFilter.innerHTML = '<option value="">All Categories</option>';
+        
+        // Add category options
+        categories.forEach(category => {
+          if (category) { // Only add non-empty categories
+            const option = document.createElement('option');
+            option.value = category;
+            option.textContent = category;
+            categoryFilter.appendChild(option);
+          }
+        });
       }
 
       // Render templates table
@@ -95,13 +118,8 @@ export function generateTemplateManagementScripts(): string {
                 \`).join('')}
               </div>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                Available
-              </span>
-            </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              \${new Date(template.updatedAt || template.createdAt).toLocaleDateString()}
+              \${template.updatedAt ? new Date(template.updatedAt).toLocaleDateString() : template.createdAt ? new Date(template.createdAt).toLocaleDateString() : 'N/A'}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
               <div class="flex justify-end space-x-2">
@@ -153,7 +171,6 @@ export function generateTemplateManagementScripts(): string {
       function filterTemplates() {
         const search = document.getElementById('template-search').value.toLowerCase();
         const category = document.getElementById('category-filter').value;
-        const status = document.getElementById('status-filter').value;
         
         let filtered = currentTemplates.filter(template => {
           const matchesSearch = !search || 
@@ -162,9 +179,8 @@ export function generateTemplateManagementScripts(): string {
             (template.description && template.description.toLowerCase().includes(search));
           
           const matchesCategory = !category || template.category === category;
-          const matchesStatus = !status;
           
-          return matchesSearch && matchesCategory && matchesStatus;
+          return matchesSearch && matchesCategory;
         });
         
         // Temporarily replace currentTemplates for rendering
