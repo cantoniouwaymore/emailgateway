@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { EmailController } from '../controllers/email';
 import { TemplateValidationController } from '../controllers/template-validation';
+import { templateValidationRequestSchema } from '../schemas/template-validation';
 
 export async function emailRoutes(fastify: FastifyInstance) {
   const emailController = new EmailController();

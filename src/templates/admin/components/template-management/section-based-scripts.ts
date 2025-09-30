@@ -147,13 +147,19 @@ export function generateSectionBasedTemplateScripts(): string {
         window.location.href = '/admin/template-editor';
       }
 
-      // Helper function to get value from template structure
+      // Helper: resolve value from template structure using fallback when available
       function getTemplateValue(value) {
         if (typeof value === 'string' && value.startsWith('{{') && value.endsWith('}}')) {
-          // This is a variable placeholder, return it as-is
+          const inner = value.slice(2, -2).trim();
+          const pipeIndex = inner.indexOf('|');
+          if (pipeIndex !== -1) {
+            // Return fallback part after '|'
+            const fallback = inner.slice(pipeIndex + 1).trim();
+            return fallback;
+          }
+          // No fallback provided; keep the placeholder so user can see it's variable-driven
           return value;
         }
-        // Return the actual value (not a placeholder)
         return value;
       }
 
@@ -258,8 +264,9 @@ export function generateSectionBasedTemplateScripts(): string {
               headerContent.classList.remove('hidden');
               console.log('Header content shown');
             }
-            if (structure.header.logoUrl) document.getElementById('header-logo-url').value = getTemplateValue(structure.header.logoUrl);
-            if (structure.header.logoAlt) document.getElementById('header-logo-alt').value = getTemplateValue(structure.header.logoAlt);
+            // Support both camelCase and snake_case
+            if (structure.header.logoUrl || structure.header.logo_url) document.getElementById('header-logo-url').value = getTemplateValue(structure.header.logoUrl || structure.header.logo_url);
+            if (structure.header.logoAlt || structure.header.logo_alt) document.getElementById('header-logo-alt').value = getTemplateValue(structure.header.logoAlt || structure.header.logo_alt);
             if (structure.header.tagline) document.getElementById('header-tagline').value = getTemplateValue(structure.header.tagline);
           }
 
@@ -285,11 +292,11 @@ export function generateSectionBasedTemplateScripts(): string {
               
               if (structure.hero.type === 'icon') {
                 if (structure.hero.icon) document.getElementById('hero-icon').value = structure.hero.icon;
-                if (structure.hero.iconSize) document.getElementById('hero-icon-size').value = structure.hero.iconSize;
+                if (structure.hero.iconSize || structure.hero.icon_size) document.getElementById('hero-icon-size').value = structure.hero.iconSize || structure.hero.icon_size;
               } else if (structure.hero.type === 'image') {
-                if (structure.hero.imageUrl) document.getElementById('hero-image-url').value = structure.hero.imageUrl;
-                if (structure.hero.imageAlt) document.getElementById('hero-image-alt').value = structure.hero.imageAlt;
-                if (structure.hero.imageWidth) document.getElementById('hero-image-width').value = structure.hero.imageWidth;
+                if (structure.hero.imageUrl || structure.hero.image_url) document.getElementById('hero-image-url').value = structure.hero.imageUrl || structure.hero.image_url;
+                if (structure.hero.imageAlt || structure.hero.image_alt) document.getElementById('hero-image-alt').value = structure.hero.imageAlt || structure.hero.image_alt;
+                if (structure.hero.imageWidth || structure.hero.image_width) document.getElementById('hero-image-width').value = structure.hero.imageWidth || structure.hero.image_width;
               }
             }
           }
@@ -322,7 +329,18 @@ export function generateSectionBasedTemplateScripts(): string {
             }
             if (structure.title.size) document.getElementById('title-size').value = getTemplateValue(structure.title.size);
             if (structure.title.weight) document.getElementById('title-weight').value = getTemplateValue(structure.title.weight);
-            if (structure.title.color) document.getElementById('title-color').value = getTemplateValue(structure.title.color);
+            if (structure.title.color) {
+              const colorEl = document.getElementById('title-color');
+              const resolved = getTemplateValue(structure.title.color);
+              // If the resolved value still looks like a template with fallback (contains '|'), default to fallback hex
+              if (typeof resolved === 'string' && resolved.includes('|')) {
+                const parts = resolved.replace(/\{\{|\}\}/g, '').split('|');
+                const fallback = parts[1] || '#1f2937';
+                colorEl.value = fallback;
+              } else {
+                colorEl.value = resolved || '#1f2937';
+              }
+            }
             if (structure.title.align) document.getElementById('title-align').value = getTemplateValue(structure.title.align);
           } else {
             console.log('🔍 No title section found in structure');
@@ -356,36 +374,66 @@ export function generateSectionBasedTemplateScripts(): string {
               }
             }
             
-            if (structure.body.fontSize) document.getElementById('body-font-size').value = getTemplateValue(structure.body.fontSize);
-            if (structure.body.lineHeight) document.getElementById('body-line-height').value = getTemplateValue(structure.body.lineHeight);
+            if (structure.body.fontSize || structure.body.font_size) document.getElementById('body-font-size').value = getTemplateValue(structure.body.fontSize || structure.body.font_size);
+            if (structure.body.lineHeight || structure.body.line_height) document.getElementById('body-line-height').value = getTemplateValue(structure.body.lineHeight || structure.body.line_height);
           }
 
           if (structure.snapshot) {
+            console.log('🔍 PROCESSING SNAPSHOT SECTION');
+            console.log('🔍 Snapshot structure:', structure.snapshot);
             document.getElementById('snapshot-enabled').checked = true;
             document.getElementById('snapshot-section-content').classList.remove('hidden');
-            if (structure.snapshot.title) document.getElementById('snapshot-title').value = getTemplateValue(structure.snapshot.title);
+            if (structure.snapshot.title) {
+              console.log('🔍 Setting snapshot title:', structure.snapshot.title);
+              document.getElementById('snapshot-title').value = getTemplateValue(structure.snapshot.title);
+            }
             
             // Handle facts - could be array or variable placeholder
             if (structure.snapshot.facts) {
+              console.log('🔍 LOADING SNAPSHOT FACTS:', structure.snapshot.facts);
               const container = document.getElementById('snapshot-facts-container');
               container.innerHTML = '';
               
               if (Array.isArray(structure.snapshot.facts)) {
+                console.log('🔍 Facts is array with', structure.snapshot.facts.length, 'facts');
                 // Direct array of facts
                 structure.snapshot.facts.forEach((fact, index) => {
+                  console.log('🔍 Adding fact', index, ':', fact);
                   addSnapshotFact();
-                  const inputs = container.querySelectorAll('input');
-                  if (inputs[index * 2]) inputs[index * 2].value = fact.label || '';
-                  if (inputs[index * 2 + 1]) inputs[index * 2 + 1].value = fact.value || '';
+                  // Get the last added fact div (the one we just added)
+                  const lastFact = container.lastElementChild;
+                  if (lastFact) {
+                    const inputs = lastFact.querySelectorAll('input');
+                    console.log('🔍 Found', inputs.length, 'inputs in fact', index);
+                    if (inputs[0]) {
+                      inputs[0].value = fact.label || '';
+                      console.log('🔍 Set label input to:', fact.label || '');
+                    }
+                    if (inputs[1]) {
+                      inputs[1].value = fact.value || '';
+                      console.log('🔍 Set value input to:', fact.value || '');
+                    }
+                  } else {
+                    console.log('🔍 ERROR: No lastFact found for fact', index);
+                  }
                 });
+                console.log('🔍 Final facts container has', container.children.length, 'fact elements');
               } else {
+                console.log('🔍 Facts is not array, treating as variable placeholder');
                 // Variable placeholder - add one fact with placeholder
                 addSnapshotFact();
-                const inputs = container.querySelectorAll('input');
-                if (inputs[0]) inputs[0].value = '{{label}}';
-                if (inputs[1]) inputs[1].value = '{{value}}';
+                const lastFact = container.lastElementChild;
+                if (lastFact) {
+                  const inputs = lastFact.querySelectorAll('input');
+                  if (inputs[0]) inputs[0].value = '{{label}}';
+                  if (inputs[1]) inputs[1].value = '{{value}}';
+                }
               }
+            } else {
+              console.log('🔍 NO FACTS FOUND IN SNAPSHOT STRUCTURE');
             }
+          } else {
+            console.log('🔍 NO SNAPSHOT SECTION FOUND IN STRUCTURE');
           }
 
           if (structure.visual) {
@@ -396,21 +444,23 @@ export function generateSectionBasedTemplateScripts(): string {
               // Trigger the change event to show/hide appropriate options
               document.getElementById('visual-type').dispatchEvent(new Event('change'));
               
-              if (structure.visual.type === 'progress' && structure.visual.progressBars) {
+              // Support both camelCase and snake_case for progress bars
+              const progressList = structure.visual.progressBars || structure.visual.progress_bars;
+              if (structure.visual.type === 'progress' && Array.isArray(progressList)) {
                 // Clear existing progress bars
                 const container = document.getElementById('progress-bars-container');
                 container.innerHTML = '';
                 
                 // Add each progress bar
-                structure.visual.progressBars.forEach((bar) => {
+                progressList.forEach((bar) => {
                   addProgressBar();
                   // Populate the last added progress bar
                   const lastBar = container.lastElementChild;
                   if (lastBar) {
                     const inputs = lastBar.querySelectorAll('input');
                     inputs[0].value = bar.label || '';
-                    inputs[1].value = bar.current || '';
-                    inputs[2].value = bar.max || '';
+                    inputs[1].value = (bar.currentValue || bar.current || '');
+                    inputs[2].value = (bar.maxValue || bar.max || '');
                     inputs[3].value = bar.unit || '';
                     inputs[4].value = bar.color || '#3b82f6';
                     inputs[5].value = bar.description || '';
@@ -420,11 +470,16 @@ export function generateSectionBasedTemplateScripts(): string {
                 if (structure.visual.countdown) {
                   // Handle countdown object structure
                   if (structure.visual.countdown.message) document.getElementById('countdown-message').value = getTemplateValue(structure.visual.countdown.message);
-                  if (structure.visual.countdown.target_date) document.getElementById('countdown-target-date').value = getTemplateValue(structure.visual.countdown.target_date);
-                  if (structure.visual.countdown.show_days !== undefined) document.getElementById('countdown-show-days').checked = structure.visual.countdown.show_days;
-                  if (structure.visual.countdown.show_hours !== undefined) document.getElementById('countdown-show-hours').checked = structure.visual.countdown.show_hours;
-                  if (structure.visual.countdown.show_minutes !== undefined) document.getElementById('countdown-show-minutes').checked = structure.visual.countdown.show_minutes;
-                  if (structure.visual.countdown.show_seconds !== undefined) document.getElementById('countdown-show-seconds').checked = structure.visual.countdown.show_seconds;
+                  const targetDateVal = structure.visual.countdown.target_date || structure.visual.countdown.targetDate;
+                  if (targetDateVal) document.getElementById('countdown-target-date').value = getTemplateValue(targetDateVal);
+                  const showDays = (structure.visual.countdown.show_days !== undefined) ? structure.visual.countdown.show_days : structure.visual.countdown.showDays;
+                  const showHours = (structure.visual.countdown.show_hours !== undefined) ? structure.visual.countdown.show_hours : structure.visual.countdown.showHours;
+                  const showMinutes = (structure.visual.countdown.show_minutes !== undefined) ? structure.visual.countdown.show_minutes : structure.visual.countdown.showMinutes;
+                  const showSeconds = (structure.visual.countdown.show_seconds !== undefined) ? structure.visual.countdown.show_seconds : structure.visual.countdown.showSeconds;
+                  if (showDays !== undefined) document.getElementById('countdown-show-days').checked = showDays;
+                  if (showHours !== undefined) document.getElementById('countdown-show-hours').checked = showHours;
+                  if (showMinutes !== undefined) document.getElementById('countdown-show-minutes').checked = showMinutes;
+                  if (showSeconds !== undefined) document.getElementById('countdown-show-seconds').checked = showSeconds;
                 } else {
                   // Handle old structure format
                   if (structure.visual.countdownMessage) document.getElementById('countdown-message').value = getTemplateValue(structure.visual.countdownMessage);
@@ -592,10 +647,12 @@ export function generateSectionBasedTemplateScripts(): string {
           
           // Debug: Check final state of all sections
           const allSections = ['header', 'hero', 'title', 'body', 'snapshot', 'visual', 'actions', 'support', 'footer'];
-          allSections.forEach(section => {
-            const enabledEl = document.getElementById(\`\${section}-enabled\`);
-            const contentEl = document.getElementById(\`\${section}-section-content\`);
-            console.log(\`\${section} section - enabled:\`, enabledEl?.checked, 'content visible:', !contentEl?.classList.contains('hidden'));
+          allSections.forEach(function(section) {
+            const enabledEl = document.getElementById(section + '-enabled');
+            const contentEl = document.getElementById(section + '-section-content');
+            const enabled = enabledEl ? enabledEl.checked : false;
+            const visible = contentEl ? !contentEl.classList.contains('hidden') : false;
+            console.log(section + ' section - enabled:', enabled, 'content visible:', visible);
           });
           
         } catch (error) {
@@ -680,7 +737,7 @@ export function generateSectionBasedTemplateScripts(): string {
               <label class="block text-sm font-medium text-gray-700 mb-1">Current Value</label>
               <input 
                 type="number" 
-                placeholder="{{currentValue}}" value="{{currentValue}}"
+                placeholder="{{currentValue}}"
                 class="w-full h-10 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 cursor-pointer"
                 style="appearance: none; background: none; border: 2px solid #d1d5db;"
               />
@@ -689,7 +746,7 @@ export function generateSectionBasedTemplateScripts(): string {
               <label class="block text-sm font-medium text-gray-700 mb-1">Max Value</label>
               <input 
                 type="number" 
-                placeholder="{{maxValue}}" value="{{maxValue}}"
+                placeholder="{{maxValue}}"
                 class="w-full h-10 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 cursor-pointer"
                 style="appearance: none; background: none; border: 2px solid #d1d5db;"
               />
@@ -851,7 +908,7 @@ export function generateSectionBasedTemplateScripts(): string {
           }
           
           const url = currentSectionTemplate ? 
-            \`/api/v1/templates/\${currentSectionTemplate.key}\` : 
+            ('/api/v1/templates/' + currentSectionTemplate.key) : 
             '/api/v1/templates';
           const method = currentSectionTemplate ? 'PUT' : 'POST';
           
@@ -859,18 +916,18 @@ export function generateSectionBasedTemplateScripts(): string {
             method,
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': \`Bearer \${authToken}\`
+              'Authorization': 'Bearer ' + authToken
             },
             body: JSON.stringify(templateData)
           });
           
           if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error?.message || \`HTTP \${response.status}: \${response.statusText}\`);
+            throw new Error((errorData && errorData.error && errorData.error.message) ? errorData.error.message : ('HTTP ' + response.status + ': ' + response.statusText));
           }
           
           // Redirect to templates list or show success message
-          showStatus(\`Template \${currentSectionTemplate ? 'updated' : 'created'} successfully\`, 'success');
+          showStatus('Template ' + (currentSectionTemplate ? 'updated' : 'created') + ' successfully', 'success');
           
           // If we're in edit mode, stay on the page; otherwise redirect
           // Only redirect if we're not in the template editor page
@@ -1191,104 +1248,6 @@ export function generateSectionBasedTemplateScripts(): string {
         button.parentElement.remove();
       }
 
-      function addSnapshotFact() {
-        const container = document.getElementById('snapshot-facts-container');
-        const div = document.createElement('div');
-        div.className = 'flex items-center space-x-2 mb-2';
-        div.innerHTML = \`
-          <input 
-            type="text" 
-            placeholder="Label"
-            class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-          />
-          <input 
-            type="text" 
-            placeholder="Value"
-            class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-          />
-          <button type="button" onclick="removeSnapshotFact(this)" class="text-red-500 hover:text-red-700">
-            <i class="fas fa-trash"></i>
-          </button>
-        \`;
-        container.appendChild(div);
-      }
-
-      function removeSnapshotFact(button) {
-        button.parentElement.remove();
-      }
-
-      function addProgressBar() {
-        const container = document.getElementById('progress-bars-container');
-        const div = document.createElement('div');
-        div.className = 'border border-gray-200 rounded-lg p-4 mb-2';
-        div.innerHTML = \`
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Label</label>
-              <input 
-                type="text" 
-                placeholder="{{progressLabel}}" value="{{progressLabel}}"
-                class="w-full h-10 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 cursor-pointer"
-                style="appearance: none; background: none; border: 2px solid #d1d5db;"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Current Value</label>
-              <input 
-                type="number" 
-                placeholder="{{currentValue}}" value="{{currentValue}}"
-                class="w-full h-10 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 cursor-pointer"
-                style="appearance: none; background: none; border: 2px solid #d1d5db;"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Max Value</label>
-              <input 
-                type="number" 
-                placeholder="{{maxValue}}" value="{{maxValue}}"
-                class="w-full h-10 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 cursor-pointer"
-                style="appearance: none; background: none; border: 2px solid #d1d5db;"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Unit</label>
-              <input 
-                type="text" 
-                placeholder="{{unit}}" value="{{unit}}"
-                class="w-full h-10 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 cursor-pointer"
-                style="appearance: none; background: none; border: 2px solid #d1d5db;"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Color</label>
-              <input 
-                type="color" 
-                value="#3b82f6"
-                class="w-full h-10 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 cursor-pointer"
-                style="appearance: none; background: none; border: 2px solid #d1d5db;"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-              <input 
-                type="text" 
-                placeholder="{{progressDescription}}" value="{{progressDescription}}"
-                class="w-full h-10 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 cursor-pointer"
-                style="appearance: none; background: none; border: 2px solid #d1d5db;"
-              />
-            </div>
-          </div>
-          <button type="button" onclick="removeProgressBar(this)" class="text-red-500 hover:text-red-700">
-            <i class="fas fa-trash"></i> Remove
-          </button>
-        \`;
-        container.appendChild(div);
-      }
-
-      function removeProgressBar(button) {
-        button.parentElement.remove();
-      }
-
       function addSupportLink() {
         const container = document.getElementById('support-links-container');
         const div = document.createElement('div');
@@ -1394,6 +1353,23 @@ export function generateSectionBasedTemplateScripts(): string {
           initializeSectionBasedForm();
         }
       });
+
+      // Expose functions to global scope for onclick handlers
+      if (typeof window !== 'undefined') {
+        window.addBodyParagraph = addBodyParagraph;
+        window.removeBodyParagraph = removeBodyParagraph;
+        window.addSnapshotFact = addSnapshotFact;
+        window.removeSnapshotFact = removeSnapshotFact;
+        window.addProgressBar = addProgressBar;
+        window.removeProgressBar = removeProgressBar;
+        window.addSupportLink = addSupportLink;
+        window.removeSupportLink = removeSupportLink;
+        window.addSocialLink = addSocialLink;
+        window.removeSocialLink = removeSocialLink;
+        window.addLegalLink = addLegalLink;
+        window.removeLegalLink = removeLegalLink;
+        window.addLegalLinkForLoading = addLegalLinkForLoading;
+      }
     </script>
   `;
 }

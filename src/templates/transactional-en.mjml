@@ -315,9 +315,9 @@
             <mj-table>
               <tr>
                 <td style="padding: 8px 0px;">
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <span style="font-size: 14px; font-weight: 600; color: {{#if ../../theme.text_color}}{{../../theme.text_color}}{{else}}#374151{{/if}};">{{label}}</span>
-                    <span style="font-size: 14px; font-weight: 600; color: {{#if ../../theme.text_color}}{{../../theme.text_color}}{{else}}#374151{{/if}};">{{current}}{{#if unit}} {{unit}}{{/if}}</span>
+                  <div style="display: table; width: 100%; margin-bottom: 8px;">
+                    <div style="display: table-cell; width: 60%; font-size: 14px; font-weight: 600; color: {{#if ../../theme.text_color}}{{../../theme.text_color}}{{else}}#374151{{/if}}; vertical-align: middle;">{{label}}</div>
+                    <div style="display: table-cell; width: 40%; font-size: 14px; font-weight: 600; color: {{#if ../../theme.text_color}}{{../../theme.text_color}}{{else}}#374151{{/if}}; text-align: right; vertical-align: middle;">{{current}}{{#if unit}} {{unit}}{{/if}}</div>
                   </div>
                   <div style="background-color: {{#if ../../theme.border_color}}{{../../theme.border_color}}{{else}}#e5e7eb{{/if}}; border-radius: 8px; height: 8px; overflow: hidden;">
                     <div style="background-color: {{#if color}}{{color}}{{else}}#3b82f6{{/if}}; height: 100%; width: {{percentage}}%; border-radius: 8px; transition: width 0.3s ease;"></div>

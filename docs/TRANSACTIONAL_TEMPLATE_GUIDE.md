@@ -5,11 +5,14 @@
 ## 📋 Table of Contents
 
 - [Overview](#overview)
+- [Template Creation](#template-creation)
+- [Template Validation](#template-validation)
 - [Template Features](#template-features)
 - [Variable Reference](#variable-reference)
 - [Theme Customization](#theme-customization)
 - [Multi-Language Support](#multi-language-support)
 - [Examples](#examples)
+- [Complete Template Example](#complete-template-example)
 - [Best Practices](#best-practices)
 - [Troubleshooting](#troubleshooting)
 
@@ -26,19 +29,384 @@ The Transactional Template is a powerful, feature-rich email template built with
 
 ## 📋 Important Note
 
-**This guide focuses on template variables only.** The examples show the `variables` object that should be used in the email playground or when calling the email API. For complete email payloads, wrap the variables in the full email structure:
+**This guide covers both template creation and email sending.** 
+
+- **Template Creation**: Use the examples in the [Template Creation](#template-creation) section to create reusable templates in the system
+- **Email Sending**: Use the examples in the [Examples](#examples) section to send emails using existing templates
+
+For complete email payloads when sending emails, wrap the variables in the full email structure:
 
 ```json
 {
   "to": [{"email": "user@example.com", "name": "John Doe"}],
   "from": {"email": "no-reply@waymore.io", "name": "Waymore"},
   "subject": "Your Email Subject",
-  "template": {"key": "transactional", "locale": "en"},
+  "template": {"key": "password-reset-template", "locale": "en"},
   "variables": {
     // Template variables go here (see examples below)
   }
 }
 ```
+
+## 🏗️ Template Creation
+
+### Creating Templates in the System
+
+Templates are created using the `/api/v1/templates` endpoint. This allows you to create reusable templates that can be referenced by key when sending emails.
+
+### Required Fields
+
+When creating a template, you must provide these required fields:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `key` | string | ✅ | Unique template identifier (lowercase, hyphens only) |
+| `name` | string | ✅ | Human-readable template name |
+| `description` | string | ❌ | Optional template description |
+| `category` | string | ✅ | Template category for organization and filtering |
+| `jsonStructure` | object | ✅ | Complete template definition (see structure below) |
+
+### Template Structure Breakdown
+
+The API expects a **flat structure** with these top-level fields:
+
+#### **Correct API Structure**:
+```json
+{
+  "key": "template-key",
+  "name": "Template Name",
+  "description": "Optional description",
+  "category": "transactional",
+  "variableSchema": {
+    // JSON schema defining variable structure
+  },
+  "jsonStructure": {
+    // Template structure with Handlebars variables
+  }
+}
+```
+
+#### **Template Structure** (What goes inside `jsonStructure`):
+The `jsonStructure` contains the actual template definition with Handlebars variables:
+```json
+{
+  "header": {
+    "logo_url": "{{header.logo_url}}",
+    "tagline": "{{header.tagline}}"
+  },
+  "title": {
+    "text": "{{title.text}}"
+  },
+  "body": {
+    "paragraphs": ["{{body.paragraphs}}"]
+  }
+}
+```
+
+### Template Categories
+
+Categories help organize templates by their purpose and use case. They are used for:
+- **Organization**: Group related templates together
+- **Filtering**: Find templates by type in admin interfaces
+- **Reporting**: Track template usage by category
+- **Permissions**: Apply different access controls by category
+
+#### Available Categories
+
+| Category | Description | When to Use | Examples |
+|----------|-------------|-------------|----------|
+| `transactional` | Essential account-related emails | User-initiated actions, account management | Password reset, email verification, order confirmations, billing notifications |
+| `marketing` | Promotional and marketing emails | Marketing campaigns, newsletters, promotions | Newsletter, product announcements, promotional offers, event invitations |
+| `notification` | System-generated notifications | Automated alerts, system updates | Usage alerts, security notifications, system maintenance, status updates |
+| `test` | Development and testing templates | Testing, development, staging environments | Test emails, development templates, staging notifications |
+
+#### Category Selection Guidelines
+
+**Choose `transactional` when:**
+- Email is triggered by a user action
+- Email contains sensitive account information
+- Email is essential for user account functionality
+- Email is legally required (receipts, confirmations)
+
+**Choose `marketing` when:**
+- Email promotes products or services
+- Email is part of a marketing campaign
+- Email is sent to a large audience
+- Email is promotional in nature
+
+**Choose `notification` when:**
+- Email is system-generated
+- Email alerts about account status
+- Email contains usage or quota information
+- Email is an automated system message
+
+**Choose `test` when:**
+- Template is for development purposes
+- Template is for testing email functionality
+- Template is for staging environments
+- Template is not for production use
+
+### Template Creation Request
+
+```bash
+curl --location 'http://localhost:3000/api/v1/templates' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer YOUR_JWT_TOKEN' \
+--data-raw '{
+  "key": "password-reset-template",
+  "name": "Password Reset Template",
+  "description": "Template for password reset emails",
+  "category": "transactional",
+  "variableSchema": {
+    "type": "object",
+    "properties": {
+      "header": {
+        "type": "object",
+        "properties": {
+          "logo_url": { "type": "string" },
+          "logo_alt": { "type": "string" },
+          "tagline": { "type": "string" }
+        }
+      },
+      "title": {
+        "type": "object",
+        "properties": {
+          "text": { "type": "string" },
+          "size": { "type": "string" },
+          "weight": { "type": "string" },
+          "color": { "type": "string" },
+          "align": { "type": "string" }
+        }
+      },
+      "body": {
+        "type": "object",
+        "properties": {
+          "intro": { "type": "string" },
+          "paragraphs": { "type": "array", "items": { "type": "string" } },
+          "note": { "type": "string" }
+        }
+      },
+      "actions": {
+        "type": "object",
+        "properties": {
+          "primary": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "url": { "type": "string" },
+              "style": { "type": "string" },
+              "color": { "type": "string" },
+              "text_color": { "type": "string" }
+            }
+          },
+          "secondary": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "url": { "type": "string" },
+              "style": { "type": "string" },
+              "color": { "type": "string" }
+            }
+          }
+        }
+      },
+      "footer": {
+        "type": "object",
+        "properties": {
+          "tagline": { "type": "string" },
+          "legal_links": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": { "type": "string" },
+                "url": { "type": "string" }
+              }
+            }
+          },
+          "copyright": { "type": "string" }
+        }
+      },
+      "user_name": { "type": "string" },
+      "account_email": { "type": "string" },
+      "reset_link": { "type": "string", "format": "uri" },
+      "expiry_time": { "type": "string" }
+    },
+    "required": ["user_name", "account_email", "reset_link", "expiry_time"]
+  },
+  "jsonStructure": {
+    "header": {
+      "logo_url": "{{header.logo_url}}",
+      "logo_alt": "{{header.logo_alt}}",
+      "tagline": "{{header.tagline}}"
+    },
+    "title": {
+      "text": "{{title.text}}",
+      "size": "{{title.size}}",
+      "weight": "{{title.weight}}",
+      "color": "{{title.color}}",
+      "align": "{{title.align}}"
+    },
+    "body": {
+      "intro": "{{body.intro}}",
+      "paragraphs": "{{body.paragraphs}}",
+      "note": "{{body.note}}"
+    },
+    "actions": {
+      "primary": "{{actions.primary}}",
+      "secondary": "{{actions.secondary}}"
+    },
+    "footer": {
+      "tagline": "{{footer.tagline}}",
+      "legal_links": "{{footer.legal_links}}",
+      "copyright": "{{footer.copyright}}"
+    },
+    "user_name": "{{user_name}}",
+    "account_email": "{{account_email}}",
+    "reset_link": "{{reset_link}}",
+    "expiry_time": "{{expiry_time}}"
+  }
+}'
+```
+
+### Template Creation Response
+
+```json
+{
+  "template": {
+    "id": "cmg6cw03b00028jeo373jlw3x",
+    "key": "password-reset-template",
+    "name": "Password Reset Template",
+    "description": "Template for password reset emails",
+    "category": "transactional",
+    "variableSchema": { ... },
+    "jsonStructure": { ... },
+    "createdAt": "2025-09-30T09:29:33.048Z",
+    "updatedAt": "2025-09-30T09:29:33.048Z",
+    "locales": [...]
+  },
+  "locale": "en",
+  "detectedVariables": ["title_text", "user_name", "reset_url", "company_name"],
+  "variableDetails": [...]
+}
+```
+
+### Template Key Validation
+
+Template keys must follow these rules:
+- ✅ **Lowercase letters only**: `password-reset-template`
+- ✅ **Numbers allowed**: `template-v2`
+- ✅ **Hyphens allowed**: `forgot-password-en`
+- ✅ **Cannot start/end with hyphens**: `my-template` (not `-my-template` or `my-template-`)
+- ❌ **No underscores**: `password_reset` (use `password-reset` instead)
+- ❌ **No spaces**: `password reset` (use `password-reset` instead)
+- ❌ **No special characters**: `password@reset` (use `password-reset` instead)
+
+### Important: Template Key vs Category
+
+**Template Key** (used to reference the template):
+- Unique identifier for the template
+- Used when sending emails: `"template": {"key": "password-reset-template"}`
+- Examples: `password-reset-template`, `welcome-email`, `order-confirmation`
+
+**Category** (organizational grouping):
+- Groups templates by purpose/type
+- Used when creating templates: `"category": "transactional"`
+- Examples: `transactional`, `marketing`, `notification`, `test`
+
+**Do NOT use category names as template keys!**
+
+### Variable Schema Structure
+
+The `variableSchema` field defines the structure of variables that can be used when sending emails with this template:
+
+```json
+{
+  "variableSchema": {
+    "type": "object",
+    "properties": {
+      "variable_name": {
+        "type": "string|number|boolean|array|object",
+        "description": "Optional description of the variable"
+      }
+    },
+    "required": ["variable_name1", "variable_name2"]
+  }
+}
+```
+
+## 🔍 Template Validation
+
+### Validation Endpoint
+
+Before creating templates, you can validate the structure using the `/api/v1/templates/validate` endpoint:
+
+```bash
+curl --location 'http://localhost:3000/api/v1/templates/validate' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer YOUR_JWT_TOKEN' \
+--data-raw '{
+  "template": {
+    "key": "password-reset-template",
+    "locale": "en"
+  },
+  "variables": {
+    // Your template variables here
+  }
+}'
+```
+
+### Validation Response
+
+**Valid Template:**
+```json
+{
+  "valid": true,
+  "errors": [],
+  "warnings": [
+    {
+      "type": "missing_optional_variable",
+      "field": "footer_links",
+      "message": "Consider adding footer links for better user experience",
+      "suggestion": "Add privacy policy, terms of service, and unsubscribe links"
+    }
+  ],
+  "suggestions": [
+    "Review warnings for best practices and accessibility"
+  ]
+}
+```
+
+**Invalid Template:**
+```json
+{
+  "valid": false,
+  "errors": [
+    {
+      "type": "invalid_variable_format",
+      "field": "template.key",
+      "message": "Template key must contain only lowercase letters, numbers, and hyphens (not starting/ending with hyphens)",
+      "suggestion": "Use format like \"welcome-email\" or \"password-reset\""
+    }
+  ],
+  "warnings": [],
+  "suggestions": [
+    "Fix all validation errors before using this template"
+  ]
+}
+```
+
+### Common Validation Errors
+
+| Error Type | Description | Solution |
+|------------|-------------|----------|
+| `missing_required_variable` | Required field missing | Add the missing field |
+| `invalid_variable_format` | Invalid format (e.g., template key) | Fix the format according to rules |
+| `invalid_variable_type` | Wrong data type | Use correct type (string, number, boolean, etc.) |
+| `invalid_url` | Invalid URL format | Use valid URL format |
+| `invalid_color` | Invalid hex color | Use format like `#FF5733` |
+| `exceeds_limit` | Too many items in array | Reduce array size |
+| `missing_object_structure` | Missing required object structure | Use proper object-based sections |
 
 ## 🤖 Template Generation Instructions
 
@@ -54,7 +422,7 @@ The Transactional Template is a powerful, feature-rich email template built with
 **Template Structure:**
 ```json
 {
-  "template": {"key": "transactional", "locale": "en"},
+  "template": {"key": "password-reset-template", "locale": "en"},
   "variables": {
     "header": { /* header object */ },
     "title": { /* title object */ },
@@ -92,7 +460,7 @@ The Transactional Template is a powerful, feature-rich email template built with
 **Template Structure:**
 ```json
 {
-  "template": {"key": "transactional", "locale": "en"},
+  "template": {"key": "password-reset-template", "locale": "en"},
   "variables": {
     "header": {
       "logo_url": "string",
@@ -294,7 +662,7 @@ The template automatically selects content based on the `locale` parameter:
 ```json
 {
   "template": {
-    "key": "transactional",
+    "key": "password-reset-template",
     "locale": "es"
   },
   "variables": {
@@ -448,7 +816,7 @@ Add countdown timers for time-sensitive content:
 ```json
 {
   "template": {
-    "key": "transactional",
+    "key": "password-reset-template",
     "locale": "en"
   },
   "variables": {
@@ -542,7 +910,7 @@ Add countdown timers for time-sensitive content:
 ```json
 {
   "template": {
-    "key": "transactional",
+    "key": "password-reset-template",
     "locale": "en"
   },
   "variables": {
@@ -630,7 +998,7 @@ Add countdown timers for time-sensitive content:
 ```json
 {
   "template": {
-    "key": "transactional",
+    "key": "password-reset-template",
     "locale": "en"
   },
   "variables": {
@@ -727,7 +1095,7 @@ Add countdown timers for time-sensitive content:
 ```json
 {
   "template": {
-    "key": "transactional",
+    "key": "password-reset-template",
     "locale": "en"
   },
   "variables": {
@@ -816,38 +1184,666 @@ Add countdown timers for time-sensitive content:
 }
 ```
 
+## 🎯 Complete Template Example
+
+This example demonstrates a comprehensive template creation request that includes ALL available options and features:
+
+### Complete Template Creation Request
+
+```bash
+curl --location 'http://localhost:3000/api/v1/templates' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer YOUR_JWT_TOKEN' \
+--data-raw '{
+  "key": "comprehensive-email-template",
+  "name": "Comprehensive Email Template",
+  "description": "A complete template showcasing all available features and options",
+  "category": "transactional",
+  "jsonStructure": {
+    "template": {
+      "key": "comprehensive-email-template",
+      "locale": "en",
+      "subject": "Welcome to Our Platform",
+      "from": "Your Company <noreply@yourcompany.com>",
+      "preheader": "Complete email template showcasing all available features"
+    },
+    "variables": {
+      "header": {
+        "logo_url": "https://yourcompany.com/logo.png",
+        "logo_alt": "Your Company Logo",
+        "tagline": "Empowering your business"
+      },
+      "hero": {
+        "type": "icon",
+        "icon": "🎉",
+        "icon_size": "48px"
+      },
+      "title": {
+        "text": "Welcome to Our Platform!",
+        "size": "28px",
+        "weight": "700",
+        "color": "#1f2937",
+        "align": "center"
+      },
+      "body": {
+        "intro": "Hi John,",
+        "paragraphs": [
+          "Welcome to our comprehensive email template system!",
+          "This template showcases all available features and customization options.",
+          "You can use any combination of these features to create the perfect email."
+        ],
+        "note": "If you have any questions, please contact our support team.",
+        "font_size": "16px",
+        "line_height": "26px"
+      },
+      "snapshot": {
+        "title": "Account Information",
+        "facts": [
+          { "label": "Account Type", "value": "Premium" },
+          { "label": "Created", "value": "January 1, 2024" },
+          { "label": "Status", "value": "Active" }
+        ],
+        "style": "table"
+      },
+      "visual": {
+        "type": "progress",
+        "progress_bars": [
+          {
+            "label": "Profile Completion",
+            "current": 75,
+            "max": 100,
+            "unit": "%",
+            "percentage": 75,
+            "color": "#3b82f6",
+            "description": "Complete your profile setup"
+          }
+        ]
+      },
+      "actions": {
+        "primary": {
+          "label": "Get Started",
+          "url": "https://yourcompany.com/dashboard",
+          "style": "button",
+          "color": "#3b82f6",
+          "text_color": "#ffffff"
+        },
+        "secondary": {
+          "label": "Learn More",
+          "url": "https://yourcompany.com/docs",
+          "style": "link",
+          "color": "#6b7280"
+        }
+      },
+      "support": {
+        "title": "Need help?",
+        "links": [
+          { "label": "FAQ", "url": "https://yourcompany.com/faq" },
+          { "label": "Contact Support", "url": "https://yourcompany.com/support" }
+        ]
+      },
+      "footer": {
+        "tagline": "Empowering your business",
+        "social_links": [
+          { "platform": "twitter", "url": "https://twitter.com/yourcompany" },
+          { "platform": "linkedin", "url": "https://linkedin.com/company/yourcompany" }
+        ],
+        "legal_links": [
+          { "label": "Privacy Policy", "url": "https://yourcompany.com/privacy" },
+          { "label": "Terms of Service", "url": "https://yourcompany.com/terms" }
+        ],
+        "copyright": "© 2024 Your Company. All rights reserved."
+      },
+      "footer_links": [
+        { "label": "Privacy Policy", "url": "https://yourcompany.com/privacy" },
+        { "label": "Terms of Service", "url": "https://yourcompany.com/terms" },
+        { "label": "Unsubscribe", "url": "https://yourcompany.com/unsubscribe?token=abc123" }
+      ],
+      "theme": {
+        "font_family": "'Inter', 'Helvetica Neue', Arial, sans-serif",
+        "font_size": "16px",
+        "text_color": "#2c3e50",
+        "heading_color": "#1a1a1a",
+        "background_color": "#ffffff",
+        "body_background": "#f4f4f4",
+        "muted_text_color": "#888888",
+        "border_color": "#e0e0e0",
+        "primary_button_color": "#3b82f6",
+        "primary_button_text_color": "#ffffff",
+        "secondary_button_color": "#6c757d",
+        "secondary_button_text_color": "#ffffff",
+        "dark_mode": false,
+        "dark_background_color": "#1a1a1a",
+        "dark_text_color": "#e0e0e0",
+        "dark_heading_color": "#ffffff",
+        "dark_muted_color": "#888888",
+        "dark_border_color": "#333333",
+        "dark_card_background": "#2a2a2a"
+      },
+      "content": {
+        "en": "Welcome to our platform!",
+        "es": "¡Bienvenido a nuestra plataforma!",
+        "fr": "Bienvenue sur notre plateforme!"
+      },
+      "custom_content": "Custom HTML content can be added here"
+    },
+    "variableSchema": {
+    "type": "object",
+    "properties": {
+      "header": {
+        "type": "object",
+        "properties": {
+          "logo_url": { "type": "string" },
+          "logo_alt": { "type": "string" },
+          "tagline": { "type": "string" }
+        }
+      },
+      "hero": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string", "enum": ["none", "image", "icon"] },
+          "image_url": { "type": "string" },
+          "image_alt": { "type": "string" },
+          "image_width": { "type": "string" },
+          "icon": { "type": "string" },
+          "icon_size": { "type": "string" }
+        }
+      },
+      "title": {
+        "type": "object",
+        "properties": {
+          "text": { "type": "string" },
+          "size": { "type": "string" },
+          "weight": { "type": "string" },
+          "color": { "type": "string" },
+          "align": { "type": "string" }
+        }
+      },
+      "body": {
+        "type": "object",
+        "properties": {
+          "intro": { "type": "string" },
+          "paragraphs": { "type": "array", "items": { "type": "string" } },
+          "note": { "type": "string" },
+          "font_size": { "type": "string" },
+          "line_height": { "type": "string" }
+        }
+      },
+      "snapshot": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string" },
+          "facts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": { "type": "string" },
+                "value": { "type": "string" }
+              }
+            }
+          },
+          "style": { "type": "string", "enum": ["table", "cards", "list"] }
+        }
+      },
+      "visual": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string", "enum": ["none", "progress", "countdown", "badge"] },
+          "progress_bars": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": { "type": "string" },
+                "current": { "type": "number" },
+                "max": { "type": "number" },
+                "unit": { "type": "string" },
+                "percentage": { "type": "number" },
+                "color": { "type": "string" },
+                "description": { "type": "string" }
+              }
+            }
+          },
+          "countdown": {
+            "type": "object",
+            "properties": {
+              "message": { "type": "string" },
+              "target_date": { "type": "string" },
+              "show_days": { "type": "boolean" },
+              "show_hours": { "type": "boolean" },
+              "show_minutes": { "type": "boolean" },
+              "show_seconds": { "type": "boolean" }
+            }
+          }
+        }
+      },
+      "actions": {
+        "type": "object",
+        "properties": {
+          "primary": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "url": { "type": "string" },
+              "style": { "type": "string", "enum": ["button", "link"] },
+              "color": { "type": "string" },
+              "text_color": { "type": "string" }
+            }
+          },
+          "secondary": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "url": { "type": "string" },
+              "style": { "type": "string", "enum": ["button", "link"] },
+              "color": { "type": "string" },
+              "text_color": { "type": "string" }
+            }
+          }
+        }
+      },
+      "support": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string" },
+          "links": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": { "type": "string" },
+                "url": { "type": "string" }
+              }
+            }
+          }
+        }
+      },
+      "footer": {
+        "type": "object",
+        "properties": {
+          "tagline": { "type": "string" },
+          "social_links": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "platform": { "type": "string", "enum": ["twitter", "linkedin", "github", "facebook", "instagram"] },
+                "url": { "type": "string" }
+              }
+            }
+          },
+          "legal_links": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": { "type": "string" },
+                "url": { "type": "string" }
+              }
+            }
+          },
+          "copyright": { "type": "string" }
+        }
+      },
+      "footer_links": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "label": { "type": "string" },
+            "url": { "type": "string" }
+          }
+        }
+      },
+      "theme": {
+        "type": "object",
+        "properties": {
+          "font_family": { "type": "string" },
+          "font_size": { "type": "string" },
+          "text_color": { "type": "string" },
+          "heading_color": { "type": "string" },
+          "background_color": { "type": "string" },
+          "body_background": { "type": "string" },
+          "muted_text_color": { "type": "string" },
+          "border_color": { "type": "string" },
+          "primary_button_color": { "type": "string" },
+          "primary_button_text_color": { "type": "string" },
+          "secondary_button_color": { "type": "string" },
+          "secondary_button_text_color": { "type": "string" },
+          "dark_mode": { "type": "boolean" },
+          "dark_background_color": { "type": "string" },
+          "dark_text_color": { "type": "string" },
+          "dark_heading_color": { "type": "string" },
+          "dark_muted_color": { "type": "string" },
+          "dark_border_color": { "type": "string" },
+          "dark_card_background": { "type": "string" }
+        }
+      },
+      "content": {
+        "type": "object",
+        "additionalProperties": { "type": "string" }
+      },
+      "custom_content": { "type": "string" }
+    },
+    "required": ["header", "title", "body"]
+  },
+  "jsonStructure": {
+    "header": {
+      "logo_url": "{{header.logo_url}}",
+      "logo_alt": "{{header.logo_alt}}",
+      "tagline": "{{header.tagline}}"
+    },
+    "hero": {
+      "type": "{{hero.type}}",
+      "image_url": "{{hero.image_url}}",
+      "image_alt": "{{hero.image_alt}}",
+      "image_width": "{{hero.image_width}}",
+      "icon": "{{hero.icon}}",
+      "icon_size": "{{hero.icon_size}}"
+    },
+    "title": {
+      "text": "{{title.text}}",
+      "size": "{{title.size}}",
+      "weight": "{{title.weight}}",
+      "color": "{{title.color}}",
+      "align": "{{title.align}}"
+    },
+    "body": {
+      "intro": "{{body.intro}}",
+      "paragraphs": "{{body.paragraphs}}",
+      "note": "{{body.note}}",
+      "font_size": "{{body.font_size}}",
+      "line_height": "{{body.line_height}}"
+    },
+    "snapshot": {
+      "title": "{{snapshot.title}}",
+      "facts": "{{snapshot.facts}}",
+      "style": "{{snapshot.style}}"
+    },
+    "visual": {
+      "type": "{{visual.type}}",
+      "progress_bars": "{{visual.progress_bars}}",
+      "countdown": "{{visual.countdown}}"
+    },
+    "actions": {
+      "primary": "{{actions.primary}}",
+      "secondary": "{{actions.secondary}}"
+    },
+    "support": {
+      "title": "{{support.title}}",
+      "links": "{{support.links}}"
+    },
+    "footer": {
+      "tagline": "{{footer.tagline}}",
+      "social_links": "{{footer.social_links}}",
+      "legal_links": "{{footer.legal_links}}",
+      "copyright": "{{footer.copyright}}"
+    },
+    "footer_links": "{{footer_links}}",
+    "theme": {
+      "font_family": "{{theme.font_family}}",
+      "font_size": "{{theme.font_size}}",
+      "text_color": "{{theme.text_color}}",
+      "heading_color": "{{theme.heading_color}}",
+      "background_color": "{{theme.background_color}}",
+      "body_background": "{{theme.body_background}}",
+      "muted_text_color": "{{theme.muted_text_color}}",
+      "border_color": "{{theme.border_color}}",
+      "primary_button_color": "{{theme.primary_button_color}}",
+      "primary_button_text_color": "{{theme.primary_button_text_color}}",
+      "secondary_button_color": "{{theme.secondary_button_color}}",
+      "secondary_button_text_color": "{{theme.secondary_button_text_color}}",
+      "dark_mode": "{{theme.dark_mode}}",
+      "dark_background_color": "{{theme.dark_background_color}}",
+      "dark_text_color": "{{theme.dark_text_color}}",
+      "dark_heading_color": "{{theme.dark_heading_color}}",
+      "dark_muted_color": "{{theme.dark_muted_color}}",
+      "dark_border_color": "{{theme.dark_border_color}}",
+      "dark_card_background": "{{theme.dark_card_background}}"
+    },
+      "content": {
+        "type": "object",
+        "additionalProperties": { "type": "string" }
+      },
+      "custom_content": { "type": "string" }
+    },
+    "required": ["header", "title", "body"]
+  }
+}'
+```
+
+### Complete Template Usage Example
+
+Once the template is created, you can use it to send emails:
+
+```bash
+curl --location 'http://localhost:3000/api/v1/emails' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer YOUR_JWT_TOKEN' \
+--header 'Idempotency-Key: unique-key-123' \
+--data-raw '{
+  "from": {
+    "email": "noreply@yourcompany.com",
+    "name": "Your Company"
+  },
+  "subject": "Complete Email Example",
+  "to": [
+    {
+      "email": "user@example.com",
+      "name": "John Doe"
+    }
+  ],
+  "template": {
+    "key": "comprehensive-email-template",
+    "locale": "en"
+  },
+  "variables": {
+    "header": {
+      "logo_url": "https://yourcompany.com/logo.png",
+      "logo_alt": "Your Company Logo",
+      "tagline": "Empowering your business"
+    },
+    "hero": {
+      "type": "icon",
+      "icon": "🎉",
+      "icon_size": "48px"
+    },
+    "title": {
+      "text": "Welcome to Our Platform!",
+      "size": "28px",
+      "weight": "700",
+      "color": "#1f2937",
+      "align": "center"
+    },
+    "body": {
+      "intro": "Hi John,",
+      "paragraphs": [
+        "Welcome to our comprehensive email template system!",
+        "This template showcases all available features and customization options.",
+        "You can use any combination of these features to create the perfect email."
+      ],
+      "note": "If you have any questions, please contact our support team.",
+      "font_size": "16px",
+      "line_height": "26px"
+    },
+    "snapshot": {
+      "title": "Account Information",
+      "facts": [
+        { "label": "Account Type", "value": "Premium" },
+        { "label": "Created", "value": "January 1, 2024" },
+        { "label": "Status", "value": "Active" }
+      ],
+      "style": "table"
+    },
+    "visual": {
+      "type": "progress",
+      "progress_bars": [
+        {
+          "label": "Profile Completion",
+          "current": 75,
+          "max": 100,
+          "unit": "%",
+          "percentage": 75,
+          "color": "#3b82f6",
+          "description": "Complete your profile setup"
+        }
+      ]
+    },
+    "actions": {
+      "primary": {
+        "label": "Get Started",
+        "url": "https://yourcompany.com/dashboard",
+        "style": "button",
+        "color": "#3b82f6",
+        "text_color": "#ffffff"
+      },
+      "secondary": {
+        "label": "Learn More",
+        "url": "https://yourcompany.com/docs",
+        "style": "link",
+        "color": "#6b7280"
+      }
+    },
+    "support": {
+      "title": "Need help?",
+      "links": [
+        { "label": "FAQ", "url": "https://yourcompany.com/faq" },
+        { "label": "Contact Support", "url": "https://yourcompany.com/support" }
+      ]
+    },
+    "footer": {
+      "tagline": "Empowering your business",
+      "social_links": [
+        { "platform": "twitter", "url": "https://twitter.com/yourcompany" },
+        { "platform": "linkedin", "url": "https://linkedin.com/company/yourcompany" }
+      ],
+      "legal_links": [
+        { "label": "Privacy Policy", "url": "https://yourcompany.com/privacy" },
+        { "label": "Terms of Service", "url": "https://yourcompany.com/terms" }
+      ],
+      "copyright": "© 2024 Your Company. All rights reserved."
+    },
+    "footer_links": [
+      { "label": "Privacy Policy", "url": "https://yourcompany.com/privacy" },
+      { "label": "Terms of Service", "url": "https://yourcompany.com/terms" },
+      { "label": "Unsubscribe", "url": "https://yourcompany.com/unsubscribe?token=abc123" }
+    ],
+    "theme": {
+      "font_family": "'Inter', 'Helvetica Neue', Arial, sans-serif",
+      "font_size": "16px",
+      "text_color": "#2c3e50",
+      "heading_color": "#1a1a1a",
+      "background_color": "#ffffff",
+      "body_background": "#f4f4f4",
+      "muted_text_color": "#888888",
+      "border_color": "#e0e0e0",
+      "primary_button_color": "#3b82f6",
+      "primary_button_text_color": "#ffffff",
+      "secondary_button_color": "#6c757d",
+      "secondary_button_text_color": "#ffffff",
+      "dark_mode": false,
+      "dark_background_color": "#1a1a1a",
+      "dark_text_color": "#e0e0e0",
+      "dark_heading_color": "#ffffff",
+      "dark_muted_color": "#888888",
+      "dark_border_color": "#333333",
+      "dark_card_background": "#2a2a2a"
+    },
+    "content": {
+      "en": "Welcome to our platform!",
+      "es": "¡Bienvenido a nuestra plataforma!",
+      "fr": "Bienvenue sur notre plateforme!"
+    },
+    "custom_content": "Custom HTML content can be added here"
+  },
+  "metadata": {
+    "tenantId": "your_tenant",
+    "eventId": "welcome_email",
+    "notificationType": "welcome"
+  }
+}'
+```
+
+### Template Category Validation
+
+Categories must be one of the predefined values:
+
+**Valid Categories:**
+- ✅ `transactional` - Essential account-related emails
+- ✅ `marketing` - Promotional and marketing emails  
+- ✅ `notification` - System-generated notifications
+- ✅ `test` - Development and testing templates
+
+**Invalid Categories:**
+- ❌ Custom categories (e.g., `custom`, `my-category`)
+- ❌ Empty or null values
+- ❌ Non-string values
+
+**Important**: The `category` field is **required** by the database, even though the API validation doesn't currently check for it. Omitting this field will result in a database error.
+
+### Template Management Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/templates` | GET | List all templates |
+| `/api/v1/templates` | POST | Create new template |
+| `/api/v1/templates/:key` | GET | Get specific template |
+| `/api/v1/templates/:key` | PUT | Update template |
+| `/api/v1/templates/:key` | DELETE | Delete template |
+| `/api/v1/templates/:key/validate` | POST | Validate template variables |
+| `/api/v1/templates/validate` | POST | Validate template structure |
 
 ## 🎯 Best Practices
 
 ### ✅ Do's
 
-1. **Use object-based structure**: Use structured sections (`header`, `hero`, `title`, `body`, `snapshot`, `visual`, `actions`, `support`, `footer`)
-2. **Use proper JSON structure**: Wrap template key/locale in `template` object, variables in `variables` object
-3. **Avoid redundancy**: Don't duplicate information between facts table and progress bars
-4. **Use PNG/JPG images**: Avoid SVG for better email client compatibility
-5. **Test across email clients**: Gmail, Outlook, Apple Mail, etc.
-6. **Use semantic HTML**: Proper heading structure and alt text
-7. **Optimize images**: Compress images for faster loading
-8. **Use consistent branding**: Apply your brand colors and fonts
-9. **Test multi-language content**: Verify all supported locales
-10. **Provide fallbacks**: Always have fallback content for missing variables
-11. **Include footer links**: Add privacy policy, terms, and unsubscribe links
-12. **Use structured data**: Leverage the object-based structure for better organization
+#### Template Creation
+1. **Always include required fields**: `key`, `name`, `category`, `variableSchema`, `jsonStructure`
+2. **Use valid template keys**: lowercase, hyphens only, no special characters
+3. **Define comprehensive variable schemas**: Include all possible variables with proper types
+4. **Validate before creating**: Use the validation endpoint to check structure
+5. **Use descriptive names**: Make template names and descriptions clear and meaningful
+6. **Choose appropriate categories**: Use correct category for template type (transactional, marketing, notification, test)
+7. **Test template creation**: Verify templates are created successfully before using
+
+#### Template Structure
+8. **Use object-based structure**: Use structured sections (`header`, `hero`, `title`, `body`, `snapshot`, `visual`, `actions`, `support`, `footer`)
+9. **Use proper JSON structure**: Wrap template key/locale in `template` object, variables in `variables` object
+10. **Avoid redundancy**: Don't duplicate information between facts table and progress bars
+11. **Use PNG/JPG images**: Avoid SVG for better email client compatibility
+12. **Test across email clients**: Gmail, Outlook, Apple Mail, etc.
+13. **Use semantic HTML**: Proper heading structure and alt text
+14. **Optimize images**: Compress images for faster loading
+15. **Use consistent branding**: Apply your brand colors and fonts
+16. **Test multi-language content**: Verify all supported locales
+17. **Provide fallbacks**: Always have fallback content for missing variables
+18. **Include footer links**: Add privacy policy, terms, and unsubscribe links
+19. **Use structured data**: Leverage the object-based structure for better organization
 
 ### ❌ Don'ts
 
-1. **Don't use SVG images**: Poor email client support
-2. **Don't use external CSS**: Email clients strip external stylesheets
-3. **Don't use complex layouts**: Keep it simple for better compatibility
-4. **Don't forget alt text**: Important for accessibility
-5. **Don't use too many buttons**: Max 2 buttons for better UX
-6. **Don't use long URLs**: Shorten URLs for better display
-7. **Don't forget mobile**: Test on mobile devices
-8. **Don't use too many social links**: 3-5 links maximum
-9. **Don't forget footer links**: Include unsubscribe and privacy policy links
-10. **Don't use too many footer links**: 3-4 links maximum for better readability
-11. **Don't duplicate information**: Avoid showing the same data in both facts table and progress bars
-12. **Don't mix template structure**: Keep template key/locale separate from variables
+#### Template Creation
+1. **Don't skip required fields**: Always include `variableSchema` and `jsonStructure`
+2. **Don't use invalid template keys**: No underscores, spaces, or special characters
+3. **Don't create templates without validation**: Always validate structure first
+4. **Don't use generic names**: Avoid names like "template1" or "test"
+5. **Don't skip variable schema**: Always define the structure of variables
+6. **Don't ignore validation errors**: Fix all errors before creating templates
+7. **Don't use custom categories**: Stick to predefined categories only
+
+#### Template Structure
+7. **Don't use SVG images**: Poor email client support
+8. **Don't use external CSS**: Email clients strip external stylesheets
+9. **Don't use complex layouts**: Keep it simple for better compatibility
+10. **Don't forget alt text**: Important for accessibility
+11. **Don't use too many buttons**: Max 2 buttons for better UX
+12. **Don't use long URLs**: Shorten URLs for better display
+13. **Don't forget mobile**: Test on mobile devices
+14. **Don't use too many social links**: 3-5 links maximum
+15. **Don't forget footer links**: Include unsubscribe and privacy policy links
+16. **Don't use too many footer links**: 3-4 links maximum for better readability
+17. **Don't duplicate information**: Avoid showing the same data in both facts table and progress bars
+18. **Don't mix template structure**: Keep template key/locale separate from variables
 
 ### 🎨 Design Guidelines
 
@@ -870,7 +1866,7 @@ curl -X POST https://api.waymore.io/email-gateway/api/v1/templates/validate \
   -H "Content-Type: application/json" \
   -d '{
     "template": {
-      "key": "transactional",
+      "key": "password-reset-template",
       "locale": "en"
     },
     "variables": {
@@ -1040,6 +2036,29 @@ The `hero` section supports both icons and images. When using images, follow the
 
 ### Common Issues
 
+#### Template Creation Errors
+
+**Problem**: Template creation fails with `PrismaClientValidationError`
+**Solutions**:
+- Ensure all required fields are provided: `key`, `name`, `category`, `variableSchema`, `jsonStructure`
+- **Important**: Always include `category` field even though API validation doesn't check for it
+- Check template key format: lowercase, hyphens only, no special characters
+- Validate variable schema structure before creating
+- Use proper JSON syntax with correct brackets and commas
+
+**Problem**: Template key validation fails
+**Solutions**:
+- Use lowercase letters and hyphens only: `password-reset-template`
+- Avoid underscores, spaces, and special characters
+- Don't start or end with hyphens
+- Use descriptive, meaningful keys
+
+**Problem**: Template already exists error
+**Solutions**:
+- Check if template with same key already exists
+- Use different template key
+- Update existing template using PUT endpoint instead
+
 #### Template Structure Errors
 
 **Problem**: Template generation creates incorrect JSON structure
@@ -1164,4 +2183,5 @@ If you encounter issues:
 ---
 
 **Last Updated**: September 2025  
-**Template Version**: Transactional v2.0.0 (Object-Based Structure)
+**Template Version**: Transactional v2.1.0 (Object-Based Structure with Template Creation)  
+**Guide Version**: 2.1.0 - Added comprehensive template creation and validation documentation

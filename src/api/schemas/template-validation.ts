@@ -181,43 +181,7 @@ const objectBasedVariablesSchema = z.object({
 
 export const templateValidationRequestSchema = z.object({
   template: templateSchema,
-  variables: z.union([
-    objectBasedVariablesSchema,
-    z.record(z.any()).refine((variables) => {
-      // Validate object-based structure is preferred
-      const validSections = ['header', 'hero', 'title', 'body', 'snapshot', 'visual', 'actions', 'support', 'footer', 'theme'];
-      const providedSections = Object.keys(variables).filter(key => validSections.includes(key));
-      
-      if (providedSections.length === 0) {
-        return false;
-      }
-      return true;
-    }, {
-      message: "Use object-based structure with sections like header, title, body, actions, footer"
-    }).refine((variables) => {
-      // Validate specific field formats if they exist, but don't require them
-      if (variables.support_email && typeof variables.support_email === 'string') {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(variables.support_email);
-      }
-      return true;
-    }, {
-      message: "support_email must be a valid email address if provided"
-    }).refine((variables) => {
-      // Validate URL fields if they exist
-      if (variables.image_url && typeof variables.image_url === 'string') {
-        try {
-          new URL(variables.image_url);
-          return true;
-        } catch {
-          return false;
-        }
-      }
-      return true;
-    }, {
-      message: "image_url must be a valid URL if provided"
-    })
-  ])
+  variables: z.record(z.any()) // Simplified for Fastify compatibility
 });
 
 export const validationErrorSchema = z.object({

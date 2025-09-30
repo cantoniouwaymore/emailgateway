@@ -23,7 +23,49 @@ export class TemplateValidationController {
       const payload = verifyJWT(token);
       requireScope('emails:send')(payload);
 
-      const { template, variables } = request.body;
+      // Validate request body structure
+      if (!request.body || typeof request.body !== 'object') {
+        reply.code(400);
+        return {
+          valid: false,
+          errors: [{
+            type: 'missing_required_variable',
+            field: 'request_body',
+            message: 'Request body is required and must be an object'
+          }],
+          warnings: []
+        };
+      }
+
+      const { template, variables } = request.body as any;
+
+      // Validate template object
+      if (!template || typeof template !== 'object') {
+        reply.code(400);
+        return {
+          valid: false,
+          errors: [{
+            type: 'missing_required_variable',
+            field: 'template',
+            message: 'Template object is required'
+          }],
+          warnings: []
+        };
+      }
+
+      // Validate variables object
+      if (!variables || typeof variables !== 'object') {
+        reply.code(400);
+        return {
+          valid: false,
+          errors: [{
+            type: 'missing_required_variable',
+            field: 'variables',
+            message: 'Variables object is required'
+          }],
+          warnings: []
+        };
+      }
 
       logger.info({
         traceId,
@@ -88,10 +130,11 @@ export class TemplateValidationController {
       
       logger.error({
         traceId,
-        error: errorMessage
+        error: errorMessage,
+        stack: error instanceof Error ? error.stack : undefined
       }, 'Template validation failed');
 
-      if (errorMessage.includes('JWT') || errorMessage.includes('scope')) {
+      if (errorMessage.includes('JWT') || errorMessage.includes('scope') || errorMessage.includes('token')) {
         reply.code(401);
         return {
           valid: false,
@@ -104,13 +147,27 @@ export class TemplateValidationController {
         };
       }
 
+      // Handle validation errors from Zod or other validation libraries
+      if (errorMessage.includes('validation') || errorMessage.includes('Invalid input') || errorMessage.includes('Required')) {
+        reply.code(400);
+        return {
+          valid: false,
+          errors: [{
+            type: 'missing_required_variable',
+            field: 'request_body',
+            message: errorMessage
+          }],
+          warnings: []
+        };
+      }
+
       reply.code(500);
       return {
         valid: false,
         errors: [{
           type: 'missing_required_variable',
           field: 'server',
-          message: 'Internal server error'
+          message: `Internal server error: ${errorMessage}`
         }],
         warnings: []
       };
@@ -118,13 +175,24 @@ export class TemplateValidationController {
   }
 
   private validateTemplateStructure(template: any, errors: ValidationError[]): void {
-    if (!template.key || template.key !== 'transactional') {
+    if (!template.key || typeof template.key !== 'string' || template.key.trim().length === 0) {
       errors.push({
         type: 'missing_required_variable',
         field: 'template.key',
-        message: 'Template key must be "transactional"',
-        suggestion: 'Set template.key to "transactional"'
+        message: 'Template key is required and must be a non-empty string',
+        suggestion: 'Provide a valid template key (e.g., "welcome-email", "password-reset", etc.)'
       });
+    } else {
+      // Validate template key format (lowercase, hyphens, alphanumeric)
+      const validKeyPattern = /^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/;
+      if (!validKeyPattern.test(template.key)) {
+        errors.push({
+          type: 'invalid_variable_format',
+          field: 'template.key',
+          message: 'Template key must contain only lowercase letters, numbers, and hyphens (not starting/ending with hyphens)',
+          suggestion: 'Use format like "welcome-email" or "password-reset"'
+        });
+      }
     }
 
     if (!template.locale) {

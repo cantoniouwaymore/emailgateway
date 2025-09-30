@@ -123,7 +123,7 @@ POST /api/v1/emails
 | `to` | array | Yes | Recipients (max 50) |
 | `cc` | array | No | CC recipients (max 10) |
 | `bcc` | array | No | BCC recipients (max 10) |
-| `from` | object | Yes | Sender information |
+| `from` | object | No | Sender information (ignored; server uses environment defaults) |
 | `replyTo` | object | No | Reply-to address |
 | `subject` | string | Yes | Email subject line |
 | `template` | object | Yes | Template configuration |
@@ -425,6 +425,18 @@ Supported locales: `en`, `es`, `fr`, `de`, `it`, `pt`
 {
   "messageId": "msg_abc123def456",
   "status": "queued"
+}
+```
+
+#### Additional Error (400 Bad Request)
+
+```json
+{
+  "error": {
+    "code": "MISSING_IDEMPOTENCY_KEY",
+    "message": "Idempotency-Key header is required",
+    "traceId": "trace_12345"
+  }
 }
 ```
 
@@ -799,16 +811,11 @@ POST /api/v1/templates/validate
 ```json
 {
   "messageId": "msg_abc123def456",
-  "status": "sent",
-  "attempts": 1,
+  "status": "queued",
+  "attempts": 0,
   "lastError": null,
   "createdAt": "2024-01-01T10:00:00Z",
-  "updatedAt": "2024-01-01T10:00:05Z",
-  "metadata": {
-    "provider": "routee",
-    "providerMessageId": "routee_12345",
-    "deliveredAt": "2024-01-01T10:00:03Z"
-  }
+  "updatedAt": "2024-01-01T10:00:05Z"
 }
 ```
 
@@ -1755,6 +1762,55 @@ GET /api/v1/templates/{templateKey}/docs
       }
     }
   }
+}
+```
+
+### Detect Variables in Template
+
+Identify variables present in a template's JSON structure.
+
+```http
+GET /api/v1/templates/{templateKey}/detected-variables
+```
+
+#### Response
+
+```json
+{
+  "success": true,
+  "data": ["email_title", "user_name", "company_name"]
+}
+```
+
+### Preview Template Rendering
+
+Generate an HTML preview for a template with variables.
+
+```http
+GET /api/v1/templates/{templateKey}/preview
+```
+
+or generate from an ad-hoc structure:
+
+```http
+POST /api/v1/templates/preview
+```
+
+#### Request Body (for POST)
+
+```json
+{
+  "jsonStructure": { /* MJML-like JSON */ },
+  "variables": { /* variables object */ }
+}
+```
+
+#### Response (200 OK)
+
+```json
+{
+  "success": true,
+  "html": "<html>...</html>"
 }
 ```
 

@@ -425,6 +425,89 @@ export class DatabaseTemplateEngine {
         console.log('🔗 No social links found in footer');
       }
     }
+
+    // Normalize camelCase to snake_case for sections used by MJML template
+    // Header
+    if (finalStructure.header) {
+      if (finalStructure.header.logoUrl && !finalStructure.header.logo_url) {
+        finalStructure.header.logo_url = finalStructure.header.logoUrl;
+      }
+      if (finalStructure.header.logoAlt && !finalStructure.header.logo_alt) {
+        finalStructure.header.logo_alt = finalStructure.header.logoAlt;
+      }
+    }
+
+    // Body
+    if (finalStructure.body) {
+      if (finalStructure.body.fontSize && !finalStructure.body.font_size) {
+        finalStructure.body.font_size = finalStructure.body.fontSize;
+      }
+      if (finalStructure.body.lineHeight && !finalStructure.body.line_height) {
+        finalStructure.body.line_height = finalStructure.body.lineHeight;
+      }
+    }
+
+    // Hero
+    if (finalStructure.hero) {
+      if (finalStructure.hero.imageUrl && !finalStructure.hero.image_url) {
+        finalStructure.hero.image_url = finalStructure.hero.imageUrl;
+      }
+      if (finalStructure.hero.imageAlt && !finalStructure.hero.image_alt) {
+        finalStructure.hero.image_alt = finalStructure.hero.imageAlt;
+      }
+      if (finalStructure.hero.imageWidth && !finalStructure.hero.image_width) {
+        finalStructure.hero.image_width = finalStructure.hero.imageWidth;
+      }
+      if (finalStructure.hero.iconSize && !finalStructure.hero.icon_size) {
+        finalStructure.hero.icon_size = finalStructure.hero.iconSize;
+      }
+    }
+
+    // Visual: progress bars and countdown
+    if (finalStructure.visual) {
+      // progressBars -> progress_bars with key normalization
+      const progressBars = finalStructure.visual.progressBars || finalStructure.visual.progress_bars;
+      if (Array.isArray(progressBars)) {
+        finalStructure.visual.progress_bars = progressBars.map((bar: any) => {
+          const current = bar.currentValue ?? bar.current;
+          const max = bar.maxValue ?? bar.max;
+          const percentage = bar.percentage ?? (typeof current === 'number' && typeof max === 'number' && max > 0
+            ? Math.round((current / max) * 100)
+            : undefined);
+          return {
+            label: bar.label,
+            current,
+            max,
+            unit: bar.unit,
+            percentage,
+            color: bar.color,
+            description: bar.description
+          };
+        });
+        // Remove camelCase collection to avoid ambiguity
+        delete finalStructure.visual.progressBars;
+      }
+
+      // countdown normalization: targetDate -> target_date; showX -> show_x
+      if (finalStructure.visual.countdown) {
+        const cd = finalStructure.visual.countdown;
+        if (cd.targetDate && !cd.target_date) {
+          cd.target_date = cd.targetDate;
+        }
+        if (cd.showDays !== undefined && cd.show_days === undefined) {
+          cd.show_days = cd.showDays;
+        }
+        if (cd.showHours !== undefined && cd.show_hours === undefined) {
+          cd.show_hours = cd.showHours;
+        }
+        if (cd.showMinutes !== undefined && cd.show_minutes === undefined) {
+          cd.show_minutes = cd.showMinutes;
+        }
+        if (cd.showSeconds !== undefined && cd.show_seconds === undefined) {
+          cd.show_seconds = cd.showSeconds;
+        }
+      }
+    }
     
     return finalStructure;
   }

@@ -96,8 +96,10 @@ export class VariableDetector {
       const cleanName = this.cleanVariableName(variableName);
       const fallback = this.extractFallback(variableName);
       
-      // Use provided value, fallback, or empty string
-      const value = variables[cleanName] ?? fallback ?? '';
+      // Priority: user-provided value → fallback from template → show variable name
+      const value = variables.hasOwnProperty(cleanName)
+        ? variables[cleanName]
+        : (fallback !== undefined ? fallback : `{{${cleanName}}}`);
       return String(value);
     });
   }

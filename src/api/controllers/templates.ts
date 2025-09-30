@@ -1014,6 +1014,8 @@ export class TemplateController {
       console.log('🔍 Preview generation - templateStructure:', JSON.stringify(templateStructure, null, 2));
       console.log('🔍 Preview generation - variables:', JSON.stringify(variables, null, 2));
       
+      // Resolve placeholders at render-time using VariableDetector rules
+      dbEngine.setMockTemplate({ key: 'preview-template', jsonStructure: templateStructure });
       const rendered = await dbEngine.renderTemplate({
         key: 'preview-template',
         locale: 'en',
