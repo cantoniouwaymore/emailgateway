@@ -19,6 +19,7 @@ Welcome to the Waymore Transactional Emails Service documentation! This guide pr
 |----------|-------------|----------|
 | **[Routee Integration](./ROUTEE_INTEGRATION.md)** | Routee email provider setup and callback handling | Developers, Integrators |
 | **[Transactional Template Guide](./TRANSACTIONAL_TEMPLATE_GUIDE.md)** | Template system, MJML usage, and responsive email design | Developers, Designers |
+| **[Locale System Guide](./LOCALE_SYSTEM.md)** | Multi-language support, base template functionality, and fallback strategies | Developers, Integrators |
 
 ### 📦 Package Documentation
 
@@ -48,6 +49,7 @@ Welcome to the Waymore Transactional Emails Service documentation! This guide pr
 ### 📧 Email Processing
 - **Multi-Provider Support**: Routee, SendGrid, SES
 - **Template System**: MJML-based responsive templates
+- **Multi-Language Support**: 40+ locales with intelligent base template fallback
 - **Queue Processing**: Reliable background job processing
 - **Status Tracking**: Real-time delivery tracking
 

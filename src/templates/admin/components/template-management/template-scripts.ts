@@ -226,6 +226,9 @@ export function generateTemplateManagementScripts(): string {
         document.getElementById('template-form').reset();
         document.getElementById('template-key').readOnly = false;
         
+        // Hide locale selector for new templates
+        document.getElementById('locale-selector-container').classList.add('hidden');
+        
         // Load a default template example
         loadTemplateExample();
         
@@ -273,33 +276,13 @@ export function generateTemplateManagementScripts(): string {
           document.getElementById('template-name-display').textContent = currentTemplate.name || 'Unknown';
           document.getElementById('template-description-display').textContent = currentTemplate.description || 'No description provided';
           document.getElementById('template-category-display').textContent = currentTemplate.category || 'Unknown';
-          // Populate template JSON structure
-          let templateStructure = currentTemplate.jsonStructure;
-          if (!templateStructure || Object.keys(templateStructure).length === 0) {
-            // Show a default structure if template is empty
-            templateStructure = {
-              "title": {
-                "text": "{{email_title}}",
-                "size": "28px",
-                "color": "#1f2937"
-              },
-              "body": {
-                "paragraphs": [
-                  "Hello {{user_name}},",
-                  "{{email_content}}"
-                ],
-                "font_size": "16px"
-              },
-              "actions": {
-                "primary": {
-                  "label": "{{cta_label}}",
-                  "url": "{{cta_url}}",
-                  "style": "button"
-                }
-              }
-            };
-          }
-          document.getElementById('template-json-structure').value = JSON.stringify(templateStructure, null, 2);
+          
+          // Show locale selector and populate it
+          populateJsonLocaleSelector();
+          document.getElementById('locale-selector-container').classList.remove('hidden');
+          
+          // Load initial template structure (base template)
+          loadJsonTemplateStructure('__base__');
           
           // Populate variable schema
           const variableSchema = currentTemplate.variableSchema || {};
@@ -816,6 +799,10 @@ export function generateTemplateManagementScripts(): string {
         const templateKey = document.getElementById('template-key')?.value || 'your-template-key';
         const templateName = document.getElementById('template-name')?.value || 'Your Template';
         
+        // Get selected locale from the dropdown
+        const localeSelector = document.getElementById('json-locale-selector');
+        const selectedLocale = localeSelector ? localeSelector.value : '__base__';
+        
         // Get template structure to extract variables
         const templateStructure = document.getElementById('template-json-structure')?.value;
         let variables = {};
@@ -856,7 +843,7 @@ export function generateTemplateManagementScripts(): string {
           subject: \`{{email_subject}} - \${templateName}\`,
           template: {
             key: templateKey,
-            locale: "en"
+            locale: selectedLocale === '__base__' ? 'en' : selectedLocale
           },
           variables: variables,
           metadata: {
@@ -927,6 +914,133 @@ export function generateTemplateManagementScripts(): string {
         }
       }
 
+      // Populate locale selector for JSON view
+      function populateJsonLocaleSelector() {
+        const selector = document.getElementById('json-locale-selector');
+        if (!selector || !currentTemplate) {
+          return;
+        }
+
+        // Clear existing options except the base template option
+        selector.innerHTML = '<option value="__base__">Base Template (Variables)</option>';
+
+        if (Array.isArray(currentTemplate.locales)) {
+          // Get locale names for display
+          const localeNames = {
+            'en': 'English',
+            'es': 'Spanish', 
+            'fr': 'French',
+            'de': 'German',
+            'it': 'Italian',
+            'pt': 'Portuguese',
+            'nl': 'Dutch',
+            'sv': 'Swedish',
+            'da': 'Danish',
+            'no': 'Norwegian',
+            'fi': 'Finnish',
+            'pl': 'Polish',
+            'ru': 'Russian',
+            'ja': 'Japanese',
+            'ko': 'Korean',
+            'zh': 'Chinese',
+            'ar': 'Arabic',
+            'hi': 'Hindi',
+            'tr': 'Turkish',
+            'cs': 'Czech',
+            'sk': 'Slovak',
+            'hu': 'Hungarian',
+            'ro': 'Romanian',
+            'bg': 'Bulgarian',
+            'hr': 'Croatian',
+            'sl': 'Slovenian',
+            'et': 'Estonian',
+            'lv': 'Latvian',
+            'lt': 'Lithuanian',
+            'el': 'Greek',
+            'mt': 'Maltese',
+            'cy': 'Welsh',
+            'ga': 'Irish',
+            'is': 'Icelandic',
+            'fo': 'Faroese',
+            'eu': 'Basque'
+          };
+
+          // Add existing locales to the dropdown
+          currentTemplate.locales.forEach(locale => {
+            if (locale.locale && locale.locale !== '__base__') {
+              const option = document.createElement('option');
+              option.value = locale.locale;
+              const localeName = localeNames[locale.locale] || locale.locale.toUpperCase();
+              option.textContent = localeName + ' (' + locale.locale + ') - Resolved Values';
+              selector.appendChild(option);
+            }
+          });
+        }
+      }
+
+      // Handle locale change in JSON view
+      function onJsonLocaleChange() {
+        const selector = document.getElementById('json-locale-selector');
+        if (selector && currentTemplate) {
+          const selectedLocale = selector.value;
+          loadJsonTemplateStructure(selectedLocale);
+        }
+      }
+
+      // Load template structure for JSON view based on selected locale
+      function loadJsonTemplateStructure(locale) {
+        let templateStructure = null;
+
+        if (locale === '__base__') {
+          // Load base template structure
+          templateStructure = currentTemplate.jsonStructure || {};
+        } else {
+          // Find locale-specific structure
+          if (Array.isArray(currentTemplate.locales)) {
+            const localeEntry = currentTemplate.locales.find(l => l.locale === locale);
+            if (localeEntry && localeEntry.jsonStructure) {
+              templateStructure = localeEntry.jsonStructure;
+            } else {
+              // Fallback to base structure if locale not found
+              templateStructure = currentTemplate.jsonStructure || {};
+            }
+          }
+        }
+
+        // Show default structure if template is empty
+        if (!templateStructure || Object.keys(templateStructure).length === 0) {
+          templateStructure = {
+            "title": {
+              "text": "{{email_title}}",
+              "size": "28px",
+              "color": "#1f2937"
+            },
+            "body": {
+              "paragraphs": [
+                "Hello {{user_name}},",
+                "{{email_content}}"
+              ],
+              "font_size": "16px"
+            },
+            "actions": {
+              "primary": {
+                "label": "{{cta_label}}",
+                "url": "{{cta_url}}",
+                "style": "button"
+              }
+            }
+          };
+        }
+
+        // Update the JSON display
+        const jsonStructureField = document.getElementById('template-json-structure');
+        if (jsonStructureField) {
+          jsonStructureField.value = JSON.stringify(templateStructure, null, 2);
+          // Regenerate email request JSON with new structure
+          generateEmailRequestExample();
+        }
+      }
+
       // Copy template JSON to clipboard
       async function copyTemplateJSON() {
         const jsonElement = document.getElementById('template-json-structure');
@@ -961,6 +1075,7 @@ export function generateTemplateManagementScripts(): string {
       window.closeTemplatePreviewModal = closeTemplatePreviewModal;
       window.showLoading = showLoading;
       window.hideLoading = hideLoading;
+      window.onJsonLocaleChange = onJsonLocaleChange;
 
       // Initialize when DOM is loaded
       document.addEventListener('DOMContentLoaded', function() {

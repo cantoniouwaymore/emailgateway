@@ -121,6 +121,9 @@ export class TemplateEngine {
 
   async renderTemplate(options: TemplateRenderOptions): Promise<RenderedTemplate> {
     const { key, locale = 'en', version, variables } = options;
+    
+    // Handle __base__ locale by using base template structure
+    const actualLocale = locale === '__base__' ? 'en' : locale;
 
     // Check cache first if enabled
     if (this.cacheEnabled) {
@@ -139,7 +142,7 @@ export class TemplateEngine {
         try {
           const result = await this.databaseEngine.renderTemplate({
             key,
-            locale,
+            locale: locale, // Pass the original locale (including __base__)
             variables
           });
           console.log('🔧 TEMPLATE ENGINE - Database rendering successful:', { templateKey: key, locale, source: 'database' });
@@ -176,7 +179,7 @@ export class TemplateEngine {
       }
 
       // Load template files
-      const templatePath = this.getTemplatePath(key, locale, version);
+      const templatePath = this.getTemplatePath(key, actualLocale, version);
       const mjmlTemplate = this.loadTemplate(templatePath, 'mjml');
       
       // Compile Handlebars template

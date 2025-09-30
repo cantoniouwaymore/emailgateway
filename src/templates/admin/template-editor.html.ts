@@ -80,24 +80,67 @@ export function generateTemplateEditorHTML(): string {
               </div>
               <div>
                 <label class="form-label">Locale</label>
-                <select id="template-locale" class="form-input" onchange="onLocaleChange()">
-                  <option value="en">English (en)</option>
-                  <option value="es">Spanish (es)</option>
-                  <option value="fr">French (fr)</option>
-                  <option value="de">German (de)</option>
-                  <option value="it">Italian (it)</option>
-                  <option value="pt">Portuguese (pt)</option>
-                  <option value="nl">Dutch (nl)</option>
-                  <option value="sv">Swedish (sv)</option>
-                  <option value="da">Danish (da)</option>
-                  <option value="no">Norwegian (no)</option>
-                  <option value="fi">Finnish (fi)</option>
-                  <option value="pl">Polish (pl)</option>
-                  <option value="ru">Russian (ru)</option>
-                  <option value="ja">Japanese (ja)</option>
-                  <option value="ko">Korean (ko)</option>
-                  <option value="zh">Chinese (zh)</option>
-                </select>
+                <div class="flex space-x-2">
+                  <select id="template-locale" class="form-input flex-1" onchange="onLocaleChange()">
+                    <option value="__base__">Base Template (Variables)</option>
+                    <!-- Locales will be populated dynamically -->
+                  </select>
+                  <button onclick="showCreateLocaleDialog()" class="btn btn-secondary" title="Create New Locale">
+                    <i class="fas fa-plus"></i>
+                  </button>
+                </div>
+                <div id="create-locale-dialog" class="mt-2 hidden">
+                  <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <div class="flex items-center space-x-2">
+                      <select id="new-locale-select" class="form-input flex-1">
+                        <option value="">Select a locale...</option>
+                        <option value="en">English (en)</option>
+                        <option value="es">Spanish (es)</option>
+                        <option value="fr">French (fr)</option>
+                        <option value="de">German (de)</option>
+                        <option value="it">Italian (it)</option>
+                        <option value="pt">Portuguese (pt)</option>
+                        <option value="nl">Dutch (nl)</option>
+                        <option value="sv">Swedish (sv)</option>
+                        <option value="da">Danish (da)</option>
+                        <option value="no">Norwegian (no)</option>
+                        <option value="fi">Finnish (fi)</option>
+                        <option value="pl">Polish (pl)</option>
+                        <option value="ru">Russian (ru)</option>
+                        <option value="ja">Japanese (ja)</option>
+                        <option value="ko">Korean (ko)</option>
+                        <option value="zh">Chinese (zh)</option>
+                        <option value="ar">Arabic (ar)</option>
+                        <option value="hi">Hindi (hi)</option>
+                        <option value="tr">Turkish (tr)</option>
+                        <option value="cs">Czech (cs)</option>
+                        <option value="sk">Slovak (sk)</option>
+                        <option value="hu">Hungarian (hu)</option>
+                        <option value="ro">Romanian (ro)</option>
+                        <option value="bg">Bulgarian (bg)</option>
+                        <option value="hr">Croatian (hr)</option>
+                        <option value="sl">Slovenian (sl)</option>
+                        <option value="et">Estonian (et)</option>
+                        <option value="lv">Latvian (lv)</option>
+                        <option value="lt">Lithuanian (lt)</option>
+                        <option value="el">Greek (el)</option>
+                        <option value="mt">Maltese (mt)</option>
+                        <option value="cy">Welsh (cy)</option>
+                        <option value="ga">Irish (ga)</option>
+                        <option value="is">Icelandic (is)</option>
+                        <option value="fo">Faroese (fo)</option>
+                        <option value="eu">Basque (eu)</option>
+                      </select>
+                      <button onclick="createNewLocale()" class="btn btn-primary" disabled id="create-locale-btn">
+                        <i class="fas fa-plus mr-1"></i>Create
+                      </button>
+                      <button onclick="hideCreateLocaleDialog()" class="btn btn-secondary">
+                        <i class="fas fa-times"></i>
+                      </button>
+                    </div>
+                    <p class="text-xs text-gray-600 mt-1">Select a locale and click Create to add it to this template</p>
+                  </div>
+                </div>
               </div>
             </div>
             <div class="mt-4">
@@ -236,6 +279,13 @@ export function generateTemplateEditorHTML(): string {
               console.log('🔍 Added create new option');
               
               console.log('🔍 Final dropdown options:', categorySelect.innerHTML);
+              
+              // If we're editing a template and have a current template, set the category value
+              if (isEditing && currentTemplate && currentTemplate.category) {
+                console.log('🔍 Setting category value for editing template:', currentTemplate.category);
+                categorySelect.value = currentTemplate.category;
+                console.log('🔍 Category value set to:', categorySelect.value);
+              }
             } else {
               console.error('🔍 Category select element not found');
             }
@@ -260,6 +310,13 @@ export function generateTemplateEditorHTML(): string {
               categorySelect.appendChild(createNewOption);
               
               console.log('🔍 Added default categories as fallback');
+              
+              // If we're editing a template and have a current template, set the category value
+              if (isEditing && currentTemplate && currentTemplate.category) {
+                console.log('🔍 Setting category value for editing template (fallback):', currentTemplate.category);
+                categorySelect.value = currentTemplate.category;
+                console.log('🔍 Category value set to (fallback):', categorySelect.value);
+              }
             }
           }
         }
@@ -278,6 +335,197 @@ export function generateTemplateEditorHTML(): string {
             // Hide the input field
             newCategoryInput.classList.add('hidden');
             newCategoryInput.querySelector('input').value = '';
+          }
+        }
+
+        // Load template locales into the dropdown
+        function loadTemplateLocales() {
+          console.log('🌍 Loading template locales...');
+          const localeSelect = document.getElementById('template-locale');
+          const newLocaleSelect = document.getElementById('new-locale-select');
+          
+          if (!localeSelect) {
+            console.error('🌍 Locale select element not found');
+            return;
+          }
+          
+          // Clear existing locale options except the base template option
+          localeSelect.innerHTML = '<option value="__base__">Base Template (Variables)</option>';
+          
+          if (currentTemplate && Array.isArray(currentTemplate.locales)) {
+            console.log('🌍 Found locales:', currentTemplate.locales.map(l => l.locale));
+            
+            // Add existing locales to the dropdown
+            currentTemplate.locales.forEach(locale => {
+              if (locale.locale && locale.locale !== '__base__') {
+                const option = document.createElement('option');
+                option.value = locale.locale;
+                
+                // Get locale name for display
+                const localeNames = {
+                  'en': 'English',
+                  'es': 'Spanish', 
+                  'fr': 'French',
+                  'de': 'German',
+                  'it': 'Italian',
+                  'pt': 'Portuguese',
+                  'nl': 'Dutch',
+                  'sv': 'Swedish',
+                  'da': 'Danish',
+                  'no': 'Norwegian',
+                  'fi': 'Finnish',
+                  'pl': 'Polish',
+                  'ru': 'Russian',
+                  'ja': 'Japanese',
+                  'ko': 'Korean',
+                  'zh': 'Chinese',
+                  'ar': 'Arabic',
+                  'hi': 'Hindi',
+                  'tr': 'Turkish',
+                  'cs': 'Czech',
+                  'sk': 'Slovak',
+                  'hu': 'Hungarian',
+                  'ro': 'Romanian',
+                  'bg': 'Bulgarian',
+                  'hr': 'Croatian',
+                  'sl': 'Slovenian',
+                  'et': 'Estonian',
+                  'lv': 'Latvian',
+                  'lt': 'Lithuanian',
+                  'el': 'Greek',
+                  'mt': 'Maltese',
+                  'cy': 'Welsh',
+                  'ga': 'Irish',
+                  'is': 'Icelandic',
+                  'fo': 'Faroese',
+                  'eu': 'Basque'
+                };
+                
+                const localeName = localeNames[locale.locale] || locale.locale.toUpperCase();
+                option.textContent = localeName + ' (' + locale.locale + ') - Resolved Values';
+                localeSelect.appendChild(option);
+                console.log('🌍 Added locale option:', locale.locale);
+              }
+            });
+          }
+          
+          // Update the create locale dropdown to exclude existing locales
+          if (newLocaleSelect) {
+            const existingLocales = currentTemplate && Array.isArray(currentTemplate.locales) 
+              ? currentTemplate.locales.map(l => l.locale).filter(l => l !== '__base__')
+              : [];
+            
+            Array.from(newLocaleSelect.options).forEach(option => {
+              if (option.value && existingLocales.includes(option.value)) {
+                option.disabled = true;
+                option.textContent += ' (already exists)';
+              } else if (option.value) {
+                option.disabled = false;
+                // Remove "(already exists)" if it was added before
+                option.textContent = option.textContent.replace(' (already exists)', '');
+              }
+            });
+          }
+          
+          console.log('🌍 Locale dropdown populated');
+        }
+
+        // Show create locale dialog
+        function showCreateLocaleDialog() {
+          console.log('🌍 Showing create locale dialog');
+          const dialog = document.getElementById('create-locale-dialog');
+          const select = document.getElementById('new-locale-select');
+          const createBtn = document.getElementById('create-locale-btn');
+          
+          if (dialog && select && createBtn) {
+            dialog.classList.remove('hidden');
+            select.value = '';
+            createBtn.disabled = true;
+            select.focus();
+            
+            // Enable create button when locale is selected
+            select.onchange = function() {
+              createBtn.disabled = !this.value;
+            };
+          }
+        }
+
+        // Hide create locale dialog
+        function hideCreateLocaleDialog() {
+          console.log('🌍 Hiding create locale dialog');
+          const dialog = document.getElementById('create-locale-dialog');
+          if (dialog) {
+            dialog.classList.add('hidden');
+          }
+        }
+
+        // Create new locale
+        async function createNewLocale() {
+          console.log('🌍 Creating new locale...');
+          const select = document.getElementById('new-locale-select');
+          const createBtn = document.getElementById('create-locale-btn');
+          const templateKey = document.getElementById('template-key')?.value;
+          
+          if (!select.value || !templateKey) {
+            showStatus('Please select a locale and ensure template key is set', 'error');
+            return;
+          }
+          
+          if (!isEditing) {
+            showStatus('Please save the template first before adding locales', 'error');
+            return;
+          }
+          
+          try {
+            showLoading('Creating new locale...');
+            createBtn.disabled = true;
+            
+            // Create a new locale with the base template structure as starting point
+            const baseStructure = currentTemplate.jsonStructure || {};
+            
+            const response = await fetch('/api/v1/templates/' + templateKey + '/locales', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + getAuthToken()
+              },
+              body: JSON.stringify({
+                locale: select.value,
+                jsonStructure: baseStructure
+              })
+            });
+            
+            if (!response.ok) {
+              const errorData = await response.json().catch(() => ({}));
+              throw new Error(errorData.error?.message || 'HTTP ' + response.status + ': ' + response.statusText);
+            }
+            
+            const result = await response.json();
+            console.log('🌍 New locale created:', result);
+            
+            // Reload the template to get updated locales
+            if (templateKey) {
+              await loadTemplateForEditing(templateKey);
+              
+              // Switch to the new locale
+              const localeSelect = document.getElementById('template-locale');
+              if (localeSelect) {
+                localeSelect.value = select.value;
+                await onLocaleChange();
+              }
+            }
+            
+            // Hide the dialog
+            hideCreateLocaleDialog();
+            
+            showStatus('Locale ' + select.value + ' created successfully!', 'success');
+            
+          } catch (error) {
+            console.error('🌍 Failed to create locale:', error);
+            showStatus('Failed to create locale: ' + error.message, 'error');
+          } finally {
+            hideLoading();
+            createBtn.disabled = false;
           }
         }
 
@@ -327,6 +575,20 @@ export function generateTemplateEditorHTML(): string {
         let justSaved = false; // Flag to track if we just saved a template
         let detectedVariables = [];
         let variableValues = {};
+        
+        // Add debugging for detectedVariables changes
+        let originalDetectedVariables = detectedVariables;
+        Object.defineProperty(window, 'detectedVariables', {
+          get: function() {
+            console.log('🔍 detectedVariables accessed, current value:', detectedVariables);
+            return detectedVariables;
+          },
+          set: function(value) {
+            console.log('🔍 detectedVariables being set from:', detectedVariables, 'to:', value);
+            console.log('🔍 Stack trace for set:', new Error().stack);
+            detectedVariables = value;
+          }
+        });
 
         // Safe shims in case later script fails to load
         if (typeof getAuthToken !== 'function') {
@@ -459,6 +721,9 @@ export function generateTemplateEditorHTML(): string {
             document.getElementById('template-description').value = currentTemplate.description || '';
             document.getElementById('template-category').value = currentTemplate.category;
             
+            // Load template locales into the dropdown
+            loadTemplateLocales();
+            
             
             // Load template structure into visual builder (prefer selected locale if available)
             if (typeof loadTemplateIntoVisualBuilder === 'function') {
@@ -466,32 +731,33 @@ export function generateTemplateEditorHTML(): string {
               var selectedLocale = localeSelect ? (localeSelect.value || 'en') : 'en';
               var localesArr = Array.isArray(currentTemplate && currentTemplate.locales) ? currentTemplate.locales : [];
               var localeMatch = localesArr.find(function(l) { return l && l.locale === selectedLocale; });
-              var structureToLoad = (localeMatch && localeMatch.jsonStructure) ? localeMatch.jsonStructure : (currentTemplate.jsonStructure || {});
+              
+              // Check if user selected "Base Template" option
+              var structureToLoad;
+              var displayLocale;
+              if (selectedLocale === '__base__') {
+                structureToLoad = currentTemplate.jsonStructure || {};
+                displayLocale = 'Base Template (Variables)';
+              } else {
+                structureToLoad = (localeMatch && localeMatch.jsonStructure) ? localeMatch.jsonStructure : (currentTemplate.jsonStructure || {});
+                displayLocale = selectedLocale;
+              }
+              
               loadTemplateIntoVisualBuilder(structureToLoad);
               var subtitleEl = document.getElementById('editor-subtitle');
               if (subtitleEl) {
-                subtitleEl.textContent = 'Editing template ' + currentTemplate.key + ' (' + selectedLocale + ')';
+                subtitleEl.textContent = 'Editing template ' + currentTemplate.key + ' (' + displayLocale + ')';
+              }
+              
+              // Refresh detected variables after loading template
+              if (typeof refreshDetectedVariables === 'function') {
+                refreshDetectedVariables();
               }
             } else {
             }
             
-            // Load detected variables from the template
-            if (currentTemplate.detectedVariables && currentTemplate.detectedVariables.length > 0) {
-              detectedVariables = [...currentTemplate.detectedVariables];
-              updateDetectedVariablesDisplay();
-            } else {
-              // Fallback: detect variables from the JSON structure
-              var structureForDetection = (function() {
-                var sel = document.getElementById('template-locale');
-                var loc = sel ? (sel.value || 'en') : 'en';
-                var ls = Array.isArray(currentTemplate && currentTemplate.locales) ? currentTemplate.locales : [];
-                var lm = ls.find(function(l){ return l && l.locale === loc; });
-                return (lm && lm.jsonStructure) ? lm.jsonStructure : (currentTemplate.jsonStructure || {});
-              })();
-              const variables = detectVariablesInObject(structureForDetection);
-              detectedVariables = [...new Set(variables)];
-              updateDetectedVariablesDisplay();
-            }
+            // Variables are already detected by refreshDetectedVariables() above
+            // No need to load from stored detectedVariables as they may be outdated
             
             // Show initial preview instead of generating immediately
             showInitialPreview();
@@ -585,16 +851,20 @@ export function generateTemplateEditorHTML(): string {
           function handleFormChange(event) {
             hasUnsavedChanges = true;
             debouncedPreviewUpdate();
-            // Refresh detected variables when form content changes
-            refreshDetectedVariables();
+            // Refresh detected variables when form content changes (only for new templates)
+            if (!isEditing) {
+              refreshDetectedVariables();
+            }
           }
           
           function handleFormCheckboxChange(event) {
             if (event.target.type === 'checkbox') {
               hasUnsavedChanges = true;
               debouncedPreviewUpdate();
-              // Refresh detected variables when sections are enabled/disabled
-              refreshDetectedVariables();
+              // Refresh detected variables when sections are enabled/disabled (only for new templates)
+              if (!isEditing) {
+                refreshDetectedVariables();
+              }
             }
           }
           
@@ -602,8 +872,10 @@ export function generateTemplateEditorHTML(): string {
             if (event.target.tagName === 'SELECT') {
               hasUnsavedChanges = true;
               debouncedPreviewUpdate();
-              // Refresh detected variables when selects change
-              refreshDetectedVariables();
+              // Refresh detected variables when selects change (only for new templates)
+              if (!isEditing) {
+                refreshDetectedVariables();
+              }
             }
           }
           
@@ -702,7 +974,7 @@ export function generateTemplateEditorHTML(): string {
 
             showLoading('Switching locale...');
 
-            // Load base template to inspect locales
+            // Load base template first
             const resp = await fetch('/api/v1/templates/' + templateKey, {
               headers: { 'Authorization': 'Bearer ' + getAuthToken() }
             });
@@ -710,17 +982,36 @@ export function generateTemplateEditorHTML(): string {
               throw new Error('HTTP ' + resp.status + ': ' + resp.statusText);
             }
             const data = await resp.json();
-
             currentTemplate = data.template;
-            const locales = Array.isArray(currentTemplate?.locales) ? currentTemplate.locales : [];
-            const localeEntry = locales.find(l => l.locale === newLocale);
-            const structure = localeEntry?.jsonStructure || {};
 
-            if (typeof loadTemplateIntoVisualBuilder === 'function') {
-              loadTemplateIntoVisualBuilder(structure);
+            // Check if user selected "Base Template" option
+            if (newLocale === '__base__') {
+              // Load base template with variables
+              if (typeof loadTemplateIntoVisualBuilder === 'function') {
+                loadTemplateIntoVisualBuilder(currentTemplate.jsonStructure || {});
+              }
+              
+              const subtitle = document.getElementById('editor-subtitle');
+              if (subtitle) {
+                subtitle.textContent = 'Editing template ' + templateKey + ' (Base Template - Variables)';
+              }
+            } else {
+              // Load locale-specific template
+              const locales = Array.isArray(currentTemplate?.locales) ? currentTemplate.locales : [];
+              const localeEntry = locales.find(l => l.locale === newLocale);
+              const structure = localeEntry?.jsonStructure || {};
+
+              if (typeof loadTemplateIntoVisualBuilder === 'function') {
+                loadTemplateIntoVisualBuilder(structure);
+              }
+
+              const subtitle = document.getElementById('editor-subtitle');
+              if (subtitle) {
+                subtitle.textContent = 'Editing template ' + templateKey + ' (' + newLocale + ' - Resolved Values)';
+              }
             }
 
-            // Refresh variables and preview for the newly selected locale
+            // Refresh detected variables for the newly selected locale
             if (typeof refreshDetectedVariables === 'function') {
               refreshDetectedVariables();
             }
@@ -728,16 +1019,18 @@ export function generateTemplateEditorHTML(): string {
               setTimeout(function() { updatePreview(); }, 100);
             }
 
-            const subtitle = document.getElementById('editor-subtitle');
-            if (subtitle) {
-              subtitle.textContent = 'Editing template ' + templateKey + ' (' + newLocale + ')';
-            }
-
             if (typeof hasUnsavedChanges !== 'undefined') {
               hasUnsavedChanges = false;
             }
 
-            showStatus(localeEntry ? ('Loaded locale ' + newLocale) : ('Locale ' + newLocale + ' not found. Starting empty.'), 'info');
+            // Show appropriate success message
+            if (newLocale === '__base__') {
+              showStatus('Loaded base template with variables', 'info');
+            } else {
+              const locales = Array.isArray(currentTemplate?.locales) ? currentTemplate.locales : [];
+              const localeEntry = locales.find(l => l.locale === newLocale);
+              showStatus(localeEntry ? ('Loaded locale ' + newLocale) : ('Locale ' + newLocale + ' not found. Starting empty.'), 'info');
+            }
           } catch (error) {
             const msg = (error && error.message) ? error.message : 'Unknown error';
             showStatus('Failed to switch locale: ' + msg, 'error');
@@ -767,6 +1060,70 @@ export function generateTemplateEditorHTML(): string {
             
             console.log('💾 Save parameters:', { key, name, description, category, selectedLocale });
             console.log('💾 Selected locale for saving:', selectedLocale);
+            
+            // Check if user is editing base template
+            if (selectedLocale === '__base__') {
+              console.log('💾 Saving to base template (variables)');
+              // Generate template structure from form
+              const structure = generateTemplateStructureFromForm();
+              console.log('💾 Generated structure for base template:', structure);
+              
+              // Save to base template using the standard updateTemplate endpoint
+              const templateData = {
+                key: key,
+                name: name,
+                description: description,
+                category: category,
+                jsonStructure: structure
+              };
+              
+              console.log('💾 Making API call to:', '/api/v1/templates/' + key);
+              console.log('💾 Request method:', 'PUT');
+              console.log('💾 getAuthToken function available:', typeof getAuthToken);
+              console.log('💾 Auth token value:', getAuthToken());
+              console.log('💾 Request headers:', {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + getAuthToken()
+              });
+              console.log('💾 Request body:', templateData);
+              
+              let response;
+              try {
+                response = await fetch('/api/v1/templates/' + key, {
+                  method: 'PUT',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + getAuthToken()
+                  },
+                  body: JSON.stringify(templateData)
+                });
+              } catch (fetchError) {
+                console.error('💾 Fetch error:', fetchError);
+                throw new Error('Network error: ' + fetchError.message);
+              }
+              
+              console.log('💾 Response status:', response.status);
+              console.log('💾 Response ok:', response.ok);
+              console.log('💾 Response headers:', Object.fromEntries(response.headers.entries()));
+              
+              if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                console.log('💾 Error response data:', errorData);
+                throw new Error(errorData.error?.message || 'HTTP ' + response.status + ': ' + response.statusText);
+              }
+              
+              const result = await response.json();
+              console.log('💾 Base template saved successfully:', result);
+              
+              // Update current template reference
+              currentTemplate = result.template;
+              hasUnsavedChanges = false;
+              justSaved = true;
+              
+              showStatus('Base template variables saved successfully!', 'success');
+              hideLoading();
+              return;
+            }
             
             // Prepare the template data
             const templateData = {
@@ -857,7 +1214,7 @@ export function generateTemplateEditorHTML(): string {
             hasUnsavedChanges = false;
             justSaved = true; // Set flag to indicate we just saved
             
-            const localeMessage = selectedLocale && selectedLocale !== 'en' ? \` for locale \${selectedLocale}\` : '';
+            const localeMessage = selectedLocale && selectedLocale !== 'en' ? ' for locale ' + selectedLocale : '';
             showStatus('Template saved successfully' + localeMessage + '!', 'success');
             hideLoading();
             
@@ -1341,18 +1698,84 @@ export function generateTemplateEditorHTML(): string {
         }
 
         // Detected Variables Functions
+        let variableDetectionInProgress = false;
+        let lastVariableDetectionTime = 0;
+        
         function refreshDetectedVariables() {
-          // Generate template structure from current form
-          const templateStructure = generateTemplateStructureFromForm();
+          // Prevent multiple simultaneous calls
+          if (variableDetectionInProgress) {
+            console.log('🔍 Variable detection already in progress, skipping...');
+            return;
+          }
           
-          // Simple variable detection (mimicking our backend logic)
-          const variables = detectVariablesInObject(templateStructure);
-          detectedVariables = [...new Set(variables)];
+          // Prevent rapid successive calls (debounce)
+          const now = Date.now();
+          if (now - lastVariableDetectionTime < 100) {
+            console.log('🔍 Variable detection called too soon, skipping...');
+            return;
+          }
+          lastVariableDetectionTime = now;
           
-          console.log('Detected variables:', detectedVariables);
+          variableDetectionInProgress = true;
           
-          // Update the UI
-          updateDetectedVariablesDisplay();
+          try {
+            let templateStructure;
+            
+            // When editing an existing template, use the BASE template structure (with variables)
+            if (isEditing && currentTemplate) {
+              console.log('🔍 Using BASE template structure for variable detection (with variables)');
+              templateStructure = currentTemplate.jsonStructure || {};
+              console.log('🔍 Base template structure:', templateStructure);
+              
+              // Simple variable detection (mimicking our backend logic)
+              const variables = detectVariablesInObject(templateStructure);
+              console.log('🔍 About to set detectedVariables to:', variables);
+              // Create unique set based on variable name (not full object)
+              const uniqueVariables = [];
+              const seenNames = new Set();
+              variables.forEach(variable => {
+                const name = typeof variable === 'string' ? variable : variable.name;
+                if (!seenNames.has(name)) {
+                  seenNames.add(name);
+                  uniqueVariables.push(variable);
+                }
+              });
+              detectedVariables = uniqueVariables;
+              console.log('🔍 detectedVariables set to:', detectedVariables);
+              
+              console.log('Detected variables:', detectedVariables);
+              console.log('Template structure used:', templateStructure);
+              
+              // Update the UI
+              updateDetectedVariablesDisplay();
+            } else {
+              // When creating a new template, use form data
+              console.log('🔍 Using form data for variable detection');
+              templateStructure = generateTemplateStructureFromForm();
+              
+              // Simple variable detection (mimicking our backend logic)
+              const variables = detectVariablesInObject(templateStructure);
+              // Create unique set based on variable name (not full object)
+              const uniqueVariables = [];
+              const seenNames = new Set();
+              variables.forEach(variable => {
+                const name = typeof variable === 'string' ? variable : variable.name;
+                if (!seenNames.has(name)) {
+                  seenNames.add(name);
+                  uniqueVariables.push(variable);
+                }
+              });
+              detectedVariables = uniqueVariables;
+              
+              console.log('Detected variables:', detectedVariables);
+              console.log('Template structure used:', templateStructure);
+              
+              // Update the UI
+              updateDetectedVariablesDisplay();
+            }
+          } finally {
+            variableDetectionInProgress = false;
+          }
         }
 
         function detectVariablesInObject(obj, path = '') {
@@ -1366,8 +1789,24 @@ export function generateTemplateEditorHTML(): string {
             const matches = obj.match(/\{\{([^}]+)\}\}/g);
             if (matches) {
               matches.forEach(match => {
-                const variableName = match.replace(/\{\{|\}\}/g, '').trim();
-                variables.push(variableName);
+                const fullMatch = match.replace(/\{\{|\}\}/g, '').trim();
+                // Check if it has a fallback value (contains |)
+                if (fullMatch.includes('|')) {
+                  const parts = fullMatch.split('|');
+                  const variableName = parts[0].trim();
+                  const fallbackValue = parts[1].trim();
+                  variables.push({
+                    name: variableName,
+                    fallback: fallbackValue,
+                    full: fullMatch
+                  });
+                } else {
+                  variables.push({
+                    name: fullMatch,
+                    fallback: null,
+                    full: fullMatch
+                  });
+                }
               });
             }
             return variables;
@@ -1392,12 +1831,17 @@ export function generateTemplateEditorHTML(): string {
           const list = document.getElementById('detected-variables-list');
           const noVariablesMessage = document.getElementById('no-variables-message');
           
-          console.log('Updating variables display. Variables count:', detectedVariables.length);
-          console.log('Section element:', section);
-          console.log('List element:', list);
+          console.log('🔄 updateDetectedVariablesDisplay called');
+          console.log('🔄 Current detectedVariables array:', detectedVariables);
+          console.log('🔄 Variables count:', detectedVariables.length);
+          console.log('🔄 Section element:', section);
+          console.log('🔄 List element:', list);
+          console.log('🔄 Stack trace:', new Error().stack);
           
           // Always show the panel; toggle inner content when empty
           section.classList.remove('hidden');
+          console.log('🔄 Section classes after removing hidden:', section.className);
+          console.log('🔄 Section is visible:', section.offsetParent !== null);
           
           if (detectedVariables.length === 0) {
             list.classList.add('hidden');
@@ -1407,17 +1851,30 @@ export function generateTemplateEditorHTML(): string {
           
           list.classList.remove('hidden');
           noVariablesMessage.classList.add('hidden');
+          console.log('🔄 List classes after removing hidden:', list.className);
+          console.log('🔄 List is visible:', list.offsetParent !== null);
           
           // Clear existing content
           list.innerHTML = '';
           
           // Add each detected variable
-          detectedVariables.forEach(variable => {
+          console.log('🔄 About to process', detectedVariables.length, 'variables');
+          detectedVariables.forEach((variable, index) => {
+            console.log('🔄 Processing variable', index, ':', variable);
             const variableDiv = document.createElement('div');
             variableDiv.className = 'flex items-start justify-between p-4 bg-white rounded-lg border border-gray-200 shadow-sm';
             
-            const variableName = variable.split('|')[0].trim();
-            const fallback = variable.includes('|') ? variable.split('|')[1].trim() : '';
+            // Handle both old string format and new object format
+            let variableName, fallback;
+            if (typeof variable === 'string') {
+              variableName = variable.split('|')[0].trim();
+              fallback = variable.includes('|') ? variable.split('|')[1].trim() : '';
+            } else {
+              variableName = variable.name;
+              fallback = variable.fallback || '';
+            }
+            
+            console.log('🔄 Variable name:', variableName, 'Fallback:', fallback);
             
             let html = '';
             html += '<div class="flex-1 mr-4">';
@@ -1481,7 +1938,18 @@ export function generateTemplateEditorHTML(): string {
             })(variableDiv);
             
             list.appendChild(variableDiv);
+            console.log('🔄 Added variable', index, 'to DOM');
           });
+          
+          console.log('🔄 Finished processing all variables. List now has', list.children.length, 'children');
+          
+          // Check if the section is actually visible
+          console.log('🔄 Final section visibility check:');
+          console.log('🔄 Section display:', window.getComputedStyle(section).display);
+          console.log('🔄 Section visibility:', window.getComputedStyle(section).visibility);
+          console.log('🔄 Section height:', section.offsetHeight);
+          console.log('🔄 Section parent:', section.parentElement);
+          console.log('🔄 Section parent classes:', section.parentElement?.className);
         }
 
         function updateVariableValue(variableName, value) {

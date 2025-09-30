@@ -136,7 +136,7 @@ POST /api/v1/emails
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `key` | string | Yes | Template identifier (currently only "transactional" supported) |
-| `locale` | string | Yes | Language/locale (e.g., "en", "es", "fr") |
+| `locale` | string | Yes | Language/locale (e.g., "en", "es", "fr") or `__base__` for base template |
 
 #### Template Variables
 
@@ -402,7 +402,30 @@ The template supports multiple languages through the `template.locale` field:
 }
 ```
 
-Supported locales: `en`, `es`, `fr`, `de`, `it`, `pt`
+**Supported locales:**
+- **Standard locales**: `en`, `es`, `fr`, `de`, `it`, `pt`, `ru`, `ja`, `ko`, `zh`, `ar`, `hi`, `nl`, `sv`, `da`, `no`, `fi`, `pl`, `tr`, `cs`, `sk`, `hu`, `ro`, `bg`, `hr`, `sl`, `et`, `lv`, `lt`, `el`, `mt`, `cy`, `ga`, `is`, `fo`, `eu`
+- **Special locale**: `__base__` - Uses the base template structure with variables (no locale-specific content)
+
+**Fallback Strategy:**
+- If a requested locale doesn't exist, the system falls back to the **base template structure** (not a specific locale)
+- The base template contains the original variables and structure defined when the template was created
+- This ensures consistent behavior and preserves variable placeholders when locale-specific content is unavailable
+
+**Using the Base Template:**
+```json
+{
+  "template": {
+    "key": "transactional",
+    "locale": "__base__"
+  },
+  "variables": {
+    "user_name": "{{user.name}}",
+    "company_name": "{{company.name}}"
+  }
+}
+```
+
+When using `__base__`, the email will contain the original variable placeholders (e.g., `{{user.name}}`) instead of resolved values. This is useful for testing, debugging, or when you want to preserve the template's variable structure.
 
 #### Recipient Object
 

@@ -60,7 +60,20 @@ export function generateTemplateFormModal(): string {
 
               <!-- Developer JSON Section -->
               <div class="mt-6 pt-6 border-t border-gray-200">
-                <h4 class="text-md font-medium text-gray-900 mb-4">Developer JSON</h4>
+                <div class="flex items-center justify-between mb-4">
+                  <h4 class="text-md font-medium text-gray-900">Developer JSON</h4>
+                  
+                  <!-- Locale Selector (only show when viewing template) -->
+                  <div id="locale-selector-container" class="hidden">
+                    <div class="flex items-center space-x-2">
+                      <label class="text-sm font-medium text-gray-700">Locale:</label>
+                      <select id="json-locale-selector" class="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" onchange="onJsonLocaleChange()">
+                        <option value="__base__">Base Template (Variables)</option>
+                        <!-- Locales will be populated dynamically -->
+                      </select>
+                    </div>
+                  </div>
+                </div>
                 
                 <!-- Tab Navigation -->
                 <div class="mb-4">

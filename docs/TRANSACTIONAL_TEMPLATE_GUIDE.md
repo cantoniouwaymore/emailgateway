@@ -653,9 +653,10 @@ The `content` object supports multiple languages with automatic fallback:
 
 The template automatically selects content based on the `locale` parameter:
 
-- **Template locale**: `"en"`, `"es"`, `"fr"`, `"de"`, `"it"`, `"pt"`
-- **Fallback**: If locale not found, uses `custom_content`
-- **Default**: If no `custom_content`, shows empty content
+- **Standard locales**: `"en"`, `"es"`, `"fr"`, `"de"`, `"it"`, `"pt"`, `"ru"`, `"ja"`, `"ko"`, `"zh"`, `"ar"`, `"hi"`, `"nl"`, `"sv"`, `"da"`, `"no"`, `"fi"`, `"pl"`, `"tr"`, `"cs"`, `"sk"`, `"hu"`, `"ro"`, `"bg"`, `"hr"`, `"sl"`, `"et"`, `"lv"`, `"lt"`, `"el"`, `"mt"`, `"cy"`, `"ga"`, `"is"`, `"fo"`, `"eu"`
+- **Special locale**: `"__base__"` - Uses the base template structure with variables (no locale-specific content)
+- **Fallback Strategy**: If locale not found, falls back to the **base template structure** (not a specific locale like "en")
+- **Base Template**: Contains the original variables and structure defined when the template was created
 
 ### Implementation
 
@@ -674,6 +675,27 @@ The template automatically selects content based on the `locale` parameter:
   }
 }
 ```
+
+**Using Base Template Structure:**
+```json
+{
+  "template": {
+    "key": "password-reset-template",
+    "locale": "__base__"
+  },
+  "variables": {
+    "user_name": "{{user.name}}",
+    "company_name": "{{company.name}}",
+    "reset_url": "{{reset.url}}"
+  }
+}
+```
+
+When using `__base__`, the email will contain the original variable placeholders (e.g., `{{user.name}}`) instead of resolved values. This is useful for:
+- **Testing**: Verify template structure and variable detection
+- **Debugging**: Check how variables are processed
+- **Development**: Preview the template with variable placeholders
+- **Documentation**: Show the template structure to developers
 
 ## 📊 Data Structures
 
@@ -2109,8 +2131,9 @@ The `hero` section supports both icons and images. When using images, follow the
 **Solutions**:
 - Check `content` object has the correct locale key
 - Verify `template.locale` matches content keys
-- Ensure locale is supported (en, es, fr, de, it, pt)
-- Test with fallback to `custom_content`
+- Ensure locale is supported (en, es, fr, de, it, pt, etc.)
+- Test with `__base__` locale to see base template structure
+- Remember: If locale not found, system falls back to base template structure (not "en")
 
 #### Social Links Not Showing
 

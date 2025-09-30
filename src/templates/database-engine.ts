@@ -294,14 +294,23 @@ export class DatabaseTemplateEngine {
       };
     }
     
-    const template = await prisma.template.findUnique({
-      where: { key },
-      include: {
-        locales: {
-          where: { locale }
+    let template;
+    if (locale === '__base__') {
+      // For base locale, don't load locales at all
+      template = await prisma.template.findUnique({
+        where: { key }
+      });
+    } else {
+      // For regular locales, load with locale data
+      template = await prisma.template.findUnique({
+        where: { key },
+        include: {
+          locales: {
+            where: { locale }
+          }
         }
-      }
-    });
+      });
+    }
 
     console.log('🔧 DATABASE QUERY RESULT:', JSON.stringify(template, null, 2));
 
@@ -310,16 +319,30 @@ export class DatabaseTemplateEngine {
       return null;
     }
 
-    // Try to find locale-specific content, fallback to English
-    let localeOverrides = template.locales.find(l => l.locale === locale);
-    if (!localeOverrides && locale !== 'en') {
-      localeOverrides = template.locales.find(l => l.locale === 'en');
+    // Handle __base__ locale - use only the base template structure
+    if (locale === '__base__') {
+      console.log('🔧 USING BASE TEMPLATE STRUCTURE (__base__ locale)');
+      const baseStructure = template.jsonStructure as Record<string, any>;
+      const convertedStructure = this.convertOldButtonStructure(baseStructure);
+      
+      return {
+        jsonStructure: convertedStructure
+      };
     }
 
-    // Merge base structure with locale overrides
+    // Try to find locale-specific content, fallback to base template structure
+    let localeOverrides;
+    if ('locales' in template && Array.isArray(template.locales)) {
+      localeOverrides = template.locales.find((l: any) => l.locale === locale);
+      // If no locale-specific content found, use base template structure (no fallback to 'en')
+    }
+
+    // Merge base structure with locale overrides (if any)
     const baseStructure = template.jsonStructure as Record<string, any>;
     const localeStructure = localeOverrides?.jsonStructure as Record<string, any> || {};
-    const mergedStructure = this.deepMerge(baseStructure, localeStructure);
+    
+    // If no locale-specific content, just use the base structure
+    const mergedStructure = localeOverrides ? this.deepMerge(baseStructure, localeStructure) : baseStructure;
     
     // Apply conversion to old button structure
     const convertedStructure = this.convertOldButtonStructure(mergedStructure);

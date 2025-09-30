@@ -25,6 +25,11 @@ export class TemplateController {
   }
 
   private validateLocale(locale: string): boolean {
+    // Allow __base__ as a special locale for base template
+    if (locale === '__base__') {
+      return true;
+    }
+    
     // Validate ISO 639-1 language codes (2-letter codes like 'en', 'es', 'fr')
     const iso639_1Pattern = /^[a-z]{2}$/;
     

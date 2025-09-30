@@ -366,8 +366,9 @@ The transactional template supports:
 - **Multi-Button Support**: Side-by-side primary and secondary buttons
 - **Social Media Integration**: Built-in social media links
 - **Custom Themes**: Complete theme customization
-- **Multi-Language Support**: Dynamic content based on locale
+- **Multi-Language Support**: Dynamic content based on locale with base template fallback
 - **Dynamic Images**: Custom images with fallback to default logo
+- **Base Template Support**: Special `__base__` locale for testing and debugging
 - **Facts Table**: Structured data display
 - **Dark Mode Ready**: Theme-driven styling
 
@@ -375,6 +376,33 @@ The transactional template supports:
 - `transactional-en.mjml` - Main HTML template
 - `transactional-en.txt` - Plain text version
 - `{category}-{locale}.subject` - Subject template (optional)
+
+### Locale System
+
+The system supports multiple locales with a smart fallback strategy:
+
+**Supported Locales:**
+- **Standard locales**: `en`, `es`, `fr`, `de`, `it`, `pt`, `ru`, `ja`, `ko`, `zh`, `ar`, `hi`, `nl`, `sv`, `da`, `no`, `fi`, `pl`, `tr`, `cs`, `sk`, `hu`, `ro`, `bg`, `hr`, `sl`, `et`, `lv`, `lt`, `el`, `mt`, `cy`, `ga`, `is`, `fo`, `eu`
+- **Special locale**: `__base__` - Uses the base template structure with variables
+
+**Fallback Strategy:**
+- If a requested locale doesn't exist, the system falls back to the **base template structure** (not a specific locale like "en")
+- This ensures consistent behavior and preserves variable placeholders when locale-specific content is unavailable
+- The base template contains the original variables and structure defined when the template was created
+
+**Example Usage:**
+```json
+{
+  "template": {
+    "key": "transactional",
+    "locale": "__base__"
+  },
+  "variables": {
+    "user_name": "{{user.name}}",
+    "company_name": "{{company.name}}"
+  }
+}
+```
 
 ### MJML Template Example
 
