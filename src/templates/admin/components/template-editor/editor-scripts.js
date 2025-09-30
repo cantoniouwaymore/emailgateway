@@ -3,6 +3,7 @@ let currentTemplate = null;
 let isEditing = false;
 let autoSaveInterval = null;
 let hasUnsavedChanges = false;
+let currentLocale = 'en';
 
 // Create template configuration from variable schema defaults
 function createTemplateConfigFromSchema(variableSchema) {
@@ -70,41 +71,31 @@ async function loadTemplateForEditing(templateKey) {
   try {
     showLoading('Loading template...');
     
-    const response = await fetch(`/api/v1/templates/${templateKey}`, {
-      headers: {
-        'Authorization': `Bearer ${getAuthToken()}`
-      }
-    });
+    // Get current locale from selector
+    currentLocale = document.getElementById('template-locale').value;
     
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-    
-    const data = await response.json();
+    // Always load base template to get locales list
+    const data = await window.EmailGatewayAPI.getTemplate(templateKey);
     currentTemplate = data.template;
     
+    // Try to pick locale-specific structure
+    const localeEntry = Array.isArray(currentTemplate?.locales)
+      ? currentTemplate.locales.find(l => l.locale === currentLocale)
+      : null;
+    const templateData = localeEntry?.jsonStructure || currentTemplate.jsonStructure || {};
+    
     // Populate basic information
-    document.getElementById('editor-title').textContent = `Edit: ${currentTemplate.name}`;
-    document.getElementById('editor-subtitle').textContent = `Editing template ${currentTemplate.key}`;
-    document.getElementById('template-key').value = currentTemplate.key;
+    document.getElementById('editor-title').textContent = `Edit: ${currentTemplate.name || templateKey}`;
+    document.getElementById('editor-subtitle').textContent = `Editing template ${templateKey} (${currentLocale})`;
+    document.getElementById('template-key').value = templateKey;
     document.getElementById('template-key').readOnly = true;
-    document.getElementById('template-name').value = currentTemplate.name;
-    document.getElementById('template-description').value = currentTemplate.description || '';
-    document.getElementById('template-category').value = currentTemplate.category;
+    document.getElementById('template-name').value = currentTemplate?.name || '';
+    document.getElementById('template-description').value = currentTemplate?.description || '';
+    document.getElementById('template-category').value = currentTemplate?.category || 'transactional';
     
     // Load template structure into visual builder
-    console.log('Template loaded:', currentTemplate);
-    console.log('JSON Structure:', currentTemplate.jsonStructure);
-    console.log('Variable Schema:', currentTemplate.variableSchema);
-    console.log('loadTemplateIntoVisualBuilder function available:', typeof loadTemplateIntoVisualBuilder);
-    
     if (typeof loadTemplateIntoVisualBuilder === 'function') {
-      // Load the actual template structure with {{}} patterns for editing
-      console.log('Loading JSON Structure:', currentTemplate.jsonStructure);
-      loadTemplateIntoVisualBuilder(currentTemplate.jsonStructure);
-    } else {
-      console.error('loadTemplateIntoVisualBuilder function not found!');
-      console.log('Available functions:', Object.keys(window).filter(key => typeof window[key] === 'function' && key.includes('load')));
+      loadTemplateIntoVisualBuilder(templateData || {});
     }
     
     // Show initial preview instead of generating immediately
@@ -156,30 +147,28 @@ async function saveTemplate() {
       throw new Error('Template key and name are required');
     }
     
-    const url = isEditing ? 
-      `/api/v1/templates/${currentTemplate.key}` : 
-      '/api/v1/templates';
-    const method = isEditing ? 'PUT' : 'POST';
+    // Get current locale
+    currentLocale = document.getElementById('template-locale').value;
     
-    const response = await fetch(url, {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${getAuthToken()}`
-      },
-      body: JSON.stringify(templateData)
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    let result;
+    if (isEditing && currentLocale) {
+      // Update locale-specific structure
+      result = await window.EmailGatewayAPI.updateLocale(templateData.key, currentLocale, {
+        jsonStructure: templateData.jsonStructure
+      });
+    } else if (isEditing) {
+      // Update base template
+      result = await window.EmailGatewayAPI.updateTemplate(templateData.key, templateData);
+    } else {
+      // Create new template
+      result = await window.EmailGatewayAPI.createTemplate(templateData);
     }
     
-    const result = await response.json();
-    showStatus('Template saved successfully!', 'success');
+    showStatus(`Template saved successfully${currentLocale ? ' for locale ' + currentLocale : ''}!`, 'success');
     updateLastSaved();
     hasUnsavedChanges = false;
     
-    if (!isEditing) {
+    if (!isEditing && result && result.template && result.template.key) {
       // Redirect to edit mode for newly created template
       window.location.href = `/admin/template-editor?template=${result.template.key}&mode=edit`;
     }
@@ -193,6 +182,50 @@ async function saveTemplate() {
   }
 }
 
+// Handle locale change
+async function onLocaleChange() {
+  if (!isEditing) return;
+  
+  const newLocale = document.getElementById('template-locale').value;
+  if (!newLocale) return;
+  
+  // Check for unsaved changes
+  if (hasUnsavedChanges) {
+    const confirmed = confirm('You have unsaved changes. Do you want to save before switching locales?');
+    if (confirmed) {
+      await saveTemplate();
+    }
+  }
+  
+  currentLocale = newLocale;
+  const templateKey = document.getElementById('template-key').value;
+  if (!templateKey) return;
+  
+  try {
+    showLoading('Switching locale...');
+    // Reload base template and pick locale structure if exists
+    const data = await window.EmailGatewayAPI.getTemplate(templateKey);
+    currentTemplate = data.template;
+    const localeEntry = Array.isArray(currentTemplate?.locales)
+      ? currentTemplate.locales.find(l => l.locale === currentLocale)
+      : null;
+    const templateData = localeEntry?.jsonStructure || {};
+    
+    if (typeof loadTemplateIntoVisualBuilder === 'function') {
+      loadTemplateIntoVisualBuilder(templateData);
+    }
+    
+    document.getElementById('editor-subtitle').textContent = `Editing template ${templateKey} (${currentLocale})`;
+    hasUnsavedChanges = false;
+    showStatus(localeEntry ? `Loaded locale ${currentLocale}` : `Locale ${currentLocale} not found. Starting empty.`, 'info');
+  } catch (error) {
+    console.error('Failed to switch locale:', error);
+    showStatus('Failed to switch locale: ' + error.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
 // Generate preview
 async function generatePreview() {
   try {
@@ -200,32 +233,17 @@ async function generatePreview() {
     
     const templateData = generateTemplateStructure();
     
-    const response = await fetch('/api/v1/templates/preview', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${getAuthToken()}`
-      },
-      body: JSON.stringify({
-        templateStructure: templateData,
-        variables: {
-          companyName: 'Your Company',
-          title: 'Sample Title',
-          bodyText: 'This is a sample email body text that demonstrates how your template will look.',
-          primaryButtonLabel: 'Primary Action',
-          primaryButtonUrl: '#',
-          secondaryButtonLabel: 'Secondary Action',
-          secondaryButtonUrl: '#',
-          copyright: '© 2024 Your Company. All rights reserved.'
-        }
-      })
+    const data = await window.EmailGatewayAPI.generatePreview(templateData, {
+      companyName: 'Your Company',
+      title: 'Sample Title',
+      bodyText: 'This is a sample email body text that demonstrates how your template will look.',
+      primaryButtonLabel: 'Primary Action',
+      primaryButtonUrl: '#',
+      secondaryButtonLabel: 'Secondary Action',
+      secondaryButtonUrl: '#',
+      copyright: '© 2024 Your Company. All rights reserved.'
     });
     
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-    
-    const data = await response.json();
     const previewContainer = document.getElementById('preview-container');
     previewContainer.innerHTML = data.preview;
     
@@ -478,6 +496,11 @@ window.addEventListener('unload', function() {
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', initializeTemplateEditor);
 
+// Expose handlers needed by inline HTML attributes
+if (typeof window !== 'undefined') {
+  window.onLocaleChange = onLocaleChange;
+}
+
 // Export function for use in template editor HTML
 export function generateTemplateEditorScripts() {
   return `
@@ -554,17 +577,7 @@ export function generateTemplateEditorScripts() {
         try {
           showLoading('Loading template...');
           
-          const response = await fetch(\`/api/v1/templates/\${templateKey}\`, {
-            headers: {
-              'Authorization': \`Bearer \${getAuthToken()}\`
-            }
-          });
-          
-          if (!response.ok) {
-            throw new Error(\`HTTP \${response.status}: \${response.statusText}\`);
-          }
-          
-          const data = await response.json();
+          const data = await window.EmailGatewayAPI.getTemplate(templateKey);
           currentTemplate = data.template;
           
           // Populate basic information
@@ -583,11 +596,9 @@ export function generateTemplateEditorScripts() {
           console.log('loadTemplateIntoVisualBuilder function available:', typeof loadTemplateIntoVisualBuilder);
           
           if (typeof loadTemplateIntoVisualBuilder === 'function') {
-            // For editing, we need to create a structure with actual values from the variable schema defaults
-            // rather than variable placeholders
-            const templateConfig = createTemplateConfigFromSchema(currentTemplate.variableSchema);
-            console.log('Created template config:', templateConfig);
-            loadTemplateIntoVisualBuilder(templateConfig);
+            // Load the actual template structure from the database
+            console.log('Loading template structure from database:', currentTemplate.jsonStructure);
+            loadTemplateIntoVisualBuilder(currentTemplate.jsonStructure);
           } else {
             console.error('loadTemplateIntoVisualBuilder function not found!');
             console.log('Available functions:', Object.keys(window).filter(key => typeof window[key] === 'function' && key.includes('load')));
@@ -642,30 +653,25 @@ export function generateTemplateEditorScripts() {
             throw new Error('Template key and name are required');
           }
           
-          const url = isEditing ? 
-            \`/api/v1/templates/\${currentTemplate.key}\` : 
-            '/api/v1/templates';
-          const method = isEditing ? 'PUT' : 'POST';
-          
-          const response = await fetch(url, {
-            method,
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': \`Bearer \${getAuthToken()}\`
-            },
-            body: JSON.stringify(templateData)
-          });
-          
-          if (!response.ok) {
-            throw new Error(\`HTTP \${response.status}: \${response.statusText}\`);
+          let result;
+          if (isEditing && currentLocale) {
+            // Update locale-specific structure
+            result = await window.EmailGatewayAPI.updateLocale(templateData.key, currentLocale, {
+              jsonStructure: templateData.jsonStructure
+            });
+          } else if (isEditing) {
+            // Update base template
+            result = await window.EmailGatewayAPI.updateTemplate(templateData.key, templateData);
+          } else {
+            // Create new template
+            result = await window.EmailGatewayAPI.createTemplate(templateData);
           }
           
-          const result = await response.json();
-          showStatus('Template saved successfully!', 'success');
+          showStatus('Template saved successfully${currentLocale ? ' for locale ' + currentLocale : ''}!', 'success');
           updateLastSaved();
           hasUnsavedChanges = false;
           
-          if (!isEditing) {
+          if (!isEditing && result && result.template && result.template.key) {
             // Redirect to edit mode for newly created template
             window.location.href = \`/admin/template-editor?template=\${result.template.key}&mode=edit\`;
           }
@@ -686,32 +692,17 @@ export function generateTemplateEditorScripts() {
           
           const templateData = generateTemplateStructure();
           
-          const response = await fetch('/api/v1/templates/preview', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': \`Bearer \${getAuthToken()}\`
-            },
-            body: JSON.stringify({
-              templateStructure: templateData,
-              variables: {
-                companyName: 'Your Company',
-                title: 'Sample Title',
-                bodyText: 'This is a sample email body text that demonstrates how your template will look.',
-                primaryButtonLabel: 'Primary Action',
-                primaryButtonUrl: '#',
-                secondaryButtonLabel: 'Secondary Action',
-                secondaryButtonUrl: '#',
-                copyright: '© 2024 Your Company. All rights reserved.'
-              }
-            })
+          const data = await window.EmailGatewayAPI.generatePreview(templateData, {
+            companyName: 'Your Company',
+            title: 'Sample Title',
+            bodyText: 'This is a sample email body text that demonstrates how your template will look.',
+            primaryButtonLabel: 'Primary Action',
+            primaryButtonUrl: '#',
+            secondaryButtonLabel: 'Secondary Action',
+            secondaryButtonUrl: '#',
+            copyright: '© 2024 Your Company. All rights reserved.'
           });
           
-          if (!response.ok) {
-            throw new Error(\`HTTP \${response.status}: \${response.statusText}\`);
-          }
-          
-          const data = await response.json();
           const previewContainer = document.getElementById('preview-container');
           previewContainer.innerHTML = data.preview;
           

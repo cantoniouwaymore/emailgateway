@@ -122,6 +122,8 @@ export function generateDashboardHTML(data: any): string {
     ${generateTemplateFormModal()}
     ${generateLocaleManagementModal()}
     
+    <script src="/admin/config.js"></script>
+    <script src="/admin/api-client.js"></script>
     ${generateDashboardScript()}
     ${generateTemplateManagementScripts()}
 </body>

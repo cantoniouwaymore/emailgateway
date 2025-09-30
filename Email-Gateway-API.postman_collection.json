@@ -1,9 +1,9 @@
 {
   "info": {
     "name": "Waymore Transactional Emails Service API",
-    "description": "Complete API collection for the Waymore Transactional Emails Service v2.0. Includes authentication, email sending, status checking, admin monitoring endpoints, webhook testing, and comprehensive template management with database-driven templates, localization, and variable validation.",
+    "description": "Complete API collection for the Waymore Transactional Emails Service v2.1. Updated to reflect the actual implemented API endpoints including authentication, email sending, comprehensive template management, admin monitoring, webhook testing, and system health checks.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "version": "2.0.0"
+    "version": "2.1.0"
   },
   "auth": {
     "type": "bearer",
@@ -289,9 +289,9 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/v1/emails/status/msg_abc123",
+              "raw": "{{base_url}}/api/v1/messages/msg_abc123",
               "host": ["{{base_url}}"],
-              "path": ["api", "v1", "emails", "status", "msg_abc123"]
+              "path": ["api", "v1", "messages", "msg_abc123"]
             },
             "description": "Get the status of a sent email message by its message ID."
           },
@@ -307,9 +307,9 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{base_url}}/api/v1/emails/status/msg_abc123",
+                  "raw": "{{base_url}}/api/v1/messages/msg_abc123",
                   "host": ["{{base_url}}"],
-                  "path": ["api", "v1", "emails", "status", "msg_abc123"]
+                  "path": ["api", "v1", "messages", "msg_abc123"]
                 }
               },
               "status": "OK",
@@ -341,7 +341,7 @@
               "host": ["{{base_url}}"],
               "path": ["health"]
             },
-            "description": "Check the health status of the email gateway service."
+            "description": "Check the detailed health status of the email gateway service."
           },
           "response": [
             {
@@ -370,16 +370,29 @@
           ]
         },
         {
+          "name": "Liveness Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/healthz",
+              "host": ["{{base_url}}"],
+              "path": ["healthz"]
+            },
+            "description": "Liveness probe for Kubernetes health checks."
+          }
+        },
+        {
           "name": "Readiness Check",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/ready",
+              "raw": "{{base_url}}/readyz",
               "host": ["{{base_url}}"],
-              "path": ["ready"]
+              "path": ["readyz"]
             },
-            "description": "Check if the service is ready to accept requests."
+            "description": "Readiness probe for Kubernetes health checks."
           }
         },
         {
@@ -559,6 +572,19 @@
           ]
         },
         {
+          "name": "Webhook Events by Message",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/api/webhooks/{{message_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "api", "webhooks", "{{message_id}}"]
+            },
+            "description": "Get webhook events for a specific message."
+          }
+        },
+        {
           "name": "Search by Recipient",
           "request": {
             "method": "GET",
@@ -679,6 +705,19 @@
               "body": "{\n  \"messageId\": \"test_1234567890_abcdef\",\n  \"status\": \"queued\",\n  \"message\": \"Test email queued successfully\"\n}"
             }
           ]
+        },
+        {
+          "name": "Template Editor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/template-editor",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "template-editor"]
+            },
+            "description": "Access the template editor interface."
+          }
         },
         {
           "name": "Documentation Viewer",
@@ -841,11 +880,17 @@
           "name": "Get Template",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
             "url": {
-              "raw": "{{base_url}}/api/v1/templates/transactional",
+              "raw": "{{base_url}}/api/v1/templates/{{template_key}}",
               "host": ["{{base_url}}"],
-              "path": ["api", "v1", "templates", "transactional"]
+              "path": ["api", "v1", "templates", "{{template_key}}"]
             },
             "description": "Retrieve a specific template by key."
           }
@@ -858,11 +903,16 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"key\": \"welcome-email\",\n  \"name\": \"Welcome Email\",\n  \"description\": \"Welcome new users to the platform\",\n  \"category\": \"onboarding\",\n  \"isActive\": true,\n  \"variableSchema\": {\n    \"type\": \"object\",\n    \"properties\": {\n      \"user_name\": {\"type\": \"string\"},\n      \"company_name\": {\"type\": \"string\"},\n      \"dashboard_url\": {\"type\": \"string\"}\n    },\n    \"required\": [\"user_name\", \"company_name\", \"dashboard_url\"]\n  },\n  \"jsonStructure\": {\n    \"mjml\": {\n      \"tagName\": \"mjml\",\n      \"children\": [\n        {\n          \"tagName\": \"mj-head\",\n          \"children\": [\n            {\n              \"tagName\": \"mj-title\",\n              \"content\": \"Welcome to {{company_name}}!\"\n            }\n          ]\n        },\n        {\n          \"tagName\": \"mj-body\",\n          \"children\": [\n            {\n              \"tagName\": \"mj-section\",\n              \"children\": [\n                {\n                  \"tagName\": \"mj-column\",\n                  \"children\": [\n                    {\n                      \"tagName\": \"mj-text\",\n                      \"content\": \"Hello {{user_name}}, welcome to {{company_name}}!\"\n                    }\n                  ]\n                }\n              ]\n            }\n          ]\n        }\n      ]\n    }\n  }\n}",
+              "raw": "{\n  \"key\": \"welcome-email\",\n  \"name\": \"Welcome Email\",\n  \"description\": \"Welcome new users to the platform\",\n  \"category\": \"onboarding\",\n  \"locale\": \"{{locale}}\",\n  \"variableSchema\": {\n    \"type\": \"object\",\n    \"properties\": {\n      \"user_name\": {\"type\": \"string\"},\n      \"company_name\": {\"type\": \"string\"},\n      \"dashboard_url\": {\"type\": \"string\"}\n    },\n    \"required\": [\"user_name\", \"company_name\", \"dashboard_url\"]\n  },\n  \"jsonStructure\": {\n    \"title\": {\n      \"text\": \"Welcome to {{company_name}}!\",\n      \"size\": \"28px\",\n      \"weight\": \"700\",\n      \"color\": \"#1f2937\",\n      \"align\": \"center\"\n    },\n    \"body\": {\n      \"paragraphs\": [\n        \"Hello {{user_name}}, welcome to {{company_name}}!\",\n        \"We're excited to have you on board. Click the button below to get started:\"\n      ],\n      \"fontSize\": \"16px\",\n      \"lineHeight\": \"26px\"\n    },\n    \"actions\": {\n      \"primary\": {\n        \"label\": \"Get Started\",\n        \"url\": \"{{dashboard_url}}\",\n        \"style\": \"button\",\n        \"color\": \"#3b82f6\",\n        \"text_color\": \"#ffffff\"\n      }\n    },\n    \"footer\": {\n      \"tagline\": \"{{company_name}} - Your Success Partner\",\n      \"copyright\": \"© 2024 {{company_name}}. All rights reserved.\"\n    }\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -874,7 +924,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "templates"]
             },
-            "description": "Create a new email template."
+            "description": "Create a new email template. Locale must be a valid ISO 639-1 language code (e.g., 'en', 'es', 'fr', 'de'). Defaults to 'en' if not provided."
           }
         },
         {
@@ -889,7 +939,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Welcome Email Updated\",\n  \"description\": \"Updated welcome email template\",\n  \"isActive\": true\n}",
+              "raw": "{\n  \"name\": \"Welcome Email Updated\",\n  \"description\": \"Updated welcome email template\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -897,9 +947,9 @@
               }
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/templates/welcome-email",
+              "raw": "{{base_url}}/api/v1/templates/{{template_key}}",
               "host": ["{{base_url}}"],
-              "path": ["api", "v1", "templates", "welcome-email"]
+              "path": ["api", "v1", "templates", "{{template_key}}"]
             },
             "description": "Update an existing template."
           }
@@ -908,11 +958,17 @@
           "name": "Delete Template",
           "request": {
             "method": "DELETE",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
             "url": {
-              "raw": "{{base_url}}/api/v1/templates/welcome-email",
+              "raw": "{{base_url}}/api/v1/templates/{{template_key}}",
               "host": ["{{base_url}}"],
-              "path": ["api", "v1", "templates", "welcome-email"]
+              "path": ["api", "v1", "templates", "{{template_key}}"]
             },
             "description": "Delete a template and all its locales."
           }
@@ -925,11 +981,16 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"locale\": \"es\",\n  \"jsonStructure\": {\n    \"mjml\": {\n      \"tagName\": \"mjml\",\n      \"children\": [\n        {\n          \"tagName\": \"mj-head\",\n          \"children\": [\n            {\n              \"tagName\": \"mj-title\",\n              \"content\": \"¡Bienvenido a {{company_name}}!\"\n            }\n          ]\n        },\n        {\n          \"tagName\": \"mj-body\",\n          \"children\": [\n            {\n              \"tagName\": \"mj-section\",\n              \"children\": [\n                {\n                  \"tagName\": \"mj-column\",\n                  \"children\": [\n                    {\n                      \"tagName\": \"mj-text\",\n                      \"content\": \"¡Hola {{user_name}}, bienvenido a {{company_name}}!\"\n                    }\n                  ]\n                }\n              ]\n            }\n          ]\n        }\n      ]\n    }\n  }\n}",
+              "raw": "{\n  \"locale\": \"{{locale}}\",\n  \"jsonStructure\": {\n    \"title\": {\n      \"text\": \"¡Bienvenido a {{company_name}}!\",\n      \"size\": \"28px\",\n      \"weight\": \"700\",\n      \"color\": \"#1f2937\",\n      \"align\": \"center\"\n    },\n    \"body\": {\n      \"paragraphs\": [\n        \"¡Hola {{user_name}}, bienvenido a {{company_name}}!\",\n        \"Estamos emocionados de tenerte a bordo. Haz clic en el botón de abajo para comenzar:\"\n      ],\n      \"fontSize\": \"16px\",\n      \"lineHeight\": \"26px\"\n    },\n    \"actions\": {\n      \"primary\": {\n        \"label\": \"Comenzar\",\n        \"url\": \"{{dashboard_url}}\",\n        \"style\": \"button\",\n        \"color\": \"#3b82f6\",\n        \"text_color\": \"#ffffff\"\n      }\n    },\n    \"footer\": {\n      \"tagline\": \"{{company_name}} - Tu Socio de Éxito\",\n      \"copyright\": \"© 2024 {{company_name}}. Todos los derechos reservados.\"\n    }\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -937,11 +998,11 @@
               }
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/templates/transactional/locales",
+              "raw": "{{base_url}}/api/v1/templates/{{template_key}}/locales",
               "host": ["{{base_url}}"],
-              "path": ["api", "v1", "templates", "transactional", "locales"]
+              "path": ["api", "v1", "templates", "{{template_key}}", "locales"]
             },
-            "description": "Add a locale-specific version of a template."
+            "description": "Add a locale-specific version of a template. Locale must be a valid ISO 639-1 language code (e.g., 'en', 'es', 'fr', 'de')."
           }
         },
         {
@@ -952,11 +1013,16 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"jsonStructure\": {\n    \"mjml\": {\n      \"tagName\": \"mjml\",\n      \"children\": [\n        {\n          \"tagName\": \"mj-head\",\n          \"children\": [\n            {\n              \"tagName\": \"mj-title\",\n              \"content\": \"¡Bienvenido a {{company_name}}!\"\n            }\n          ]\n        }\n      ]\n    }\n  }\n}",
+              "raw": "{\n  \"jsonStructure\": {\n    \"title\": {\n      \"text\": \"¡Bienvenido a {{company_name}}!\",\n      \"size\": \"32px\",\n      \"weight\": \"700\",\n      \"color\": \"#1f2937\",\n      \"align\": \"center\"\n    },\n    \"body\": {\n      \"paragraphs\": [\n        \"¡Hola {{user_name}}, bienvenido a {{company_name}}!\",\n        \"Estamos emocionados de tenerte a bordo.\"\n      ],\n      \"fontSize\": \"16px\",\n      \"lineHeight\": \"26px\"\n    }\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -964,24 +1030,30 @@
               }
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/templates/transactional/locales/es",
+              "raw": "{{base_url}}/api/v1/templates/{{template_key}}/locales/{{locale}}",
               "host": ["{{base_url}}"],
-              "path": ["api", "v1", "templates", "transactional", "locales", "es"]
+              "path": ["api", "v1", "templates", "{{template_key}}", "locales", "{{locale}}"]
             },
-            "description": "Update a locale-specific version of a template."
+            "description": "Update a locale-specific version of a template. Locale in URL must be a valid ISO 639-1 language code (e.g., 'en', 'es', 'fr', 'de')."
           }
         },
         {
           "name": "Delete Locale",
           "request": {
             "method": "DELETE",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
             "url": {
-              "raw": "{{base_url}}/api/v1/templates/transactional/locales/es",
+              "raw": "{{base_url}}/api/v1/templates/{{template_key}}/locales/{{locale}}",
               "host": ["{{base_url}}"],
-              "path": ["api", "v1", "templates", "transactional", "locales", "es"]
+              "path": ["api", "v1", "templates", "{{template_key}}", "locales", "{{locale}}"]
             },
-            "description": "Delete a locale-specific version of a template."
+            "description": "Delete a locale-specific version of a template. Locale in URL must be a valid ISO 639-1 language code (e.g., 'en', 'es', 'fr', 'de')."
           }
         },
         {
@@ -1044,7 +1116,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"valid\": true,\n  \"errors\": [],\n  \"warnings\": [\n    {\n      \"type\": \"missing_optional_variable\",\n      \"field\": \"footer.copyright\",\n      \"message\": \"Consider adding copyright text for better branding\"\n    }\n  ],\n  \"template\": {\n    \"key\": \"transactional\",\n    \"name\": \"Transactional Email Template\",\n    \"category\": \"transactional\",\n    \"isActive\": true\n  }\n}"
+              "body": "{\n  \"valid\": true,\n  \"errors\": [],\n  \"warnings\": [\n    {\n      \"type\": \"missing_optional_variable\",\n      \"field\": \"footer.copyright\",\n      \"message\": \"Consider adding copyright text for better branding\"\n    }\n  ],\n  \"template\": {\n    \"key\": \"transactional\",\n    \"name\": \"Transactional Email Template\",\n    \"category\": \"transactional\"\n  }\n}"
             }
           ]
         },
@@ -1056,6 +1128,11 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
               }
             ],
             "body": {
@@ -1068,9 +1145,9 @@
               }
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/templates/transactional/validate",
+              "raw": "{{base_url}}/api/v1/templates/{{template_key}}/validate",
               "host": ["{{base_url}}"],
-              "path": ["api", "v1", "templates", "transactional", "validate"]
+              "path": ["api", "v1", "templates", "{{template_key}}", "validate"]
             },
             "description": "Validate template variables against the template's schema."
           }
@@ -1079,11 +1156,17 @@
           "name": "Get Template Variables",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
             "url": {
-              "raw": "{{base_url}}/api/v1/templates/transactional/variables",
+              "raw": "{{base_url}}/api/v1/templates/{{template_key}}/variables",
               "host": ["{{base_url}}"],
-              "path": ["api", "v1", "templates", "transactional", "variables"]
+              "path": ["api", "v1", "templates", "{{template_key}}", "variables"]
             },
             "description": "Get the variable schema for a template."
           }
@@ -1092,13 +1175,96 @@
           "name": "Get Template Documentation",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
             "url": {
-              "raw": "{{base_url}}/api/v1/templates/transactional/docs",
+              "raw": "{{base_url}}/api/v1/templates/{{template_key}}/docs",
               "host": ["{{base_url}}"],
-              "path": ["api", "v1", "templates", "transactional", "docs"]
+              "path": ["api", "v1", "templates", "{{template_key}}", "docs"]
             },
             "description": "Get comprehensive documentation for a template."
+          }
+        },
+        {
+          "name": "Get Template Detected Variables",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/templates/{{template_key}}/detected-variables",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "templates", "{{template_key}}", "detected-variables"]
+            },
+            "description": "Get automatically detected variables from template structure."
+          }
+        },
+        {
+          "name": "Preview Template",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/templates/{{template_key}}/preview?locale={{locale}}&variables={{variables}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "templates", "{{template_key}}", "preview"],
+              "query": [
+                {
+                  "key": "locale",
+                  "value": "{{locale}}",
+                  "description": "Template locale - must be valid ISO 639-1 language code (e.g., 'en', 'es', 'fr', 'de')"
+                },
+                {
+                  "key": "variables",
+                  "value": "{{variables}}",
+                  "description": "JSON string of template variables"
+                }
+              ]
+            },
+            "description": "Preview a template with sample data. Returns rendered HTML. Locale in URL must be a valid ISO 639-1 language code (e.g., 'en', 'es', 'fr', 'de')."
+          }
+        },
+        {
+          "name": "Generate Template Preview",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"templateStructure\": {\n    \"title\": {\n      \"text\": \"Welcome to {{company_name}}!\",\n      \"size\": \"28px\",\n      \"weight\": \"700\",\n      \"color\": \"#1f2937\",\n      \"align\": \"center\"\n    },\n    \"body\": {\n      \"paragraphs\": [\n        \"Hello {{user_name}}, welcome to {{company_name}}!\",\n        \"We're excited to have you on board. Click the button below to get started:\"\n      ],\n      \"fontSize\": \"16px\",\n      \"lineHeight\": \"26px\"\n    },\n    \"actions\": {\n      \"primary\": {\n        \"label\": \"Get Started\",\n        \"url\": \"{{dashboard_url}}\",\n        \"style\": \"button\",\n        \"color\": \"#3b82f6\",\n        \"text_color\": \"#ffffff\"\n      }\n    },\n    \"footer\": {\n      \"tagline\": \"{{company_name}} - Your Success Partner\",\n      \"copyright\": \"© 2024 {{company_name}}. All rights reserved.\"\n    }\n  },\n  \"variables\": {\n    \"company_name\": \"Waymore\",\n    \"user_name\": \"John Doe\",\n    \"dashboard_url\": \"https://app.waymore.io\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/templates/preview",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "templates", "preview"]
+            },
+            "description": "Generate a preview of template structure without saving to database."
           }
         }
       ]

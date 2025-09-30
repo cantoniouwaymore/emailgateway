@@ -312,10 +312,24 @@ export class TemplateEngine {
     return null;
   }
 
+  async getTemplateForCreation(key: string): Promise<any> {
+    if (this.useDatabase) {
+      return await this.databaseEngine.getTemplateForCreation(key);
+    }
+    return null;
+  }
+
 
   async createTemplate(templateData: any): Promise<any> {
     if (this.useDatabase) {
       return await this.databaseEngine.createTemplate(templateData);
+    }
+    throw new Error('Database engine not enabled');
+  }
+
+  async createTemplateWithLocale(templateData: any, locale: string): Promise<any> {
+    if (this.useDatabase) {
+      return await this.databaseEngine.createTemplateWithLocale(templateData, locale);
     }
     throw new Error('Database engine not enabled');
   }

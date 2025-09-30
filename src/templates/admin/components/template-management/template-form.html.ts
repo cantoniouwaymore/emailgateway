@@ -72,18 +72,6 @@ export function generateTemplateFormModal(): string {
                     </select>
                   </div>
 
-                  <div class="flex items-center">
-                    <input 
-                      type="checkbox" 
-                      id="template-active" 
-                      name="isActive"
-                      checked
-                      class="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-                    />
-                    <label for="template-active" class="ml-2 block text-sm text-gray-700">
-                      Active Template
-                    </label>
-                  </div>
                 </div>
 
                 <!-- Template Structure -->

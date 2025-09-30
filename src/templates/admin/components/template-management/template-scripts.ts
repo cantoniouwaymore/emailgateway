@@ -5,17 +5,16 @@ export function generateTemplateManagementScripts(): string {
       let currentTemplates = [];
       let currentTemplate = null;
       let currentLocales = [];
-      let authToken = null;
 
       // Initialize template management
       async function initializeTemplateManagement() {
         try {
-          // Get auth token
-          const tokenResponse = await fetch('/test-token');
-          const tokenData = await tokenResponse.json();
-          authToken = tokenData.token;
+          // Wait for API client to be ready
+          if (!window.EmailGatewayAPI) {
+            throw new Error('API client not available');
+          }
 
-          // Load templates
+          // Load templates using centralized API client
           await loadTemplates();
         } catch (error) {
           console.error('Failed to initialize template management:', error);
@@ -23,22 +22,12 @@ export function generateTemplateManagementScripts(): string {
         }
       }
 
-      // Load templates from API
+      // Load templates from API using centralized client
       async function loadTemplates() {
         try {
           showTemplatesLoading(true);
           
-          const response = await fetch('/api/v1/templates', {
-            headers: {
-              'Authorization': \`Bearer \${authToken}\`
-            }
-          });
-          
-          if (!response.ok) {
-            throw new Error(\`HTTP \${response.status}: \${response.statusText}\`);
-          }
-          
-          const data = await response.json();
+          const data = await window.EmailGatewayAPI.getTemplates();
           currentTemplates = data.templates || [];
           
           updateStats();
@@ -54,7 +43,7 @@ export function generateTemplateManagementScripts(): string {
       // Update statistics
       function updateStats() {
         const totalTemplates = currentTemplates.length;
-        const activeTemplates = currentTemplates.filter(t => t.isActive).length;
+        const activeTemplates = currentTemplates.length;
         const totalLocales = currentTemplates.reduce((sum, t) => sum + (t.availableLocales?.length || 0), 0);
         const categories = [...new Set(currentTemplates.map(t => t.category))].length;
 
@@ -107,8 +96,8 @@ export function generateTemplateManagementScripts(): string {
               </div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
-              <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full \${template.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                \${template.isActive ? 'Active' : 'Inactive'}
+              <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                Available
               </span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -176,9 +165,7 @@ export function generateTemplateManagementScripts(): string {
             (template.description && template.description.toLowerCase().includes(search));
           
           const matchesCategory = !category || template.category === category;
-          const matchesStatus = !status || 
-            (status === 'active' && template.isActive) ||
-            (status === 'inactive' && !template.isActive);
+          const matchesStatus = !status;
           
           return matchesSearch && matchesCategory && matchesStatus;
         });
@@ -244,17 +231,7 @@ export function generateTemplateManagementScripts(): string {
       // Show edit template modal
       async function editTemplate(templateKey) {
         try {
-          const response = await fetch(\`/api/v1/templates/\${templateKey}\`, {
-            headers: {
-              'Authorization': \`Bearer \${authToken}\`
-            }
-          });
-          
-          if (!response.ok) {
-            throw new Error(\`HTTP \${response.status}: \${response.statusText}\`);
-          }
-          
-          const data = await response.json();
+          const data = await window.EmailGatewayAPI.getTemplate(templateKey);
           currentTemplate = data.template;
           
           // Populate form
@@ -264,7 +241,6 @@ export function generateTemplateManagementScripts(): string {
           document.getElementById('template-name').value = currentTemplate.name;
           document.getElementById('template-description').value = currentTemplate.description || '';
           document.getElementById('template-category').value = currentTemplate.category;
-          document.getElementById('template-active').checked = currentTemplate.isActive;
           document.getElementById('template-json-structure').value = JSON.stringify(currentTemplate.jsonStructure, null, 2);
           document.getElementById('template-variable-schema').value = JSON.stringify(currentTemplate.variableSchema, null, 2);
           
@@ -292,28 +268,14 @@ export function generateTemplateManagementScripts(): string {
             name: formData.get('name'),
             description: formData.get('description'),
             category: formData.get('category'),
-            isActive: formData.get('isActive') === 'on',
             jsonStructure: JSON.parse(document.getElementById('template-json-structure').value),
             variableSchema: JSON.parse(document.getElementById('template-variable-schema').value)
           };
           
-          const url = currentTemplate ? 
-            \`/api/v1/templates/\${currentTemplate.key}\` : 
-            '/api/v1/templates';
-          const method = currentTemplate ? 'PUT' : 'POST';
-          
-          const response = await fetch(url, {
-            method,
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': \`Bearer \${authToken}\`
-            },
-            body: JSON.stringify(templateData)
-          });
-          
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error?.message || \`HTTP \${response.status}: \${response.statusText}\`);
+          if (currentTemplate) {
+            await window.EmailGatewayAPI.updateTemplate(currentTemplate.key, templateData);
+          } else {
+            await window.EmailGatewayAPI.createTemplate(templateData);
           }
           
           closeTemplateFormModal();
@@ -332,16 +294,7 @@ export function generateTemplateManagementScripts(): string {
         }
         
         try {
-          const response = await fetch(\`/api/v1/templates/\${templateKey}\`, {
-            method: 'DELETE',
-            headers: {
-              'Authorization': \`Bearer \${authToken}\`
-            }
-          });
-          
-          if (!response.ok) {
-            throw new Error(\`HTTP \${response.status}: \${response.statusText}\`);
-          }
+          await window.EmailGatewayAPI.deleteTemplate(templateKey);
           
           await loadTemplates();
           showStatus('Template deleted successfully', 'success');
@@ -375,17 +328,7 @@ export function generateTemplateManagementScripts(): string {
       // Manage locales
       async function manageLocales(templateKey) {
         try {
-          const response = await fetch(\`/api/v1/templates/\${templateKey}\`, {
-            headers: {
-              'Authorization': \`Bearer \${authToken}\`
-            }
-          });
-          
-          if (!response.ok) {
-            throw new Error(\`HTTP \${response.status}: \${response.statusText}\`);
-          }
-          
-          const data = await response.json();
+          const data = await window.EmailGatewayAPI.getTemplate(templateKey);
           currentTemplate = data.template;
           currentLocales = data.template.locales || [];
           

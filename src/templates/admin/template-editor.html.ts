@@ -46,7 +46,7 @@ export function generateTemplateEditorHTML(): string {
 
           <!-- Template Info -->
           <div class="bg-gray-50 p-4 rounded-lg mb-6">
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-3 gap-4">
               <div>
                 <label class="form-label">Template Key</label>
                 <input 
@@ -63,6 +63,27 @@ export function generateTemplateEditorHTML(): string {
                   <option value="marketing">Marketing</option>
                   <option value="notification">Notification</option>
                   <option value="system">System</option>
+                </select>
+              </div>
+              <div>
+                <label class="form-label">Locale</label>
+                <select id="template-locale" class="form-input" onchange="onLocaleChange()">
+                  <option value="en">English (en)</option>
+                  <option value="es">Spanish (es)</option>
+                  <option value="fr">French (fr)</option>
+                  <option value="de">German (de)</option>
+                  <option value="it">Italian (it)</option>
+                  <option value="pt">Portuguese (pt)</option>
+                  <option value="nl">Dutch (nl)</option>
+                  <option value="sv">Swedish (sv)</option>
+                  <option value="da">Danish (da)</option>
+                  <option value="no">Norwegian (no)</option>
+                  <option value="fi">Finnish (fi)</option>
+                  <option value="pl">Polish (pl)</option>
+                  <option value="ru">Russian (ru)</option>
+                  <option value="ja">Japanese (ja)</option>
+                  <option value="ko">Korean (ko)</option>
+                  <option value="zh">Chinese (zh)</option>
                 </select>
               </div>
             </div>
@@ -151,6 +172,8 @@ export function generateTemplateEditorHTML(): string {
       </div>
 
       <!-- Include all scripts -->
+      <script src="/admin/config.js"></script>
+      <script src="/admin/api-client.js"></script>
       ${generateSectionBasedTemplateScripts()}
       <script>
         // Template Editor JavaScript Functions
@@ -315,7 +338,7 @@ export function generateTemplateEditorHTML(): string {
             
             if (typeof loadTemplateIntoVisualBuilder === 'function') {
               console.log('🎛️ LOADING TEMPLATE INTO VISUAL BUILDER');
-              // Load the actual template structure with {{}} patterns for editing
+              // Load the actual template structure from the database
               console.log('🎛️ Loading JSON Structure:', currentTemplate.jsonStructure);
               loadTemplateIntoVisualBuilder(currentTemplate.jsonStructure);
               console.log('✅ Template loaded into visual builder successfully');
@@ -522,30 +545,11 @@ export function generateTemplateEditorHTML(): string {
             
             console.log('🔍 UpdatePreview - Preview Variables:', previewVariables);
             
-            // Use the existing MJML preview API
+            // Use the centralized API client for preview generation
             console.log('🚀 Sending preview API request...');
-            const response = await fetch('/api/v1/templates/preview', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': \`Bearer \${getAuthToken()}\`
-              },
-              body: JSON.stringify({
-                templateStructure: templateStructure,
-                variables: previewVariables
-              })
-            });
+            const data = await window.EmailGatewayAPI.generatePreview(templateStructure, previewVariables);
             
-            console.log('📡 Preview API response status:', response.status);
-            console.log('📡 Preview API response ok:', response.ok);
-            
-            if (!response.ok) {
-              const errorText = await response.text();
-              console.error('❌ Preview API error response:', errorText);
-              throw new Error(\`HTTP \${response.status}: \${response.statusText}\`);
-            }
-            
-            const data = await response.json();
+            console.log('📡 Preview API response received');
             console.log('📦 Preview API response data:', data);
             console.log('📦 Preview HTML length:', data.preview?.length || 0);
             
@@ -565,6 +569,89 @@ export function generateTemplateEditorHTML(): string {
             console.error('❌ Error message:', error.message);
             console.error('❌ Error stack:', error.stack);
             // Don't show error messages for real-time updates to avoid spam
+          }
+        }
+
+        // Handle locale change from the dropdown
+        async function onLocaleChange() {
+          try {
+            const selectEl = document.getElementById('template-locale');
+            const newLocale = selectEl ? selectEl.value : 'en';
+            const templateKey = document.getElementById('template-key')?.value;
+            if (!templateKey) {
+              return;
+            }
+
+            // Offer to save before switching if there are unsaved changes
+            if (typeof hasUnsavedChanges !== 'undefined' && hasUnsavedChanges) {
+              const confirmed = confirm('You have unsaved changes. Do you want to save before switching locales?');
+              if (confirmed && typeof saveTemplate === 'function') {
+                await saveTemplate();
+              }
+            }
+
+            showLoading('Switching locale...');
+
+            // Load base template to inspect locales with robust fallback
+            let data;
+            if (typeof window !== 'undefined' && window.EmailGatewayAPI) {
+              try {
+                data = await window.EmailGatewayAPI.getTemplate(templateKey);
+              } catch (e) {
+                // Fallback to direct fetch if centralized client fails
+                const resp = await fetch('/api/v1/templates/' + templateKey, {
+                  headers: { 'Authorization': 'Bearer ' + getAuthToken() }
+                });
+                if (!resp.ok) {
+                  throw new Error('HTTP ' + resp.status + ': ' + resp.statusText);
+                } else {
+                  data = await resp.json();
+                }
+              }
+            } else {
+              const resp = await fetch('/api/v1/templates/' + templateKey, {
+                headers: { 'Authorization': 'Bearer ' + getAuthToken() }
+              });
+              if (!resp.ok) {
+                throw new Error('HTTP ' + resp.status + ': ' + resp.statusText);
+              } else {
+                data = await resp.json();
+              }
+            }
+
+            currentTemplate = data.template;
+            const locales = Array.isArray(currentTemplate?.locales) ? currentTemplate.locales : [];
+            const localeEntry = locales.find(l => l.locale === newLocale);
+            const structure = localeEntry?.jsonStructure || {};
+
+            if (typeof loadTemplateIntoVisualBuilder === 'function') {
+              loadTemplateIntoVisualBuilder(structure);
+            }
+
+            // Refresh variables and preview for the newly selected locale
+            if (typeof refreshDetectedVariables === 'function') {
+              refreshDetectedVariables();
+            }
+            if (typeof updatePreview === 'function') {
+              setTimeout(function() { updatePreview(); }, 100);
+            }
+
+            const subtitle = document.getElementById('editor-subtitle');
+            if (subtitle) {
+              subtitle.textContent = 'Editing template ' + templateKey + ' (' + newLocale + ')';
+            }
+
+            if (typeof hasUnsavedChanges !== 'undefined') {
+              hasUnsavedChanges = false;
+            }
+
+            showStatus(localeEntry ? ('Loaded locale ' + newLocale) : ('Locale ' + newLocale + ' not found. Starting empty.'), 'info');
+          } catch (error) {
+            console.error('Failed to switch locale:', error);
+            const msg = (error && error.message) ? error.message : 'Unknown error';
+            showStatus('Failed to switch locale: ' + msg, 'error');
+          } finally {
+            hideLoading();
           }
         }
 
@@ -1031,39 +1118,49 @@ export function generateTemplateEditorHTML(): string {
             console.log('📋 Template Structure for Test:', templateStructure);
             
             // Get test values from detected variables
-            const testVariables = getVariableValues();
-            console.log('📋 Test Variables:', testVariables);
+            const allTestVariables = getVariableValues();
+            console.log('📋 All Test Variables:', allTestVariables);
+            
+            // Filter to only include variables that are placeholders ({{variableName}})
+            // NOT values that are hardcoded in the database like button labels
+            const testVariables = {};
+            for (const [key, value] of Object.entries(allTestVariables)) {
+              // Only include simple variables like userFirstName, planName, etc.
+              // Skip nested objects like actions, header, footer which are database values
+              if (typeof value !== 'object' || value === null) {
+                testVariables[key] = value;
+              } else {
+                console.log('🚫 Skipping nested object variable:', key, value);
+              }
+            }
+            console.log('📋 Filtered Test Variables (placeholders only):', testVariables);
             
             // Get basic template info
             const templateKey = document.getElementById('template-key')?.value;
+            const selectedLocale = document.getElementById('template-locale')?.value || 'en';
             const templateName = document.getElementById('template-name')?.value;
             
             if (!templateKey) {
               throw new Error('Template key is required for testing');
             }
             
-            // Save template first to ensure the latest structure is in the database
-            console.log('💾 Saving template before testing...');
-            console.log('📋 Template Structure being saved:', JSON.stringify(templateStructure, null, 2));
-            
-            const saveResponse = await fetch('/api/v1/templates/' + templateKey, {
+            // Save current locale structure first so the test uses the latest form values
+            console.log('💾 Saving locale before testing...', selectedLocale);
+            console.log('📋 Locale Structure being saved:', JSON.stringify(templateStructure, null, 2));
+            const saveResponse = await fetch('/api/v1/templates/' + templateKey + '/locales/' + selectedLocale, {
               method: 'PUT',
               headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + getAuthToken()
               },
               body: JSON.stringify({
-                key: templateKey,
-                name: templateName,
-                description: document.getElementById('template-description')?.value || '',
-                category: document.getElementById('template-category')?.value || 'transactional',
-                jsonStructure: templateStructure,
-                locale: 'en'
+                jsonStructure: templateStructure
               })
             });
             
             if (!saveResponse.ok) {
-              const errorData = await saveResponse.json();
-              throw new Error('Failed to save template: ' + (errorData.error || 'Unknown error'));
+              const errorText = await saveResponse.text().catch(() => '');
+              throw new Error('Failed to save locale ' + selectedLocale + ': ' + (errorText || (saveResponse.status + ' ' + saveResponse.statusText)));
             }
             
             console.log('✅ Template saved successfully');
@@ -1081,7 +1178,7 @@ export function generateTemplateEditorHTML(): string {
               throw new Error('Please enter a valid email address');
             }
             
-            // Prepare test email data
+            // Prepare test email data for admin endpoint
             const testEmailData = {
               to: [{ email: testEmail, name: 'Test User' }],
               from: {
@@ -1091,7 +1188,7 @@ export function generateTemplateEditorHTML(): string {
               subject: 'Test: ' + (templateName || 'Template Test'),
               template: {
                 key: templateKey,
-                locale: 'en'
+                locale: selectedLocale
               },
               variables: testVariables,
               metadata: {
@@ -1100,20 +1197,22 @@ export function generateTemplateEditorHTML(): string {
               }
             };
             
-            console.log('📧 Sending Test Email:', JSON.stringify(testEmailData, null, 2));
+            console.log('📧 Sending Test Email via Admin Endpoint:', JSON.stringify(testEmailData, null, 2));
             
-            // Send test email
-            const response = await fetch('/admin/send-test-email', {
+            // Send test email using Backend API (authenticated)
+            const response = await fetch('/api/v1/emails', {
               method: 'POST',
               headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + getAuthToken(),
+                'Idempotency-Key': 'editor-' + Date.now() + '-' + Math.random().toString(36).slice(2)
               },
               body: JSON.stringify(testEmailData)
             });
             
             if (!response.ok) {
-              const errorData = await response.json();
-              throw new Error(errorData.error || 'HTTP ' + response.status + ': ' + response.statusText);
+              const errorText = await response.text().catch(() => '');
+              throw new Error(errorText || ('HTTP ' + response.status + ': ' + response.statusText));
             }
             
             const result = await response.json();

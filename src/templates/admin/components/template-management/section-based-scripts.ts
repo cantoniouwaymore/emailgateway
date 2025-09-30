@@ -153,7 +153,73 @@ export function generateSectionBasedTemplateScripts(): string {
           // This is a variable placeholder, return it as-is
           return value;
         }
+        // Return the actual value (not a placeholder)
         return value;
+      }
+
+      // Clear all form fields
+      function clearAllFormFields() {
+        console.log('🧹 Clearing all form fields');
+        
+        // Scope clearing to editor forms only to avoid nuking top-level fields like locale
+        const editorForms = [
+          document.getElementById('template-editor-form'),
+          document.getElementById('section-template-form')
+        ].filter(Boolean);
+
+        // Clear all section checkboxes
+        const sectionCheckboxes = [
+          'header-enabled', 'hero-enabled', 'title-enabled', 'body-enabled', 
+          'snapshot-enabled', 'visual-enabled', 'actions-enabled', 
+          'support-enabled', 'footer-enabled'
+        ];
+        
+        sectionCheckboxes.forEach(id => {
+          const checkbox = document.getElementById(id);
+          if (checkbox) {
+            checkbox.checked = false;
+            // Hide content sections
+            const contentId = id.replace('-enabled', '-section-content');
+            const content = document.getElementById(contentId);
+            if (content) {
+              content.classList.add('hidden');
+            }
+          }
+        });
+        
+        // Clear text inputs, textareas, and selects within the editor forms only
+        editorForms.forEach(form => {
+          const inputs = form.querySelectorAll('input[type="text"], input[type="url"], textarea, select');
+          inputs.forEach((input) => {
+            if (input.type === 'checkbox' || input.type === 'radio') {
+              return;
+            }
+            // Do not clear the locale dropdown
+            if (input.id === 'template-locale') {
+              return;
+            }
+            input.value = '';
+          });
+        });
+        
+        // Clear dynamic containers
+        const containers = [
+          'body-paragraphs-container',
+          'snapshot-facts-container', 
+          'progress-bars-container',
+          'support-links-container',
+          'social-links-container',
+          'legal-links-container'
+        ];
+        
+        containers.forEach(containerId => {
+          const container = document.getElementById(containerId);
+          if (container) {
+            container.innerHTML = '';
+          }
+        });
+        
+        console.log('✅ All form fields cleared');
       }
 
       // Load existing template data into visual builder
@@ -165,6 +231,13 @@ export function generateSectionBasedTemplateScripts(): string {
           console.log('🔍 Title section in structure:', structure.title);
           console.log('🔍 Title section type:', typeof structure.title);
           console.log('🔍 Title section keys:', structure.title ? Object.keys(structure.title) : 'null');
+          
+          // If structure is empty, clear all form fields
+          if (!structure || Object.keys(structure).length === 0) {
+            console.log('🔍 Empty structure detected, clearing all form fields');
+            clearAllFormFields();
+            return;
+          }
           
           // For editing existing templates, we need to populate the form with the actual template configuration
           // rather than variable placeholders. We'll use the variable schema defaults as the actual values.
@@ -822,7 +895,6 @@ export function generateSectionBasedTemplateScripts(): string {
           name: formData.get('name'),
           description: formData.get('description'),
           category: formData.get('category'),
-          isActive: formData.get('isActive') === 'on',
           jsonStructure: generateJsonStructure(),
           variableSchema: generateVariableSchema()
         };

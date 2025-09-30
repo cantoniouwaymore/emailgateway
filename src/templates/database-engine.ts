@@ -209,6 +209,7 @@ export class DatabaseTemplateEngine {
 
       // Load template from database
       const template = await this.loadTemplateFromDatabase(key, locale);
+      console.log('🔧 DATABASE TEMPLATE ENGINE - Loading template with key:', key, 'locale:', locale);
       console.log('🔧 DATABASE TEMPLATE ENGINE - Loaded template:', JSON.stringify(template, null, 2));
       
       if (!template) {
@@ -218,6 +219,9 @@ export class DatabaseTemplateEngine {
       // Merge template structure with user variables
       const finalStructure = this.mergeVariables(template.jsonStructure, variables);
       console.log('🔧 DATABASE TEMPLATE ENGINE - Final structure:', JSON.stringify(finalStructure, null, 2));
+      console.log('🔧 DATABASE TEMPLATE ENGINE - Title text:', finalStructure.title?.text);
+      console.log('🔧 DATABASE TEMPLATE ENGINE - Body paragraphs:', finalStructure.body?.paragraphs);
+      console.log('🔧 DATABASE TEMPLATE ENGINE - Email title:', finalStructure.email_title);
 
       // Use the main MJML template instead of generating our own
       // Look for the template in both src and dist directories
@@ -238,6 +242,7 @@ export class DatabaseTemplateEngine {
       // Render with Handlebars using the main template
       const compiledTemplate = Handlebars.compile(mjmlTemplate);
       const renderedMjml = compiledTemplate(finalStructure);
+      console.log('🔧 DATABASE TEMPLATE ENGINE - Rendered MJML preview:', renderedMjml.substring(0, 500) + '...');
 
       // Convert MJML to HTML
       const mjmlResult = mjml(renderedMjml, {
@@ -290,7 +295,7 @@ export class DatabaseTemplateEngine {
     }
     
     const template = await prisma.template.findUnique({
-      where: { key, isActive: true },
+      where: { key },
       include: {
         locales: {
           where: { locale }
@@ -328,130 +333,18 @@ export class DatabaseTemplateEngine {
     // Use the variable detector to replace {{}} patterns in the template structure
     const processedStructure = VariableDetector.replaceVariablesInObject(templateStructure, userVariables);
     
-    // Start with default structure to ensure all required fields exist
-    const merged = {
-      // Header defaults
-      header: {
-        show: true,
-        logo_width: '180px',
-        logo_url: 'https://i.ibb.co/8LfvqPk7/Waymore-logo-Colour.png',
-        logo_alt: 'Waymore',
-        padding: '12px 0px 8px 0px'
-      },
-      
-      // Hero defaults
-      hero: {
-        show: true,
-        type: 'none',
-        image_width: '120px',
-        padding: '8px 0px 10px 0px'
-      },
-      
-      // Title defaults
-      title: {
-        show: true,
-        text: '{{title}}',
-        size: '28px',
-        weight: '700',
-        color: '#1f2937',
-        align: 'center',
-        padding: '12px 0px 8px 0px',
-        line_height: '36px'
-      },
-      
-      // Body defaults
-      body: {
-        show: true,
-        paragraphs: ['Hello!'],
-        font_size: '16px',
-        line_height: '26px',
-        color: '#374151',
-        padding: '0px 0px 10px 0px'
-      },
-      
-      // Snapshot defaults
-      snapshot: {
-        show: true,
-        title: 'Details',
-        facts: [],
-        style: 'table',
-        padding: '0px 0px 10px 0px'
-      },
-      
-      // Actions defaults
-      actions: {
-        show: true,
-        primary: {
-          show: true,
-          label: 'Get Started',
-          url: '#',
-          style: 'button',
-          color: '#3b82f6',
-          text_color: '#ffffff'
-        },
-        secondary: {
-          show: false,
-          label: 'Learn More',
-          url: '#',
-          style: 'button',
-          color: '#6b7280',
-          text_color: '#ffffff'
-        },
-        padding: '0px 0px 12px 0px'
-      },
-      
-      // Visual defaults
-      visual: {
-        show: true,
-        type: 'none',
-        padding: '0px 0px 10px 0px'
-      },
-      
-      // Support defaults
-      support: {
-        show: true,
-        title: 'Need help?',
-        links: [],
-        padding: '8px 0px 8px 0px'
-      },
-      
-      // Footer defaults
-      footer: {
-        show: true,
-        logo: {
-          show: true,
-          width: '120px',
-          url: 'https://i.ibb.co/8LfvqPk7/Waymore-logo-Colour.png',
-          alt: 'Waymore'
-        },
-        tagline: 'Empowering your business',
-        copyright: '© 2024 Your Company. All rights reserved.',
-        social_links: [],
-        legal_links: [],
-        padding: '12px 0px 16px 0px'
-      },
-      
-      // Theme defaults
-      theme: {
-        font_family: "'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif",
-        font_size: '16px',
-        text_color: '#374151',
-        heading_color: '#1f2937',
-        background_color: '#ffffff',
-        body_background: '#f8fafc',
-        border_color: '#e5e7eb',
-        muted_text_color: '#6b7280',
-        primary_button_color: '#3b82f6',
-        primary_button_text_color: '#ffffff',
-        secondary_button_color: '#6b7280',
-        secondary_button_text_color: '#ffffff',
-        social_button_color: '#f3f4f6',
-        social_icon_color: '#1f2937'
-      }
-    };
+    // Start with the processed template structure (preserving user's template content)
+    const finalStructure = { ...processedStructure };
     
-    // Merge the processed template structure with defaults
-    const finalStructure = this.deepMerge(merged, processedStructure);
+    // Map database template structure to MJML template variables
+    // This ensures the MJML template can access the database template content
+    if (finalStructure.title && finalStructure.title.text) {
+      finalStructure.email_title = finalStructure.title.text;
+    }
+    
+    if (finalStructure.header && finalStructure.header.tagline) {
+      finalStructure.workspace_name = finalStructure.header.tagline;
+    }
     
     // Button structure conversion is now handled in loadTemplateFromDatabase
     
@@ -699,7 +592,6 @@ export class DatabaseTemplateEngine {
 
   async getAvailableTemplates(): Promise<any[]> {
     const templates = await prisma.template.findMany({
-      where: { isActive: true },
       include: {
         locales: {
           select: { locale: true }
@@ -733,7 +625,34 @@ export class DatabaseTemplateEngine {
     }
 
     const template = await prisma.template.findUnique({
-      where: { key, isActive: true },
+      where: { key },
+      include: {
+        locales: true
+      }
+    });
+
+    if (!template) {
+      return null;
+    }
+
+    return {
+      key: template.key,
+      name: template.name,
+      description: template.description,
+      category: template.category,
+      variableSchema: template.variableSchema,
+      jsonStructure: template.jsonStructure,
+      locales: template.locales.map(locale => ({
+        locale: locale.locale,
+        jsonStructure: locale.jsonStructure
+      }))
+    };
+  }
+
+  async getTemplateForCreation(key: string): Promise<any> {
+    // Check for any template with this key (active or inactive)
+    const template = await prisma.template.findUnique({
+      where: { key },
       include: {
         locales: true
       }
@@ -773,6 +692,30 @@ export class DatabaseTemplateEngine {
     return template;
   }
 
+  async createTemplateWithLocale(templateData: any, locale: string): Promise<any> {
+    const template = await prisma.template.create({
+      data: {
+        key: templateData.key,
+        name: templateData.name,
+        description: templateData.description,
+        category: templateData.category,
+        variableSchema: templateData.variableSchema,
+        jsonStructure: templateData.jsonStructure,
+        locales: {
+          create: {
+            locale: locale,
+            jsonStructure: templateData.jsonStructure
+          }
+        }
+      },
+      include: {
+        locales: true
+      }
+    });
+
+    return template;
+  }
+
   async updateTemplate(key: string, templateData: any): Promise<any> {
     const template = await prisma.template.update({
       where: { key },
@@ -789,9 +732,8 @@ export class DatabaseTemplateEngine {
   }
 
   async deleteTemplate(key: string): Promise<void> {
-    await prisma.template.update({
-      where: { key },
-      data: { isActive: false }
+    await prisma.template.delete({
+      where: { key }
     });
   }
 

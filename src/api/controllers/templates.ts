@@ -24,6 +24,21 @@ export class TemplateController {
     }
   }
 
+  private validateLocale(locale: string): boolean {
+    // Validate ISO 639-1 language codes (2-letter codes like 'en', 'es', 'fr')
+    const iso639_1Pattern = /^[a-z]{2}$/;
+    
+    // Common language codes we support
+    const supportedLocales = [
+      'en', 'es', 'fr', 'de', 'it', 'pt', 'ru', 'ja', 'ko', 'zh', 'ar', 'hi',
+      'nl', 'sv', 'da', 'no', 'fi', 'pl', 'tr', 'cs', 'sk', 'hu', 'ro', 'bg',
+      'hr', 'sl', 'et', 'lv', 'lt', 'el', 'mt', 'cy', 'ga', 'is', 'fo', 'eu'
+    ];
+    
+    return iso639_1Pattern.test(locale.toLowerCase()) && 
+           supportedLocales.includes(locale.toLowerCase());
+  }
+
   // GET /api/v1/templates
   async getTemplates(request: FastifyRequest, reply: FastifyReply) {
     try {
@@ -92,13 +107,14 @@ export class TemplateController {
         return;
       }
 
-      // Check if template already exists
-      const existingTemplate = await this.templateEngine.getTemplate(templateData.key);
+      // Check if template already exists (including inactive ones)
+      const existingTemplate = await this.templateEngine.getTemplateForCreation(templateData.key);
       if (existingTemplate) {
         reply.code(409).send({
           error: {
             code: 'TEMPLATE_EXISTS',
             message: `Template already exists: ${templateData.key}`,
+            details: `A template with the key '${templateData.key}' already exists. Use PUT /api/v1/templates/${templateData.key} to update it instead.`,
             traceId: request.id
           }
         });
@@ -113,10 +129,26 @@ export class TemplateController {
       templateData.detectedVariables = uniqueVariableNames;
       templateData.variableDetails = detectedVariables;
       
-      const template = await this.templateEngine.createTemplate(templateData);
+      // Set default locale to 'en' if not provided
+      const locale = templateData.locale || 'en';
+      
+      // Validate locale format
+      if (!this.validateLocale(locale)) {
+        reply.code(400).send({
+          error: {
+            code: 'INVALID_LOCALE',
+            message: `Invalid locale: ${locale}. Must be a valid ISO 639-1 language code (e.g., 'en', 'es', 'fr')`,
+            traceId: request.id
+          }
+        });
+        return;
+      }
+      
+      const template = await this.templateEngine.createTemplateWithLocale(templateData, locale);
       
       reply.code(201).send({ 
         template,
+        locale,
         detectedVariables: uniqueVariableNames,
         variableDetails: detectedVariables
       });
@@ -232,6 +264,18 @@ export class TemplateController {
         return;
       }
 
+      // Validate locale format
+      if (!this.validateLocale(locale)) {
+        reply.code(400).send({
+          error: {
+            code: 'INVALID_LOCALE',
+            message: `Invalid locale: ${locale}. Must be a valid ISO 639-1 language code (e.g., 'en', 'es', 'fr')`,
+            traceId: request.id
+          }
+        });
+        return;
+      }
+
       // Check if template exists
       const existingTemplate = await this.templateEngine.getTemplate(key);
       if (!existingTemplate) {
@@ -278,6 +322,18 @@ export class TemplateController {
         return;
       }
 
+      // Validate locale format
+      if (!this.validateLocale(locale)) {
+        reply.code(400).send({
+          error: {
+            code: 'INVALID_LOCALE',
+            message: `Invalid locale: ${locale}. Must be a valid ISO 639-1 language code (e.g., 'en', 'es', 'fr')`,
+            traceId: request.id
+          }
+        });
+        return;
+      }
+
       // Check if template exists
       const existingTemplate = await this.templateEngine.getTemplate(key);
       if (!existingTemplate) {
@@ -310,6 +366,18 @@ export class TemplateController {
   async deleteLocale(request: FastifyRequest<{ Params: { key: string, locale: string } }>, reply: FastifyReply) {
     try {
       const { key, locale } = request.params;
+      
+      // Validate locale format
+      if (!this.validateLocale(locale)) {
+        reply.code(400).send({
+          error: {
+            code: 'INVALID_LOCALE',
+            message: `Invalid locale: ${locale}. Must be a valid ISO 639-1 language code (e.g., 'en', 'es', 'fr')`,
+            traceId: request.id
+          }
+        });
+        return;
+      }
       
       // Check if template exists
       const existingTemplate = await this.templateEngine.getTemplate(key);
