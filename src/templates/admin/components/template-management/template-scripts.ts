@@ -3,8 +3,13 @@ export function generateTemplateManagementScripts(): string {
     <script>
       // Global variables
       let currentTemplates = [];
+      let filteredTemplates = [];
       let currentTemplate = null;
       let currentLocales = [];
+      
+      // Pagination variables
+      let currentPage = 1;
+      let itemsPerPage = 5;
 
       // Initialize template management
       async function initializeTemplateManagement() {
@@ -76,22 +81,34 @@ export function generateTemplateManagementScripts(): string {
         });
       }
 
-      // Render templates table
+      // Render templates table with pagination
       function renderTemplates() {
         const tbody = document.getElementById('templates-tbody');
         const emptyState = document.getElementById('templates-empty');
         const table = document.getElementById('templates-table');
+        
+        // Use filtered templates if available, otherwise use all templates
+        const templatesToRender = filteredTemplates.length > 0 || document.getElementById('template-search').value || document.getElementById('category-filter').value 
+          ? filteredTemplates 
+          : currentTemplates;
 
-        if (currentTemplates.length === 0) {
+        if (templatesToRender.length === 0) {
           emptyState.classList.remove('hidden');
           table.classList.add('hidden');
+          document.getElementById('templates-pagination').innerHTML = '';
           return;
         }
 
         emptyState.classList.add('hidden');
         table.classList.remove('hidden');
+        
+        // Calculate pagination
+        const totalPages = Math.ceil(templatesToRender.length / itemsPerPage);
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const paginatedTemplates = templatesToRender.slice(startIndex, endIndex);
 
-        tbody.innerHTML = currentTemplates.map(template => \`
+        tbody.innerHTML = paginatedTemplates.map(template => \`
           <tr class="hover:bg-gray-50">
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="flex items-center">
@@ -139,6 +156,157 @@ export function generateTemplateManagementScripts(): string {
             </td>
           </tr>
         \`).join('');
+        
+        // Render pagination
+        renderPagination(templatesToRender.length);
+      }
+      
+      // Render pagination controls
+      function renderPagination(totalItems) {
+        const paginationContainer = document.getElementById('templates-pagination');
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+        
+        if (totalPages <= 1) {
+          paginationContainer.innerHTML = '';
+          return;
+        }
+        
+        const startItem = ((currentPage - 1) * itemsPerPage) + 1;
+        const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+        
+        let paginationHTML = \`
+          <div class="flex items-center justify-between bg-white px-4 py-3 sm:px-6 rounded-lg border border-gray-200">
+            <!-- Mobile pagination -->
+            <div class="flex flex-1 justify-between sm:hidden">
+              <button 
+                onclick="changePage(\${currentPage - 1})"
+                \${currentPage === 1 ? 'disabled' : ''}
+                class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <button 
+                onclick="changePage(\${currentPage + 1})"
+                \${currentPage === totalPages ? 'disabled' : ''}
+                class="relative ml-3 inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+            
+            <!-- Desktop pagination -->
+            <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+              <div>
+                <p class="text-sm text-gray-700">
+                  Showing <span class="font-medium">\${startItem}</span> to <span class="font-medium">\${endItem}</span> of{' '}
+                  <span class="font-medium">\${totalItems}</span> templates
+                </p>
+              </div>
+              <div>
+                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                  <!-- Previous button -->
+                  <button
+                    onclick="changePage(\${currentPage - 1})"
+                    \${currentPage === 1 ? 'disabled' : ''}
+                    class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span class="sr-only">Previous</span>
+                    <i class="fas fa-chevron-left"></i>
+                  </button>
+        \`;
+        
+        // Page numbers
+        const maxVisiblePages = 7;
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+        
+        if (endPage - startPage < maxVisiblePages - 1) {
+          startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
+        
+        // First page
+        if (startPage > 1) {
+          paginationHTML += \`
+            <button
+              onclick="changePage(1)"
+              class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              1
+            </button>
+          \`;
+          if (startPage > 2) {
+            paginationHTML += \`
+              <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                ...
+              </span>
+            \`;
+          }
+        }
+        
+        // Page numbers
+        for (let i = startPage; i <= endPage; i++) {
+          paginationHTML += \`
+            <button
+              onclick="changePage(\${i})"
+              class="relative inline-flex items-center px-4 py-2 border border-gray-300 \${i === currentPage ? 'bg-purple-50 border-purple-500 text-purple-600 z-10' : 'bg-white text-gray-700 hover:bg-gray-50'} text-sm font-medium"
+            >
+              \${i}
+            </button>
+          \`;
+        }
+        
+        // Last page
+        if (endPage < totalPages) {
+          if (endPage < totalPages - 1) {
+            paginationHTML += \`
+              <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                ...
+              </span>
+            \`;
+          }
+          paginationHTML += \`
+            <button
+              onclick="changePage(\${totalPages})"
+              class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              \${totalPages}
+            </button>
+          \`;
+        }
+        
+        paginationHTML += \`
+                  <!-- Next button -->
+                  <button
+                    onclick="changePage(\${currentPage + 1})"
+                    \${currentPage === totalPages ? 'disabled' : ''}
+                    class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span class="sr-only">Next</span>
+                    <i class="fas fa-chevron-right"></i>
+                  </button>
+                </nav>
+              </div>
+            </div>
+          </div>
+        \`;
+        
+        paginationContainer.innerHTML = paginationHTML;
+      }
+      
+      // Change page
+      function changePage(page) {
+        const templatesToRender = filteredTemplates.length > 0 || document.getElementById('template-search').value || document.getElementById('category-filter').value 
+          ? filteredTemplates 
+          : currentTemplates;
+        const totalPages = Math.ceil(templatesToRender.length / itemsPerPage);
+        
+        if (page < 1 || page > totalPages) return;
+        
+        currentPage = page;
+        renderTemplates();
+        
+        // Scroll to top of table
+        document.getElementById('templates-table').scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
 
       // Get category color
@@ -172,7 +340,7 @@ export function generateTemplateManagementScripts(): string {
         const search = document.getElementById('template-search').value.toLowerCase();
         const category = document.getElementById('category-filter').value;
         
-        let filtered = currentTemplates.filter(template => {
+        filteredTemplates = currentTemplates.filter(template => {
           const matchesSearch = !search || 
             template.name.toLowerCase().includes(search) ||
             template.key.toLowerCase().includes(search) ||
@@ -183,18 +351,20 @@ export function generateTemplateManagementScripts(): string {
           return matchesSearch && matchesCategory;
         });
         
-        // Temporarily replace currentTemplates for rendering
-        const originalTemplates = currentTemplates;
-        currentTemplates = filtered;
+        // Reset to first page when filtering
+        currentPage = 1;
         renderTemplates();
-        currentTemplates = originalTemplates;
       }
 
       // Sort templates
       function sortTemplates() {
         const sortBy = document.getElementById('sort-filter').value;
         
-        currentTemplates.sort((a, b) => {
+        // Reset to first page when sorting
+        currentPage = 1;
+        
+        // Sort function to use for both arrays
+        const sortFunction = (a, b) => {
           switch (sortBy) {
             case 'name':
               return a.name.localeCompare(b.name);
@@ -203,19 +373,29 @@ export function generateTemplateManagementScripts(): string {
             case 'category':
               return a.category.localeCompare(b.category);
             case 'created':
-              return new Date(a.createdAt) - new Date(b.createdAt);
+              return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
             case 'updated':
-              return new Date(b.updatedAt || a.createdAt) - new Date(a.updatedAt || a.createdAt);
+              return new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime();
             default:
               return 0;
           }
-        });
+        };
+        
+        // Sort the main templates array
+        currentTemplates.sort(sortFunction);
+        
+        // Also sort filtered templates if filters are active
+        if (filteredTemplates.length > 0) {
+          filteredTemplates.sort(sortFunction);
+        }
         
         renderTemplates();
       }
 
       // Refresh templates
       async function refreshTemplates() {
+        currentPage = 1;
+        filteredTemplates = [];
         await loadTemplates();
         showStatus('Templates refreshed', 'success');
       }
