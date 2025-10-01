@@ -156,20 +156,47 @@ export function TemplatesTab() {
     });
   };
 
-  // Generate send email request example
+  // Generate send email request example with actual template variables
   const generateSendEmailRequest = (template: Template) => {
+    // Extract variables from variableSchema
+    const variables: Record<string, any> = {};
+    
+    if (template.variableSchema?.properties) {
+      Object.keys(template.variableSchema.properties).forEach(key => {
+        const prop = template.variableSchema!.properties[key];
+        if (prop.example !== undefined) {
+          variables[key] = prop.example;
+        } else if (prop.type === 'string') {
+          variables[key] = `example_${key}`;
+        } else if (prop.type === 'number') {
+          variables[key] = 100;
+        } else if (prop.type === 'boolean') {
+          variables[key] = true;
+        } else if (prop.type === 'object' && prop.properties) {
+          // Recursively generate nested object
+          variables[key] = {};
+          Object.keys(prop.properties).forEach(nestedKey => {
+            const nestedProp = prop.properties[nestedKey];
+            if (nestedProp.example !== undefined) {
+              variables[key][nestedKey] = nestedProp.example;
+            } else if (nestedProp.type === 'string') {
+              variables[key][nestedKey] = `example_${nestedKey}`;
+            } else if (nestedProp.type === 'number') {
+              variables[key][nestedKey] = 100;
+            }
+          });
+        }
+      });
+    }
+    
     return {
       to: [{ email: 'user@example.com', name: 'John Doe' }],
-      subject: 'Welcome to Waymore!',
+      subject: template.description || 'Email Subject',
       template: {
         key: template.key,
         locale: 'en'
       },
-      variables: {
-        workspace_name: 'Waymore',
-        user_firstname: 'John',
-        dashboard_url: 'https://app.waymore.io/dashboard'
-      },
+      variables: Object.keys(variables).length > 0 ? variables : { example_variable: 'example_value' },
       metadata: {
         tenantId: 'your-tenant-id',
         source: 'your-application'
@@ -502,7 +529,7 @@ export function TemplatesTab() {
 
       {/* JSON View Dialog */}
       <Dialog open={jsonDialogOpen} onOpenChange={setJsonDialogOpen}>
-        <DialogContent className="max-w-[90vw] w-[1200px] max-h-[85vh]">
+        <DialogContent className="max-w-[95vw] w-[1600px] max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>Developer JSON - {selectedTemplate?.name}</DialogTitle>
             <DialogDescription>
@@ -528,8 +555,8 @@ export function TemplatesTab() {
                   Copy
                 </Button>
               </div>
-              <div className="max-h-[500px] overflow-y-auto">
-                <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-xs">
+              <div className="max-h-[600px] overflow-y-auto">
+                <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-xs whitespace-pre">
                   {JSON.stringify(selectedTemplate?.jsonStructure, null, 2)}
                 </pre>
               </div>
@@ -547,8 +574,8 @@ export function TemplatesTab() {
                   Copy
                 </Button>
               </div>
-              <div className="max-h-[500px] overflow-y-auto">
-                <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-xs">
+              <div className="max-h-[600px] overflow-y-auto">
+                <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-xs whitespace-pre">
 {`// POST /api/v1/emails
 ${selectedTemplate ? JSON.stringify(generateSendEmailRequest(selectedTemplate), null, 2) : ''}`}
                 </pre>
@@ -568,8 +595,8 @@ ${selectedTemplate ? JSON.stringify(generateSendEmailRequest(selectedTemplate), 
                   Copy
                 </Button>
               </div>
-              <div className="max-h-[500px] overflow-y-auto">
-                <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-xs">
+              <div className="max-h-[600px] overflow-y-auto">
+                <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-xs whitespace-pre">
                   {JSON.stringify(selectedTemplate?.variableSchema, null, 2)}
                 </pre>
               </div>
