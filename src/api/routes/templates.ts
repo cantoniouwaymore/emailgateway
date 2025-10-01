@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { TemplateController } from '../controllers/templates';
+import { TemplateController } from '../controllers/templates/index';
 
 export async function templateRoutes(fastify: FastifyInstance) {
   try {

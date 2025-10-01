@@ -494,6 +494,117 @@ export class AdminController {
     }
   }
 
+  async searchByRecipientJson(request: FastifyRequest<{ Querystring: { email: string; page?: string; limit?: string } }>, reply: FastifyReply) {
+    try {
+      const { email, page = '1', limit = '20' } = request.query;
+      
+      if (!email) {
+        return reply.status(400).send({ error: 'Email parameter is required' });
+      }
+
+      const pageNum = parseInt(page, 10);
+      const limitNum = parseInt(limit, 10);
+      const skip = (pageNum - 1) * limitNum;
+
+      // Get all messages and filter by recipient email
+      const allMessages = await prisma.message.findMany({
+        orderBy: { createdAt: 'desc' },
+        select: {
+          messageId: true,
+          tenantId: true,
+          toJson: true,
+          subject: true,
+          templateKey: true,
+          locale: true,
+          provider: true,
+          providerMessageId: true,
+          status: true,
+          attempts: true,
+          lastError: true,
+          failureReason: true,
+          createdAt: true,
+          updatedAt: true
+        }
+      });
+
+      // Filter messages where the recipient email matches
+      const filteredMessages = allMessages.filter(message => {
+        try {
+          const recipients = typeof message.toJson === 'string' ? JSON.parse(message.toJson) : message.toJson;
+          if (!recipients || !Array.isArray(recipients)) {
+            return false;
+          }
+          return recipients.some((recipient: any) => 
+            recipient.email && recipient.email.toLowerCase().includes(email.toLowerCase())
+          );
+        } catch {
+          return false;
+        }
+      });
+
+      const totalCount = filteredMessages.length;
+      const totalPages = Math.ceil(totalCount / limitNum);
+      const paginatedMessages = filteredMessages.slice(skip, skip + limitNum);
+
+      // Return JSON response for React admin
+      return reply.send({
+        messages: paginatedMessages,
+        total: totalCount,
+        page: pageNum,
+        totalPages,
+        limit: limitNum
+      });
+    } catch (error) {
+      logger.error({ error, email: request.query.email }, 'Search by recipient JSON error');
+      return reply.status(500).send({ error: 'Failed to search messages' });
+    }
+  }
+
+  async getMessageDetailsJson(request: FastifyRequest<{ Params: { messageId: string } }>, reply: FastifyReply) {
+    try {
+      const { messageId } = request.params;
+      
+      const message = await prisma.message.findUnique({
+        where: { messageId },
+        select: {
+          messageId: true,
+          tenantId: true,
+          toJson: true,
+          subject: true,
+          templateKey: true,
+          locale: true,
+          variablesJson: true,
+          provider: true,
+          providerMessageId: true,
+          status: true,
+          attempts: true,
+          lastError: true,
+          failureReason: true,
+          webhookUrl: true,
+          createdAt: true,
+          updatedAt: true
+        }
+      });
+
+      if (!message) {
+        return reply.status(404).send({ error: 'Message not found' });
+      }
+
+      const webhookEvents = await prisma.providerEvent.findMany({
+        where: { messageId },
+        orderBy: { createdAt: 'desc' }
+      });
+
+      return reply.send({
+        message,
+        webhookEvents
+      });
+    } catch (error) {
+      logger.error({ error, messageId: request.params.messageId }, 'Message details JSON error');
+      return reply.status(500).send({ error: 'Failed to load message details' });
+    }
+  }
+
   private async getDetailedServiceHealth() {
     const healthChecks = await Promise.allSettled([
       this.checkDatabaseHealth(),

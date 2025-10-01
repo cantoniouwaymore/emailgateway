@@ -87,11 +87,19 @@ export class VariableDetector {
   
   /**
    * Get nested value from object using dot notation (e.g., "user.name")
+   * Supports both flat keys ("company.name") and nested objects ({company: {name: "..."}})
    * @param obj - The object to query
    * @param path - Dot-notated path (e.g., "user.name")
    * @returns The value at the path, or undefined if not found
    */
   private static getNestedValue(obj: any, path: string): any {
+    // First, check if the path exists as a flat key (e.g., "company.name")
+    // This handles variables from the React UI which uses flat keys
+    if (obj && obj.hasOwnProperty(path)) {
+      return obj[path];
+    }
+    
+    // Otherwise, try nested object navigation (e.g., obj.company.name)
     const parts = path.split('.');
     let current = obj;
     

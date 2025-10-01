@@ -42,6 +42,7 @@ import { emailRoutes } from './api/routes/email';
 import { healthRoutes } from './api/routes/health';
 import { webhookRoutes } from './api/routes/webhook';
 import { adminRoutes } from './api/routes/admin';
+import { adminReactRoutes } from './api/routes/admin-react';
 import { templateRoutes } from './api/routes/templates';
 import { generateTestToken } from './utils/auth';
 
@@ -104,6 +105,8 @@ async function buildServer() {
   console.log('✅ Webhook routes registered');
   await fastify.register(adminRoutes);
   console.log('✅ Admin routes registered');
+  await fastify.register(adminReactRoutes);
+  console.log('✅ React admin routes registered');
   await fastify.register(templateRoutes);
   console.log('✅ Template routes registered');
   await fastify.register(emailRoutes, { prefix: '/api' });
