@@ -137,16 +137,13 @@ export function generateSectionBasedTemplateScripts(): string {
         const themeFieldIds = [
           'theme-font-family',
           'theme-text-color',
-          'theme-heading-color',
-          'theme-background-color',
-          'theme-primary-button-color',
-          'theme-primary-button-text-color'
+          'theme-background-color'
         ];
         
         themeFieldIds.forEach(fieldId => {
           const field = document.getElementById(fieldId);
           if (field) {
-            // Handle both text inputs and color inputs
+            // Handle text inputs, selects, and color inputs
             field.addEventListener('input', function() {
               console.log('🎨 Theme field changed:', fieldId, this.value);
               // Trigger preview update
@@ -155,10 +152,10 @@ export function generateSectionBasedTemplateScripts(): string {
               }
             });
             
-            // For color inputs, also listen to change event
-            if (field.type === 'color') {
+            // For color inputs and selects, also listen to change event
+            if (field.type === 'color' || field.tagName === 'SELECT') {
               field.addEventListener('change', function() {
-                console.log('🎨 Theme color changed:', fieldId, this.value);
+                console.log('🎨 Theme field changed:', fieldId, this.value);
                 // Trigger preview update
                 if (typeof debouncedPreviewUpdate === 'function') {
                   debouncedPreviewUpdate();
@@ -728,12 +725,9 @@ export function generateSectionBasedTemplateScripts(): string {
 
           // Load theme settings
           if (structure.theme) {
-            if (structure.theme.fontFamily) document.getElementById('theme-font-family').value = structure.theme.fontFamily;
-            if (structure.theme.textColor) document.getElementById('theme-text-color').value = structure.theme.textColor;
-            if (structure.theme.headingColor) document.getElementById('theme-heading-color').value = structure.theme.headingColor;
-            if (structure.theme.backgroundColor) document.getElementById('theme-background-color').value = structure.theme.backgroundColor;
-            if (structure.theme.primaryButtonColor) document.getElementById('theme-primary-button-color').value = structure.theme.primaryButtonColor;
-            if (structure.theme.primaryButtonTextColor) document.getElementById('theme-primary-button-text-color').value = structure.theme.primaryButtonTextColor;
+            if (structure.theme.fontFamily || structure.theme.font_family) document.getElementById('theme-font-family').value = structure.theme.fontFamily || structure.theme.font_family;
+            if (structure.theme.textColor || structure.theme.text_color) document.getElementById('theme-text-color').value = structure.theme.textColor || structure.theme.text_color;
+            if (structure.theme.backgroundColor || structure.theme.background_color) document.getElementById('theme-background-color').value = structure.theme.backgroundColor || structure.theme.background_color;
           }
           
           console.log('Template loading completed successfully');
@@ -1264,10 +1258,7 @@ export function generateSectionBasedTemplateScripts(): string {
         const theme = {
           font_family: document.getElementById('theme-font-family').value || undefined,
           text_color: document.getElementById('theme-text-color').value || undefined,
-          heading_color: document.getElementById('theme-heading-color').value || undefined,
-          background_color: document.getElementById('theme-background-color').value || undefined,
-          primary_button_color: document.getElementById('theme-primary-button-color').value || undefined,
-          primary_button_text_color: document.getElementById('theme-primary-button-text-color').value || undefined
+          background_color: document.getElementById('theme-background-color').value || undefined
         };
         
         // Only add theme if at least one property is set

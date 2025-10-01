@@ -660,15 +660,26 @@ export function generateSectionBasedTemplateForm(): string {
               <!-- Theme Section -->
               <div class="mt-8 p-6 bg-gray-50 rounded-lg">
                 <h4 class="text-lg font-medium text-gray-900 mb-4">Theme Customization</h4>
+                <p class="text-sm text-gray-600 mb-4">Global theme settings. Section-specific colors (like Title Color or Button Colors) override these.</p>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Font Family</label>
-                    <input 
-                      type="text" 
+                    <select 
                       id="theme-font-family" 
-                      placeholder="Helvetica Neue, Arial, sans-serif"
                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                    />
+                    >
+                      <option value="">Default (Inter, Helvetica Neue, Arial, sans-serif)</option>
+                      <option value="'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif">Inter</option>
+                      <option value="'Roboto', 'Helvetica Neue', Arial, sans-serif">Roboto</option>
+                      <option value="'Open Sans', 'Helvetica Neue', Arial, sans-serif">Open Sans</option>
+                      <option value="'Lato', 'Helvetica Neue', Arial, sans-serif">Lato</option>
+                      <option value="'Montserrat', 'Helvetica Neue', Arial, sans-serif">Montserrat</option>
+                      <option value="'Poppins', 'Helvetica Neue', Arial, sans-serif">Poppins</option>
+                      <option value="'Raleway', 'Helvetica Neue', Arial, sans-serif">Raleway</option>
+                      <option value="Georgia, 'Times New Roman', Times, serif">Georgia (Serif)</option>
+                      <option value="'Playfair Display', Georgia, serif">Playfair Display (Serif)</option>
+                      <option value="'Courier New', Courier, monospace">Courier New (Mono)</option>
+                    </select>
                   </div>
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Text Color</label>
@@ -681,40 +692,10 @@ export function generateSectionBasedTemplateForm(): string {
                     />
                   </div>
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Heading Color</label>
-                    <input 
-                      type="color" 
-                      id="theme-heading-color" 
-                      value="#333333"
-                      class="w-full h-10 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 cursor-pointer"
-                      style="appearance: none; background: none; border: 2px solid #d1d5db;"
-                    />
-                  </div>
-                  <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Background Color</label>
                     <input 
                       type="color" 
                       id="theme-background-color" 
-                      value="#ffffff"
-                      class="w-full h-10 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 cursor-pointer"
-                      style="appearance: none; background: none; border: 2px solid #d1d5db;"
-                    />
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Primary Button Color</label>
-                    <input 
-                      type="color" 
-                      id="theme-primary-button-color" 
-                      value="#007bff"
-                      class="w-full h-10 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 cursor-pointer"
-                      style="appearance: none; background: none; border: 2px solid #d1d5db;"
-                    />
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Primary Button Text Color</label>
-                    <input 
-                      type="color" 
-                      id="theme-primary-button-text-color" 
                       value="#ffffff"
                       class="w-full h-10 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 cursor-pointer"
                       style="appearance: none; background: none; border: 2px solid #d1d5db;"

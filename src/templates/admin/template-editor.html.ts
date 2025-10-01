@@ -1005,7 +1005,14 @@ export function generateTemplateEditorHTML(): string {
 
         // Update preview without showing loading
         async function updatePreview() {
+          const previewContainer = document.getElementById('preview-container');
+          
           try {
+            // Show a subtle loading indicator
+            if (previewContainer) {
+              previewContainer.style.opacity = '0.5';
+            }
+            
             const templateStructure = generateTemplateStructureFromForm();
             const detectedVars = getVariableValues();
             const titleTextElement = document.getElementById('title-text');
@@ -1017,34 +1024,50 @@ export function generateTemplateEditorHTML(): string {
               variables: { ...detectedVars }
             };
             
-            // Send preview request
-
-            const response = await fetch('/api/v1/templates/preview', {
+            console.log('🔄 Updating preview with theme:', templateStructure.theme);
+            
+            // Send preview request with cache-busting
+            const response = await fetch('/api/v1/templates/preview?t=' + Date.now(), {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + getAuthToken()
+                'Authorization': 'Bearer ' + getAuthToken(),
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache'
               },
               body: JSON.stringify(requestBody)
             });
             
             if (!response.ok) {
               console.error('Preview API failed:', response.status, response.statusText);
+              if (previewContainer) {
+                previewContainer.style.opacity = '1';
+              }
               return;
             }
             
             const data = await response.json();
             // Preview generated successfully
+            console.log('🎨 Preview API response received, HTML length:', data.preview?.length);
             
-            const previewContainer = document.getElementById('preview-container');
             if (previewContainer) {
-              previewContainer.innerHTML = data.preview;
-              // Preview updated successfully
+              // Force clear and update to avoid caching issues
+              previewContainer.innerHTML = '';
+              // Use a small delay to ensure DOM clears
+              setTimeout(() => {
+                previewContainer.innerHTML = data.preview;
+                previewContainer.style.opacity = '1';
+                console.log('✅ Preview container updated with new HTML');
+              }, 10);
             } else {
               console.error('Preview container not found');
             }
           } catch (error) {
             console.error('Preview update failed:', error);
+            // Restore opacity even on error
+            if (previewContainer) {
+              previewContainer.style.opacity = '1';
+            }
           }
         }
 
@@ -1667,10 +1690,7 @@ export function generateTemplateEditorHTML(): string {
         const theme = {
           font_family: document.getElementById('theme-font-family')?.value || undefined,
           text_color: document.getElementById('theme-text-color')?.value || undefined,
-          heading_color: document.getElementById('theme-heading-color')?.value || undefined,
-          background_color: document.getElementById('theme-background-color')?.value || undefined,
-          primary_button_color: document.getElementById('theme-primary-button-color')?.value || undefined,
-          primary_button_text_color: document.getElementById('theme-primary-button-text-color')?.value || undefined
+          background_color: document.getElementById('theme-background-color')?.value || undefined
         };
         
         // Only add theme if at least one property is set

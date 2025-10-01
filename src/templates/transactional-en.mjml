@@ -202,9 +202,9 @@
         <mj-section padding="{{#if body.padding}}{{body.padding}}{{else}}0px 0px 10px 0px{{/if}}" css-class="mobile-body">
           <mj-column>
             {{#each body.paragraphs}}
-            <mj-text font-size="{{#if ../body.font_size}}{{../body.font_size}}{{else}}16px{{/if}}" 
-                      line-height="{{#if ../body.line_height}}{{../body.line_height}}{{else}}26px{{/if}}" 
-                      color="{{#if ../body.color}}{{../body.color}}{{else}}{{#if ../../theme.text_color}}{{../../theme.text_color}}{{else}}#374151{{/if}}{{/if}}" 
+            <mj-text font-size="{{#if @root.body.font_size}}{{@root.body.font_size}}{{else}}16px{{/if}}" 
+                      line-height="{{#if @root.body.line_height}}{{@root.body.line_height}}{{else}}26px{{/if}}" 
+                      color="{{#if @root.body.color}}{{@root.body.color}}{{else}}{{#if @root.theme.text_color}}{{@root.theme.text_color}}{{else}}#374151{{/if}}{{/if}}" 
                       padding="{{#if @first}}0px 20px{{else}}6px 20px 0px 20px{{/if}}" 
                       css-class="mobile-text">
               {{{this}}}
@@ -226,9 +226,9 @@
             {{#if (eq snapshot.style "table")}}
             <mj-table>
               {{#each snapshot.facts}}
-              <tr style="border-bottom: 1px solid {{#if ../../theme.border_color}}{{../../theme.border_color}}{{else}}#e5e7eb{{/if}}; {{#if @last}}border-radius: 8px 8px 8px 8px;{{/if}}">
-                <td style="padding: 16px 20px; color: {{#if ../../theme.text_color}}{{../../theme.text_color}}{{else}}#374151{{/if}}; font-weight: 500; font-size: 15px;">{{label}}</td>
-                <td style="padding: 16px 20px; color: {{#if ../../theme.text_color}}{{../../theme.text_color}}{{else}}#374151{{/if}}; font-size: 15px;">{{value}}</td>
+              <tr style="border-bottom: 1px solid {{#if @root.theme.border_color}}{{@root.theme.border_color}}{{else}}#e5e7eb{{/if}}; {{#if @last}}border-radius: 8px 8px 8px 8px;{{/if}}">
+                <td style="padding: 16px 20px; color: {{#if @root.theme.text_color}}{{@root.theme.text_color}}{{else}}#374151{{/if}}; font-weight: 500; font-size: 15px;">{{label}}</td>
+                <td style="padding: 16px 20px; color: {{#if @root.theme.text_color}}{{@root.theme.text_color}}{{else}}#374151{{/if}}; font-size: 15px;">{{value}}</td>
               </tr>
               {{/each}}
             </mj-table>
@@ -316,14 +316,14 @@
               <tr>
                 <td style="padding: 8px 0px;">
                   <div style="display: table; width: 100%; margin-bottom: 8px;">
-                    <div style="display: table-cell; width: 60%; font-size: 14px; font-weight: 600; color: {{#if ../../theme.text_color}}{{../../theme.text_color}}{{else}}#374151{{/if}}; vertical-align: middle;">{{label}}</div>
-                    <div style="display: table-cell; width: 40%; font-size: 14px; font-weight: 600; color: {{#if ../../theme.text_color}}{{../../theme.text_color}}{{else}}#374151{{/if}}; text-align: right; vertical-align: middle;">{{current}}{{#if unit}} {{unit}}{{/if}}</div>
+                    <div style="display: table-cell; width: 60%; font-size: 14px; font-weight: 600; color: {{#if @root.theme.text_color}}{{@root.theme.text_color}}{{else}}#374151{{/if}}; vertical-align: middle;">{{label}}</div>
+                    <div style="display: table-cell; width: 40%; font-size: 14px; font-weight: 600; color: {{#if @root.theme.text_color}}{{@root.theme.text_color}}{{else}}#374151{{/if}}; text-align: right; vertical-align: middle;">{{current}}{{#if unit}} {{unit}}{{/if}}</div>
                   </div>
-                  <div style="background-color: {{#if ../../theme.border_color}}{{../../theme.border_color}}{{else}}#e5e7eb{{/if}}; border-radius: 8px; height: 8px; overflow: hidden;">
+                  <div style="background-color: {{#if @root.theme.border_color}}{{@root.theme.border_color}}{{else}}#e5e7eb{{/if}}; border-radius: 8px; height: 8px; overflow: hidden;">
                     <div style="background-color: {{#if color}}{{color}}{{else}}#3b82f6{{/if}}; height: 100%; width: {{percentage}}%; border-radius: 8px; transition: width 0.3s ease;"></div>
                   </div>
                   {{#if description}}
-                  <div style="font-size: 12px; color: {{#if ../../theme.muted_text_color}}{{../../theme.muted_text_color}}{{else}}#6b7280{{/if}}; margin-top: 4px;">{{description}}</div>
+                  <div style="font-size: 12px; color: {{#if @root.theme.muted_text_color}}{{@root.theme.muted_text_color}}{{else}}#6b7280{{/if}}; margin-top: 4px;">{{description}}</div>
                   {{/if}}
                 </td>
               </tr>
@@ -463,14 +463,14 @@
             <!-- Multiple links - render as inline with separators -->
             <mj-text font-size="14px" color="{{#if theme.muted_text_color}}{{theme.muted_text_color}}{{else}}#6b7280{{/if}}" align="center" padding="0px 0px 16px 0px">
               {{#each support.links}}
-                {{#if @first}}{{else}}<span style="margin: 0 8px;">•</span>{{/if}}<a href="{{url}}" style="color: {{#if ../../theme.link_color}}{{../../theme.link_color}}{{else}}#3b82f6{{/if}}; text-decoration: none; font-weight: 500;">{{#if label}}{{label}}{{else}}{{text}}{{/if}}</a>
+                {{#if @first}}{{else}}<span style="margin: 0 8px;">•</span>{{/if}}<a href="{{url}}" style="color: {{#if @root.theme.link_color}}{{@root.theme.link_color}}{{else}}#3b82f6{{/if}}; text-decoration: none; font-weight: 500;">{{#if label}}{{label}}{{else}}{{text}}{{/if}}</a>
               {{/each}}
             </mj-text>
             {{else}}
             <!-- Single link - render as centered link -->
             <mj-text font-size="14px" color="{{#if theme.muted_text_color}}{{theme.muted_text_color}}{{else}}#6b7280{{/if}}" align="center" padding="0px 0px 16px 0px">
               {{#each support.links}}
-                <a href="{{url}}" style="color: {{#if ../../theme.link_color}}{{../../theme.link_color}}{{else}}#3b82f6{{/if}}; text-decoration: none; font-weight: 500;">{{#if label}}{{label}}{{else}}{{text}}{{/if}}</a>
+                <a href="{{url}}" style="color: {{#if @root.theme.link_color}}{{@root.theme.link_color}}{{else}}#3b82f6{{/if}}; text-decoration: none; font-weight: 500;">{{#if label}}{{label}}{{else}}{{text}}{{/if}}</a>
               {{/each}}
             </mj-text>
             {{/if}}
@@ -505,9 +505,9 @@
 
             <!-- Social Links -->
             {{#if footer.social_links}}
-            <mj-social icon-size="24px" mode="horizontal" align="center" padding="0px 0px 20px 0px" css-class="mobile-social">
+            <mj-social icon-size="24px" mode="horizontal" align="center" padding="0px 0px 20px 0px" css-class="mobile-social" border-radius="4px">
               {{#each footer.social_links}}
-              <mj-social-element name="{{platform}}" href="{{url}}" background-color="{{#if ../../theme.social_button_color}}{{../../theme.social_button_color}}{{else}}#1f2937{{/if}}" icon-color="{{#if ../../theme.social_icon_color}}{{../../theme.social_icon_color}}{{else}}#ffffff{{/if}}" border-radius="4px" />
+              <mj-social-element name="{{platform}}" href="{{url}}" background-color="{{#if @root.theme.social_button_color}}{{@root.theme.social_button_color}}{{else}}#1f2937{{/if}}" />
               {{/each}}
             </mj-social>
             {{/if}}
@@ -516,7 +516,7 @@
             {{#if footer.legal_links}}
             <mj-text font-size="12px" color="{{#if theme.muted_text_color}}{{theme.muted_text_color}}{{else}}#6b7280{{/if}}" align="center" line-height="20px" padding="0px 0px 20px 0px">
               {{#each footer.legal_links}}
-                {{#if @first}}{{else}} • {{/if}}<a href="{{url}}" style="color: {{#if ../../theme.link_color}}{{../../theme.link_color}}{{else}}#3b82f6{{/if}}; text-decoration: none;">{{label}}</a>
+                {{#if @first}}{{else}} • {{/if}}<a href="{{url}}" style="color: {{#if @root.theme.link_color}}{{@root.theme.link_color}}{{else}}#3b82f6{{/if}}; text-decoration: none;">{{label}}</a>
               {{/each}}
             </mj-text>
             {{/if}}
