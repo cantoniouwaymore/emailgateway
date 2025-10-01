@@ -382,6 +382,8 @@ The `theme` object allows complete visual customization:
 | `primary_button_text_color` | string | `"#ffffff"` | Primary button text color |
 | `secondary_button_color` | string | `"#6c757d"` | Secondary button background |
 | `secondary_button_text_color` | string | `"#ffffff"` | Secondary button text color |
+| `social_button_color` | string | `"#1f2937"` | Social icon button background (dark background for better dark mode support) |
+| `social_icon_color` | string | `"#ffffff"` | Social icon color (white icons on dark background) |
 
 ## 📊 Data Structures
 
@@ -436,6 +438,8 @@ Add social media links to the email footer:
 ```
 
 **Supported Platforms**: `twitter`, `linkedin`, `github`, `facebook`, `instagram`
+
+> **💡 Dark Mode Tip**: Social icons default to white icons on dark backgrounds (`#1f2937`) for optimal visibility in both light and dark mode email clients. Customize via `theme.social_button_color` and `theme.social_icon_color` if needed.
 
 ### Progress Bars Array
 

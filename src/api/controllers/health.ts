@@ -24,20 +24,13 @@ export class HealthController {
       const providerHealth = await this.providerManager.getProviderHealth();
       const allProvidersHealthy = Object.values(providerHealth).every(p => p.healthy);
       
-      // Check template cache if enabled
-      let templateCache = null;
-      if (process.env.TEMPLATE_CACHE_ENABLED === 'true') {
-        templateCache = this.templateEngine.getCacheStats();
-      }
-
       const health = {
         status: allProvidersHealthy ? 'healthy' : 'degraded',
         timestamp: new Date().toISOString(),
         uptime: Math.floor(process.uptime()),
         checks: {
           database: 'healthy',
-          providers: providerHealth,
-          templateCache: templateCache
+          providers: providerHealth
         },
         responseTime: Date.now() - startTime
       };
@@ -122,59 +115,4 @@ export class HealthController {
     };
   }
 
-  async getCacheStats(request: FastifyRequest, reply: FastifyReply) {
-    try {
-      if (process.env.TEMPLATE_CACHE_ENABLED !== 'true') {
-        return {
-          enabled: false,
-          message: 'Template caching is disabled'
-        };
-      }
-
-      const stats = this.templateEngine.getCacheStats();
-      const cleaned = this.templateEngine.cleanExpiredCache();
-
-      return {
-        enabled: true,
-        stats,
-        cleaned,
-        timestamp: new Date().toISOString()
-      };
-    } catch (error) {
-      logger.error({ error }, 'Failed to get cache stats');
-      reply.code(500);
-      return {
-        error: 'Failed to get cache stats',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      };
-    }
-  }
-
-  async clearCache(request: FastifyRequest, reply: FastifyReply) {
-    try {
-      if (process.env.TEMPLATE_CACHE_ENABLED !== 'true') {
-        return {
-          enabled: false,
-          message: 'Template caching is disabled'
-        };
-      }
-
-      this.templateEngine.clearCache();
-      
-      logger.info('Template cache cleared via API');
-      
-      return {
-        enabled: true,
-        message: 'Cache cleared successfully',
-        timestamp: new Date().toISOString()
-      };
-    } catch (error) {
-      logger.error({ error }, 'Failed to clear cache');
-      reply.code(500);
-      return {
-        error: 'Failed to clear cache',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      };
-    }
-  }
 }

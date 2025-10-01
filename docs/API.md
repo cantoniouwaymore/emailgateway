@@ -370,6 +370,8 @@ Each section object contains specific properties for customization:
 | `primary_button_text_color` | string | "#ffffff" | Primary button text color |
 | `secondary_button_color` | string | "#6c757d" | Secondary button background |
 | `secondary_button_text_color` | string | "#ffffff" | Secondary button text color |
+| `social_button_color` | string | "#1f2937" | Social icon button background (dark background for better dark mode support) |
+| `social_icon_color` | string | "#ffffff" | Social icon color (white icons on dark background) |
 
 #### Facts Array
 
@@ -1889,66 +1891,6 @@ POST /webhooks/routee
     "code": "INVALID_WEBHOOK_DATA",
     "message": "Invalid webhook payload format"
   }
-}
-```
-
-## Cache Management
-
-### Get Cache Statistics
-
-Retrieve template cache statistics and performance metrics.
-
-```http
-GET /cache/stats
-```
-
-#### Response
-
-**Success (200 OK):**
-```json
-{
-  "enabled": true,
-  "stats": {
-    "size": 15,
-    "keys": ["template:transactional:en", "template:welcome:en"]
-  },
-  "cleaned": 3,
-  "timestamp": "2024-01-01T10:00:00Z"
-}
-```
-
-**Cache Disabled (200 OK):**
-```json
-{
-  "enabled": false,
-  "message": "Template caching is disabled"
-}
-```
-
-### Clear Template Cache
-
-Clear all cached templates and force reload from database.
-
-```http
-POST /cache/clear
-```
-
-#### Response
-
-**Success (200 OK):**
-```json
-{
-  "enabled": true,
-  "message": "Cache cleared successfully",
-  "timestamp": "2024-01-01T10:00:00Z"
-}
-```
-
-**Cache Disabled (200 OK):**
-```json
-{
-  "enabled": false,
-  "message": "Template caching is disabled"
 }
 ```
 

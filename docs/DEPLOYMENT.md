@@ -23,23 +23,39 @@ This guide covers deploying the Waymore Transactional Emails Service microservic
 
 | Variable | Description | Required | Default |
 |----------|-------------|----------|---------|
-| `NODE_ENV` | Environment | Yes | `development` |
+| `NODE_ENV` | Environment (development/production) | Yes | `development` |
 | `PORT` | Server port | No | `3000` |
 | `HOST` | Server host | No | `0.0.0.0` |
-| `DATABASE_URL` | PostgreSQL connection | Yes | - |
-| `REDIS_URL` | Redis connection | Yes | - |
+| `DATABASE_URL` | PostgreSQL connection string | Yes | - |
+| `REDIS_URL` | Redis connection string | Yes | - |
 | `JWT_SECRET` | JWT signing secret | Yes | - |
 | `JWT_ISSUER` | JWT issuer | No | `email-gateway` |
 | `JWT_AUDIENCE` | JWT audience | No | `waymore-platform` |
-| `PROVIDERS_ENABLED` | Enabled providers | No | `routee` |
-| `ROUTEE_API_KEY` | Routee API key | Conditional | - |
-| `SES_ACCESS_KEY` | AWS SES access key | Conditional | - |
-| `SES_SECRET_KEY` | AWS SES secret key | Conditional | - |
-| `SENDGRID_API_KEY` | SendGrid API key | Conditional | - |
-| `RATE_GLOBAL_RPS` | Global rate limit | No | `200` |
-| `RATE_TENANT_DEFAULT_RPS` | Per-tenant rate limit | No | `100` |
-| `LOG_LEVEL` | Logging level | No | `info` |
-| `WORKER_CONCURRENCY` | Worker concurrency | No | `5` |
+| `PROVIDERS_ENABLED` | Enabled providers (comma-separated) | No | `routee` |
+| `ROUTEE_CLIENT_ID` | Routee OAuth Client ID | Conditional* | - |
+| `ROUTEE_CLIENT_SECRET` | Routee OAuth Client Secret | Conditional* | - |
+| `ROUTEE_BASE_URL` | Routee API Base URL | No | `https://connect.routee.net` |
+| `SES_ACCESS_KEY` | AWS SES access key | Conditional* | - |
+| `SES_SECRET_KEY` | AWS SES secret key | Conditional* | - |
+| `SES_REGION` | AWS SES region | Conditional* | `us-east-1` |
+| `SENDGRID_API_KEY` | SendGrid API key | Conditional* | - |
+| `RATE_GLOBAL_RPS` | Global rate limit (requests/second) | No | `200` |
+| `RATE_TENANT_DEFAULT_RPS` | Per-tenant rate limit | No | `20` |
+| `LOG_LEVEL` | Logging level (debug/info/warn/error) | No | `info` |
+| `WORKER_CONCURRENCY` | Worker concurrency (parallel jobs) | No | `5` |
+| `TIMEOUT_SEND_MS` | Email send timeout (milliseconds) | No | `10000` |
+| `RETRY_MAX` | Maximum retry attempts | No | `6` |
+| `WEBHOOK_BASE_URL` | Base URL for webhooks | No | `http://localhost:3000` |
+| `ROUTEE_WEBHOOK_SECRET` | Webhook signature secret | No | - |
+| `CLEANUP_ENABLED` | Enable automatic cleanup | No | `true` |
+| `CLEANUP_INTERVAL_HOURS` | Cleanup interval (hours) | No | `24` |
+| `USE_DATABASE_TEMPLATES` | Use database-stored templates | No | `true` |
+| `TEMPLATE_FALLBACK_TO_FILES` | Fallback to file templates if DB fails | No | `false` (prod), `true` (dev) |
+| `TEMPLATE_VALIDATION_ENABLED` | Enable template validation | No | `true` |
+| `DEFAULT_FROM_EMAIL` | Default sender email | No | `marketing@waymore.io` |
+| `DEFAULT_FROM_NAME` | Default sender name | No | `Waymore` |
+
+\* Required if the corresponding provider is enabled in `PROVIDERS_ENABLED`
 
 ### Production Environment File
 
@@ -49,31 +65,66 @@ NODE_ENV=production
 PORT=3000
 HOST=0.0.0.0
 
-# Database
+# Database (PostgreSQL 15+)
 DATABASE_URL=postgresql://user:password@postgres-cluster:5432/emailgateway?sslmode=require&connection_limit=20
 
-# Redis
+# Redis (7+)
 REDIS_URL=redis://redis-cluster:6379?maxRetriesPerRequest=3
 
-# JWT
+# JWT Authentication
 JWT_SECRET=your-super-secure-jwt-secret-key-here
 JWT_ISSUER=email-gateway
 JWT_AUDIENCE=waymore-platform
 
-# Providers
+# Email Providers
 PROVIDERS_ENABLED=routee,ses
-ROUTEE_API_KEY=your-routee-api-key
+
+# Routee Configuration (OAuth 2.0)
+ROUTEE_CLIENT_ID=your-routee-client-id
+ROUTEE_CLIENT_SECRET=your-routee-client-secret
+ROUTEE_BASE_URL=https://connect.routee.net
+
+# AWS SES Configuration
 SES_ACCESS_KEY=your-ses-access-key
 SES_SECRET_KEY=your-ses-secret-key
 SES_REGION=us-east-1
+
+# SendGrid Configuration (optional)
+# SENDGRID_API_KEY=your-sendgrid-api-key
 
 # Rate Limiting
 RATE_GLOBAL_RPS=1000
 RATE_TENANT_DEFAULT_RPS=100
 
-# Monitoring
+# Timeouts and Retries
+TIMEOUT_SEND_MS=10000
+RETRY_MAX=6
+
+# Webhook Configuration
+WEBHOOK_BASE_URL=https://your-domain.com
+ROUTEE_WEBHOOK_SECRET=your-webhook-secret
+
+# Monitoring and Logging
 LOG_LEVEL=info
 WORKER_CONCURRENCY=10
+
+# Database Cleanup (automatic data retention)
+CLEANUP_ENABLED=true
+CLEANUP_INTERVAL_HOURS=24
+CLEANUP_DRY_RUN_FIRST=false
+CLEANUP_MAX_RETRIES=3
+CLEANUP_RETRY_DELAY_MS=30000
+CLEANUP_MODE=scheduler
+CLEANUP_DRY_RUN=false
+
+# Template System
+USE_DATABASE_TEMPLATES=true
+TEMPLATE_FALLBACK_TO_FILES=false  # Strict mode: fail if template not in DB (recommended for production)
+TEMPLATE_VALIDATION_ENABLED=true
+
+# Default Email Settings
+DEFAULT_FROM_EMAIL=marketing@waymore.io
+DEFAULT_FROM_NAME=Waymore
 ```
 
 ## Local Development
@@ -81,19 +132,20 @@ WORKER_CONCURRENCY=10
 ### Quick Start
 ```bash
 # Clone repository
-git clone <repository-url>
+git clone https://github.com/cantoniouwaymore/emailgateway.git
 cd emailgateway
 
 # Install dependencies
 npm install
 
-# Install services
+# Install services (macOS/Linux)
 ./install-services.sh
 
 # Setup environment
 cp env.example .env
+# Edit .env with your configuration
 
-# Run migrations
+# Run database migrations
 npm run migrate
 
 # Start development servers (REQUIRED: Both processes must run)
@@ -110,20 +162,29 @@ npm run dev:worker
 
 Both processes must be running for emails to be sent successfully.
 
-### Docker Compose
+### Docker Compose (Recommended)
 ```bash
-# Start all services
+# Start all services (PostgreSQL, Redis, API, Worker)
 docker-compose up -d
 
-# Run migrations
-npm run migrate
+# Check service status
+docker-compose ps
 
-# Start application (REQUIRED: Both processes)
-npm run dev:api    # Terminal 1 - API Server
-npm run dev:worker # Terminal 2 - Worker Process
+# View logs
+docker-compose logs -f emailgateway-api
+docker-compose logs -f emailgateway-worker
+
+# Stop services
+docker-compose down
 ```
 
-**Note**: The worker process will automatically use a different port (3001) for its health check server to avoid conflicts with the API server (port 3000).
+**Note**: The docker-compose.yml file automatically:
+- Starts PostgreSQL 15 with health checks
+- Starts Redis 7 with persistence
+- Runs database migrations on API startup
+- Starts both API server (port 3000) and Worker (port 3001)
+- Configures proper service dependencies
+- Sets up persistent volumes for data
 
 ## Staging Deployment
 
@@ -132,19 +193,29 @@ npm run dev:worker # Terminal 2 - Worker Process
 # Build image
 docker build -t email-gateway:staging .
 
-# Run with environment file
+# Run API server
 docker run -d \
-  --name email-gateway-staging \
+  --name email-gateway-api-staging \
   --env-file .env.staging \
   -p 3000:3000 \
-  email-gateway:staging
+  email-gateway:staging \
+  npm run start:api
 
-# Run worker
+# Run worker (on different port)
 docker run -d \
   --name email-gateway-worker-staging \
   --env-file .env.staging \
+  -e PORT=3001 \
+  -p 3001:3001 \
   email-gateway:staging \
-  npm run worker
+  npm run start:worker
+
+# Run cleanup worker (optional, for data retention)
+docker run -d \
+  --name email-gateway-cleanup-staging \
+  --env-file .env.staging \
+  email-gateway:staging \
+  npm run start:cleanup
 ```
 
 ### Docker Compose (Staging)
@@ -242,7 +313,8 @@ data:
   DATABASE_URL: <base64-encoded-database-url>
   REDIS_URL: <base64-encoded-redis-url>
   JWT_SECRET: <base64-encoded-jwt-secret>
-  ROUTEE_API_KEY: <base64-encoded-routee-key>
+  ROUTEE_CLIENT_ID: <base64-encoded-routee-client-id>
+  ROUTEE_CLIENT_SECRET: <base64-encoded-routee-client-secret>
   SES_ACCESS_KEY: <base64-encoded-ses-access-key>
   SES_SECRET_KEY: <base64-encoded-ses-secret-key>
 ```
@@ -317,12 +389,21 @@ spec:
       containers:
       - name: email-worker
         image: email-gateway:latest
-        command: ["npm", "run", "worker"]
+        command: ["npm", "run", "start:worker"]
+        env:
+        - name: PORT
+          value: "3001"
         envFrom:
         - configMapRef:
             name: email-gateway-config
         - secretRef:
             name: email-gateway-secrets
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 3001
+          initialDelaySeconds: 30
+          periodSeconds: 10
         resources:
           requests:
             memory: "512Mi"
@@ -330,6 +411,42 @@ spec:
           limits:
             memory: "1Gi"
             cpu: "500m"
+```
+
+#### Cleanup Worker Deployment (Optional)
+```yaml
+# k8s/cleanup-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: email-gateway-cleanup
+  namespace: email-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: email-gateway-cleanup
+  template:
+    metadata:
+      labels:
+        app: email-gateway-cleanup
+    spec:
+      containers:
+      - name: cleanup-worker
+        image: email-gateway:latest
+        command: ["npm", "run", "start:cleanup"]
+        envFrom:
+        - configMapRef:
+            name: email-gateway-config
+        - secretRef:
+            name: email-gateway-secrets
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "250m"
 ```
 
 #### Service
@@ -676,30 +793,232 @@ kubectl set env deployment/email-gateway-api RATE_GLOBAL_RPS=2000
 ## Deployment Checklist
 
 ### Pre-deployment
-- [ ] Environment variables configured
-- [ ] Database migrations ready
-- [ ] Redis configuration verified
-- [ ] SSL certificates valid
-- [ ] Monitoring configured
+- [ ] Environment variables configured (see `.env.production` template)
+- [ ] Database credentials and connection tested
+- [ ] Redis instance available and accessible
+- [ ] Email provider credentials (Routee/SES/SendGrid) verified
+- [ ] SSL/TLS certificates obtained and configured
+- [ ] JWT secret generated (minimum 32 characters)
+- [ ] Webhook URL configured (for production domain)
+- [ ] Database migrations reviewed
+- [ ] Monitoring and alerting configured
 - [ ] Backup strategy in place
+- [ ] Firewall rules configured
+- [ ] Load balancer configured (if applicable)
+
+### Build and Test
+- [ ] Code built successfully: `npm run build`
+- [ ] TypeScript compilation successful
+- [ ] All tests passing: `npm test`
+- [ ] Linting passed: `npm run lint`
+- [ ] Docker image built successfully
+- [ ] Staging environment tested
 
 ### Deployment
 - [ ] Deploy to staging first
-- [ ] Run smoke tests
+- [ ] Run smoke tests on staging
+- [ ] Verify API server starts correctly
+- [ ] Verify worker starts correctly
+- [ ] Test email sending on staging
+- [ ] Check webhook delivery on staging
 - [ ] Deploy to production
-- [ ] Verify health checks
-- [ ] Monitor metrics
+- [ ] Run database migrations: `npx prisma migrate deploy`
+- [ ] Verify health checks pass
+- [ ] Monitor metrics immediately after deployment
 - [ ] Check logs for errors
+- [ ] Verify no startup errors
 
-### Post-deployment
-- [ ] Verify all endpoints working
-- [ ] Check queue processing
-- [ ] Monitor error rates
-- [ ] Verify provider integration
-- [ ] Test webhook delivery
-- [ ] Update documentation
+### Post-deployment Verification
+- [ ] API health endpoint responding: `GET /healthz`
+- [ ] Worker health endpoint responding: `GET /healthz` (port 3001)
+- [ ] Database connectivity verified
+- [ ] Redis connectivity verified
+- [ ] All API endpoints accessible
+- [ ] Test email sent successfully
+- [ ] Email delivered via provider
+- [ ] Webhook received and processed
+- [ ] Queue processing working
+- [ ] Admin dashboard accessible
+- [ ] Metrics endpoint working: `GET /metrics`
+- [ ] Error rates normal (< 1%)
+- [ ] Response times acceptable (< 500ms p95)
+- [ ] Provider integration working
+- [ ] Template rendering working
+- [ ] Database cleanup scheduled (if enabled)
+
+### Monitoring
+- [ ] Set up alerts for:
+  - [ ] API server downtime
+  - [ ] Worker process downtime
+  - [ ] High error rates (> 5%)
+  - [ ] Queue backlog (> 1000 messages)
+  - [ ] Database connection failures
+  - [ ] Redis connection failures
+  - [ ] High memory usage (> 80%)
+  - [ ] High CPU usage (> 80%)
+  - [ ] Slow response times (> 1s p95)
+
+### Documentation
+- [ ] Update deployment documentation
+- [ ] Document environment variables
+- [ ] Record deployment date and version
+- [ ] Update runbook with any issues encountered
+- [ ] Share deployment notes with team
+
+## Production Startup Scripts
+
+The application provides several startup scripts for different deployment scenarios:
+
+### Available Scripts
+
+| Script | Description | Use Case |
+|--------|-------------|----------|
+| `start-production.sh` | Starts both API and Worker | Single-server deployment |
+| `start-api.sh` | Starts API server only | Multi-server deployment |
+| `start-worker.sh` | Starts worker only | Multi-server deployment |
+| `start-cleanup.sh` | Starts cleanup worker | Data retention management |
+| `start-dev.sh` | Starts dev environment with ngrok | Local development |
+
+### Single-Server Deployment
+```bash
+# Build the application
+npm run build
+
+# Start both API and Worker together
+./start-production.sh
+```
+
+This script:
+- Waits for database connectivity
+- Runs database migrations
+- Starts API server on port 3000
+- Starts worker on port 3001
+- Handles graceful shutdown
+
+### Multi-Server Deployment
+```bash
+# Server 1 - API Server
+npm run build
+./start-api.sh
+
+# Server 2 - Worker Process
+npm run build
+./start-worker.sh
+
+# Server 3 - Cleanup Worker (optional)
+npm run build
+./start-cleanup.sh
+```
+
+### Verification Steps
+
+After deployment, verify the system is working correctly:
+
+```bash
+# 1. Check API health
+curl http://localhost:3000/healthz
+# Expected: {"status":"ok"}
+
+# 2. Check Worker health
+curl http://localhost:3001/healthz
+# Expected: {"status":"ok"}
+
+# 3. Check detailed health status
+curl http://localhost:3000/health
+# Expected: JSON with database, redis, and provider status
+
+# 4. Get test JWT token (development only)
+curl http://localhost:3000/test-token
+# Expected: {"token":"eyJ..."}
+
+# 5. Test sending an email
+curl -X POST http://localhost:3000/api/v1/emails \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: test-$(date +%s)" \
+  -d '{
+    "to": [{"email": "test@example.com", "name": "Test User"}],
+    "from": {"email": "no-reply@waymore.io", "name": "Waymore"},
+    "subject": "Test Email",
+    "template": {"key": "transactional", "locale": "en"},
+    "variables": {
+      "workspace_name": "Waymore",
+      "user_firstname": "Test",
+      "email_title": "Test Email"
+    }
+  }'
+# Expected: {"messageId":"msg_...","status":"queued"}
+
+# 6. Check message status
+curl http://localhost:3000/api/v1/messages/msg_abc123 \
+  -H "Authorization: Bearer YOUR_TOKEN"
+# Expected: Message details with status
+
+# 7. View Prometheus metrics
+curl http://localhost:3000/metrics
+# Expected: Prometheus-formatted metrics
+
+# 8. Access admin dashboard
+# Open http://localhost:3000/admin in browser
+```
+
+## Support and Troubleshooting
+
+### Getting Help
+- **Documentation**: https://github.com/cantoniouwaymore/emailgateway/tree/main/docs
+- **Issues**: https://github.com/cantoniouwaymore/emailgateway/issues
+- **Support Email**: cantoniou@waymore.io
+
+### Common Deployment Issues
+
+#### Database Connection Timeout
+**Error**: `Database is unavailable - sleeping`
+
+**Solution**: 
+- Verify PostgreSQL is running and accessible
+- Check DATABASE_URL format and credentials
+- Ensure network connectivity between services
+- Increase connection timeout if needed
+
+#### Redis Connection Failed
+**Error**: `Redis connection failed`
+
+**Solution**:
+- Verify Redis is running: `redis-cli ping`
+- Check REDIS_URL configuration
+- Ensure Redis accepts connections from your IP
+- Check firewall rules
+
+#### Worker Not Processing Jobs
+**Symptoms**: Emails stuck in QUEUED status
+
+**Solution**:
+- Verify worker process is running: `ps aux | grep worker`
+- Check worker logs for errors
+- Verify Redis connectivity
+- Ensure PORT=3001 is set for worker
+- Restart worker process
+
+#### Port Conflict on Startup
+**Error**: `EADDRINUSE: address already in use`
+
+**Solution**:
+- For worker, always set PORT=3001
+- Check if another process is using the port: `lsof -i :3000`
+- Kill conflicting process or use different port
+- In Kubernetes, ensure proper port configuration
+
+#### Migration Failures
+**Error**: `Migration failed`
+
+**Solution**:
+- Check database credentials
+- Verify database user has CREATE/ALTER permissions
+- Run migrations manually: `npx prisma migrate deploy`
+- Check migration files in `prisma/migrations/`
 
 ---
 
-**Last Updated**: September 2024  
-**Deployment Version**: 1.0.0
+**Last Updated**: October 2025  
+**Deployment Version**: 1.0.0  
+**Repository**: https://github.com/cantoniouwaymore/emailgateway

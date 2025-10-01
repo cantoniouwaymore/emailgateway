@@ -15,6 +15,9 @@ export function generateSectionBasedTemplateScripts(): string {
         // Set up visual type change handler
         setupVisualTypeHandler();
         
+        // Set up theme field handlers
+        setupThemeFieldHandlers();
+        
         // Set up form validation
         setupFormValidation();
         
@@ -127,6 +130,43 @@ export function generateSectionBasedTemplateScripts(): string {
             }
           });
         }
+      }
+
+      // Setup theme field handlers
+      function setupThemeFieldHandlers() {
+        const themeFieldIds = [
+          'theme-font-family',
+          'theme-text-color',
+          'theme-heading-color',
+          'theme-background-color',
+          'theme-primary-button-color',
+          'theme-primary-button-text-color'
+        ];
+        
+        themeFieldIds.forEach(fieldId => {
+          const field = document.getElementById(fieldId);
+          if (field) {
+            // Handle both text inputs and color inputs
+            field.addEventListener('input', function() {
+              console.log('🎨 Theme field changed:', fieldId, this.value);
+              // Trigger preview update
+              if (typeof debouncedPreviewUpdate === 'function') {
+                debouncedPreviewUpdate();
+              }
+            });
+            
+            // For color inputs, also listen to change event
+            if (field.type === 'color') {
+              field.addEventListener('change', function() {
+                console.log('🎨 Theme color changed:', fieldId, this.value);
+                // Trigger preview update
+                if (typeof debouncedPreviewUpdate === 'function') {
+                  debouncedPreviewUpdate();
+                }
+              });
+            }
+          }
+        });
       }
 
       // Setup form validation

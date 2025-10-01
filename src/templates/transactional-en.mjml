@@ -507,7 +507,7 @@
             {{#if footer.social_links}}
             <mj-social icon-size="24px" mode="horizontal" align="center" padding="0px 0px 20px 0px" css-class="mobile-social">
               {{#each footer.social_links}}
-              <mj-social-element name="{{platform}}" href="{{url}}" background-color="{{#if ../../theme.social_button_color}}{{../../theme.social_button_color}}{{else}}#f3f4f6{{/if}}" icon-color="{{#if ../../theme.social_icon_color}}{{../../theme.social_icon_color}}{{else}}#1f2937{{/if}}" />
+              <mj-social-element name="{{platform}}" href="{{url}}" background-color="{{#if ../../theme.social_button_color}}{{../../theme.social_button_color}}{{else}}#1f2937{{/if}}" icon-color="{{#if ../../theme.social_icon_color}}{{../../theme.social_icon_color}}{{else}}#ffffff{{/if}}" border-radius="4px" />
               {{/each}}
             </mj-social>
             {{/if}}

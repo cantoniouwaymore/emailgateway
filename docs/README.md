@@ -142,8 +142,9 @@ npm run deploy
 
 ### Getting Help
 - **Documentation**: Check the relevant guide above
-- **Issues**: Create a [GitHub issue](https://github.com/your-org/emailgateway/issues)
-- **Discussions**: Use [GitHub Discussions](https://github.com/your-org/emailgateway/discussions)
+- **Issues**: Create a [GitHub issue](https://github.com/cantoniouwaymore/emailgateway/issues)
+- **Discussions**: Use [GitHub Discussions](https://github.com/cantoniouwaymore/emailgateway/discussions)
+- **Support Email**: cantoniou@waymore.io
 
 ### Contributing
 - **Code**: Follow the [Developer Guide](./DEVELOPER.md#contributing)

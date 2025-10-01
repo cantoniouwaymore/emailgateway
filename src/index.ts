@@ -189,22 +189,6 @@ async function start() {
     process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
     process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
-    // Set up cache cleanup interval if caching is enabled
-    if (process.env.TEMPLATE_CACHE_ENABLED === 'true') {
-      const cleanupInterval = setInterval(() => {
-        // This will be handled by the TemplateEngine instances
-        // when they are created, but we can add global cleanup here if needed
-      }, 5 * 60 * 1000); // Every 5 minutes
-
-      // Clean up interval on shutdown
-      process.on('SIGTERM', () => {
-        clearInterval(cleanupInterval);
-      });
-      process.on('SIGINT', () => {
-        clearInterval(cleanupInterval);
-      });
-    }
-
   } catch (error) {
     logger.error({ error }, 'Failed to start server');
     process.exit(1);

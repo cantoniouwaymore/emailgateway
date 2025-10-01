@@ -166,7 +166,8 @@ export function generateTemplateManagementScripts(): string {
         const paginationContainer = document.getElementById('templates-pagination');
         const totalPages = Math.ceil(totalItems / itemsPerPage);
         
-        if (totalPages <= 1) {
+        // Always show pagination if there are items (even if only 1 page)
+        if (totalItems === 0) {
           paginationContainer.innerHTML = '';
           return;
         }
@@ -198,11 +199,10 @@ export function generateTemplateManagementScripts(): string {
             <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
               <div>
                 <p class="text-sm text-gray-700">
-                  Showing <span class="font-medium">\${startItem}</span> to <span class="font-medium">\${endItem}</span> of{' '}
-                  <span class="font-medium">\${totalItems}</span> templates
+                  Showing <span class="font-medium">\${startItem}</span> to <span class="font-medium">\${endItem}</span> of <span class="font-medium">\${totalItems}</span> templates
                 </p>
               </div>
-              <div>
+              <div class="ml-8">
                 <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
                   <!-- Previous button -->
                   <button
@@ -307,6 +307,16 @@ export function generateTemplateManagementScripts(): string {
         
         // Scroll to top of table
         document.getElementById('templates-table').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      // Change items per page
+      function changeItemsPerPage() {
+        const select = document.getElementById('items-per-page-filter');
+        if (select) {
+          itemsPerPage = parseInt(select.value, 10);
+          currentPage = 1; // Reset to first page
+          renderTemplates();
+        }
       }
 
       // Get category color
@@ -1256,6 +1266,7 @@ export function generateTemplateManagementScripts(): string {
       window.showLoading = showLoading;
       window.hideLoading = hideLoading;
       window.onJsonLocaleChange = onJsonLocaleChange;
+      window.changeItemsPerPage = changeItemsPerPage;
 
       // Initialize when DOM is loaded
       document.addEventListener('DOMContentLoaded', function() {

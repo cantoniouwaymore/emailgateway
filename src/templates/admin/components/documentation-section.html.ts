@@ -243,10 +243,10 @@ console.log('Message ID:', result.messageId);</code></pre>
           <div class="text-center">
             <p class="text-gray-600 text-sm mb-4">Need help? Have questions?</p>
             <div class="flex justify-center space-x-6">
-              <a href="mailto:support@waymore.io" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+              <a href="mailto:cantoniou@waymore.io" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
                 <i class="fas fa-envelope mr-2"></i>Contact Support
               </a>
-              <a href="https://github.com/waymore/emailgateway" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+              <a href="https://github.com/cantoniouwaymore/emailgateway" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
                 <i class="fab fa-github mr-2"></i>GitHub
               </a>
               <a href="/docs/README.md" class="text-blue-600 hover:text-blue-700 text-sm font-medium">

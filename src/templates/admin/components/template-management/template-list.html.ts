@@ -73,7 +73,7 @@ export function generateTemplateListSection(): string {
 
         <!-- Filters and Search -->
         <div class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Search Templates</label>
               <input 
@@ -107,6 +107,20 @@ export function generateTemplateListSection(): string {
                 <option value="category">Category</option>
                 <option value="created">Created Date</option>
                 <option value="updated">Updated Date</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Results per Page</label>
+              <select 
+                id="items-per-page-filter" 
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                onchange="changeItemsPerPage()"
+              >
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
               </select>
             </div>
           </div>

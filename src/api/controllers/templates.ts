@@ -11,13 +11,6 @@ export class TemplateController {
       console.log('🔧 Creating TemplateController...');
       this.templateEngine = new TemplateEngine();
       console.log('✅ TemplateController created successfully');
-      
-      // Set up cache cleanup if caching is enabled
-      if (process.env.TEMPLATE_CACHE_ENABLED === 'true') {
-        setInterval(() => {
-          this.templateEngine.cleanExpiredCache();
-        }, 5 * 60 * 1000); // Every 5 minutes
-      }
     } catch (error) {
       console.error('❌ Error creating TemplateController:', error);
       throw error;
@@ -1172,7 +1165,16 @@ export class TemplateController {
     // Replace variables in the template structure
     const processedStructure = this.replaceVariables(templateStructure, variables);
 
-    let html = '<div class="max-w-2xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden font-sans">';
+    // Extract theme colors
+    const theme = processedStructure.theme || {};
+    const textColor = theme.text_color || '#374151';
+    const headingColor = theme.heading_color || '#1f2937';
+    const backgroundColor = theme.background_color || '#ffffff';
+    const primaryButtonColor = theme.primary_button_color || '#3b82f6';
+    const primaryButtonTextColor = theme.primary_button_text_color || '#ffffff';
+    const mutedTextColor = theme.muted_text_color || '#6b7280';
+
+    let html = `<div class="max-w-2xl mx-auto shadow-lg rounded-lg overflow-hidden font-sans" style="background-color: ${backgroundColor};">`;
 
     // Header Section
     if (processedStructure.header) {
@@ -1186,7 +1188,7 @@ export class TemplateController {
               </div>`
             }
             ${processedStructure.header.tagline ? 
-              `<p class="text-sm text-gray-600 mt-2" style="font-size: 14px; color: #6b7280; text-align: center; margin: 8px 0 0 0;">${processedStructure.header.tagline}</p>` : 
+              `<p class="text-sm text-gray-600 mt-2" style="font-size: 14px; color: ${mutedTextColor}; text-align: center; margin: 8px 0 0 0;">${processedStructure.header.tagline}</p>` : 
               ''
             }
           </div>
@@ -1217,7 +1219,7 @@ export class TemplateController {
     // Title Section
     if (processedStructure.title) {
       const titleStyle = `
-        color: ${processedStructure.title.color || '#1f2937'};
+        color: ${processedStructure.title.color || headingColor};
         font-size: ${processedStructure.title.size || '28px'};
         font-weight: ${processedStructure.title.weight || '700'};
         line-height: 36px;
@@ -1234,7 +1236,7 @@ export class TemplateController {
     if (processedStructure.body && processedStructure.body.paragraphs) {
       processedStructure.body.paragraphs.forEach((paragraph: string, index: number) => {
         const padding = index === 0 ? '0px 20px' : '6px 20px 0px 20px';
-        html += `<p class="mb-4" style="font-size: 16px; line-height: 26px; color: #374151; padding: ${padding};">${paragraph || '{{bodyText}}'}</p>`;
+        html += `<p class="mb-4" style="font-size: 16px; line-height: 26px; color: ${textColor}; padding: ${padding};">${paragraph || '{{bodyText}}'}</p>`;
       });
     }
 
@@ -1242,18 +1244,18 @@ export class TemplateController {
     if (processedStructure.snapshot) {
       html += '<div class="my-6">';
       if (processedStructure.snapshot.title) {
-        html += `<h3 class="text-center mb-4" style="font-size: 18px; font-weight: 600; color: #1f2937;">${processedStructure.snapshot.title}</h3>`;
+        html += `<h3 class="text-center mb-4" style="font-size: 18px; font-weight: 600; color: ${headingColor};">${processedStructure.snapshot.title}</h3>`;
       }
       if (processedStructure.snapshot.facts) {
         html += '<div class="px-6">';
-        html += '<table style="width: 100%; border-collapse: collapse; color: #000000; font-family: Inter, Helvetica Neue, Helvetica, Arial, sans-serif; font-size: 13px; line-height: 22px;">';
+        html += `<table style="width: 100%; border-collapse: collapse; color: ${textColor}; font-family: Inter, Helvetica Neue, Helvetica, Arial, sans-serif; font-size: 13px; line-height: 22px;">`;
         processedStructure.snapshot.facts.forEach((fact: any, index: number) => {
           const isLast = index === processedStructure.snapshot.facts.length - 1;
           const borderStyle = isLast ? 'border-bottom: 1px solid #e5e7eb; border-radius: 8px 8px 8px 8px;' : 'border-bottom: 1px solid #e5e7eb;';
           html += `
             <tr style="${borderStyle}">
-              <td style="padding: 16px 20px; color: #374151; font-weight: 500; font-size: 15px;">${fact.label || '{{label}}'}</td>
-              <td style="padding: 16px 20px; color: #374151; font-size: 15px;">${fact.value || '{{value}}'}</td>
+              <td style="padding: 16px 20px; color: ${textColor}; font-weight: 500; font-size: 15px;">${fact.label || '{{label}}'}</td>
+              <td style="padding: 16px 20px; color: ${textColor}; font-size: 15px;">${fact.value || '{{value}}'}</td>
             </tr>
           `;
         });
@@ -1338,8 +1340,8 @@ export class TemplateController {
         html += '<div class="mt-6 flex flex-col sm:flex-row gap-3">';
         html += '<div class="flex-1 pr-2">';
         const primaryStyle = `
-          background-color: ${processedStructure.actions.primary.color || '#3b82f6'};
-          color: ${processedStructure.actions.primary.text_color || '#ffffff'};
+          background-color: ${processedStructure.actions.primary.color || primaryButtonColor};
+          color: ${processedStructure.actions.primary.text_color || primaryButtonTextColor};
           font-size: 15px;
           font-weight: 600;
           border-radius: 8px;
@@ -1377,8 +1379,8 @@ export class TemplateController {
         // Single primary button
         html += '<div class="mt-6 text-center">';
         const primaryStyle = `
-          background-color: ${processedStructure.actions.primary.color || '#3b82f6'};
-          color: ${processedStructure.actions.primary.text_color || '#ffffff'};
+          background-color: ${processedStructure.actions.primary.color || primaryButtonColor};
+          color: ${processedStructure.actions.primary.text_color || primaryButtonTextColor};
           font-size: 16px;
           font-weight: 600;
           border-radius: 8px;
@@ -1400,13 +1402,13 @@ export class TemplateController {
     if (processedStructure.support) {
       html += '<div class="my-6 text-center">';
       if (processedStructure.support.title) {
-        html += `<p class="mb-4" style="font-size: 14px; color: #6b7280;">${processedStructure.support.title}</p>`;
+        html += `<p class="mb-4" style="font-size: 14px; color: ${mutedTextColor};">${processedStructure.support.title}</p>`;
       }
       if (processedStructure.support.links) {
-        html += '<p class="mb-4" style="font-size: 14px; color: #6b7280;">';
+        html += `<p class="mb-4" style="font-size: 14px; color: ${mutedTextColor};">`;
         processedStructure.support.links.forEach((link: any, index: number) => {
           if (index > 0) html += ' • ';
-          html += `<a href="${link.url || '#'}" style="color: #3b82f6; text-decoration: none;">${link.label || '{{linkLabel}}'}</a>`;
+          html += `<a href="${link.url || '#'}" style="color: ${primaryButtonColor}; text-decoration: none;">${link.label || '{{linkLabel}}'}</a>`;
         });
         html += '</p>';
       }
@@ -1433,7 +1435,7 @@ export class TemplateController {
           
           <!-- Footer Tagline -->
           ${processedStructure.footer.tagline ? `
-            <p class="text-center mb-5" style="font-size: 14px; color: #6b7280; line-height: 22px;">
+            <p class="text-center mb-5" style="font-size: 14px; color: ${mutedTextColor}; line-height: 22px;">
               ${processedStructure.footer.tagline}
             </p>
           ` : ''}
@@ -1452,16 +1454,16 @@ export class TemplateController {
           
           <!-- Legal Links -->
           ${processedStructure.footer.legal_links ? `
-            <p class="text-center mb-5" style="font-size: 12px; color: #6b7280; line-height: 20px;">
+            <p class="text-center mb-5" style="font-size: 12px; color: ${mutedTextColor}; line-height: 20px;">
               ${processedStructure.footer.legal_links.map((link: any, index: number) => 
-                `${index > 0 ? ' • ' : ''}<a href="${link.url || '#'}" style="color: #3b82f6; text-decoration: none;">${link.label || '{{linkLabel}}'}</a>`
+                `${index > 0 ? ' • ' : ''}<a href="${link.url || '#'}" style="color: ${primaryButtonColor}; text-decoration: none;">${link.label || '{{linkLabel}}'}</a>`
               ).join('')}
             </p>
           ` : ''}
           
           <!-- Copyright -->
           ${processedStructure.footer.copyright ? `
-            <p class="text-center" style="font-size: 12px; color: #6b7280; line-height: 20px;">
+            <p class="text-center" style="font-size: 12px; color: ${mutedTextColor}; line-height: 20px;">
               ${processedStructure.footer.copyright}
             </p>
           ` : ''}

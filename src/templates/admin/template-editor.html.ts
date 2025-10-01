@@ -1655,19 +1655,36 @@ export function generateTemplateEditorHTML(): string {
               })
               .filter(link => link !== null);
             
-            structure.footer = {
-              tagline: document.getElementById('footer-tagline')?.value || '{{footerTagline}}',
-              social_links: socialLinks.length > 0 ? socialLinks : undefined,
-              legal_links: legalLinks.length > 0 ? legalLinks : undefined,
-              copyright: document.getElementById('footer-copyright')?.value || '{{copyright}}'
-            };
-          }
-          
-          console.log('🎯 Final generated structure:', structure);
-          console.log('🎯 Structure keys:', Object.keys(structure));
-          console.log('🎯 Header in final structure:', structure.header);
-          
-          return structure;
+          structure.footer = {
+            tagline: document.getElementById('footer-tagline')?.value || '{{footerTagline}}',
+            social_links: socialLinks.length > 0 ? socialLinks : undefined,
+            legal_links: legalLinks.length > 0 ? legalLinks : undefined,
+            copyright: document.getElementById('footer-copyright')?.value || '{{copyright}}'
+          };
+        }
+        
+        // Theme section
+        const theme = {
+          font_family: document.getElementById('theme-font-family')?.value || undefined,
+          text_color: document.getElementById('theme-text-color')?.value || undefined,
+          heading_color: document.getElementById('theme-heading-color')?.value || undefined,
+          background_color: document.getElementById('theme-background-color')?.value || undefined,
+          primary_button_color: document.getElementById('theme-primary-button-color')?.value || undefined,
+          primary_button_text_color: document.getElementById('theme-primary-button-text-color')?.value || undefined
+        };
+        
+        // Only add theme if at least one property is set
+        const hasTheme = Object.values(theme).some(value => value && value.trim() !== '');
+        if (hasTheme) {
+          structure.theme = theme;
+          console.log('🎨 Theme added to structure:', theme);
+        }
+        
+        console.log('🎯 Final generated structure:', structure);
+        console.log('🎯 Structure keys:', Object.keys(structure));
+        console.log('🎯 Header in final structure:', structure.header);
+        
+        return structure;
         }
 
 

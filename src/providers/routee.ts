@@ -1,58 +1,297 @@
 import { EmailProvider, SendProviderRequest, SendProviderResult, WebhookEvent, HealthStatus } from './types';
 import { logger } from '../utils/logger';
 
+interface RouteeAuthResponse {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+}
+
+interface RouteeEmailRequest {
+  from: {
+    name?: string;
+    email: string;
+  };
+  to: Array<{
+    name?: string;
+    email: string;
+  }>;
+  cc?: Array<{
+    name?: string;
+    email: string;
+  }>;
+  bcc?: Array<{
+    name?: string;
+    email: string;
+  }>;
+  replyTo?: {
+    name?: string;
+    email: string;
+  };
+  subject: string;
+  content: {
+    html: string;
+    text?: string;
+  };
+  attachments?: Array<{
+    content: string; // base64 encoded
+    type: string; // MIME type
+    filename: string;
+  }>;
+  scheduledDate?: string;
+  ttl?: number;
+  maxAttempts?: number;
+  callback?: {
+    url: string;
+    headers?: Record<string, string>;
+  };
+  label?: string;
+  dsn?: {
+    notify: string; // 'NEVER', 'FAILURE', 'DELAY', 'SUCCESS', 'FAILURE_DELAY'
+  };
+}
+
+interface RouteeEmailResponse {
+  trackingId: string;
+}
+
+interface RouteeErrorResponse {
+  errorCode: string;
+  type: string;
+  explanation: string;
+}
+
+
 export class RouteeEmailProvider implements EmailProvider {
   public readonly name = 'routee';
-  private apiKey: string;
+  private clientId: string;
+  private clientSecret: string;
   private baseUrl: string;
+  private accessToken: string | null = null;
+  private tokenExpiry: number = 0;
 
-  constructor(apiKey?: string) {
-    this.apiKey = apiKey || process.env.ROUTEE_API_KEY || 'stub-key';
-    this.baseUrl = process.env.ROUTEE_BASE_URL || 'https://api.routee.net';
+  constructor(clientId?: string, clientSecret?: string) {
+    this.clientId = clientId || process.env.ROUTEE_CLIENT_ID || '';
+    this.clientSecret = clientSecret || process.env.ROUTEE_CLIENT_SECRET || '';
+    this.baseUrl = process.env.ROUTEE_BASE_URL || 'https://connect.routee.net';
   }
+
+  private async getAccessToken(): Promise<string> {
+    // Check if current token is still valid
+    if (this.accessToken && Date.now() < this.tokenExpiry) {
+      return this.accessToken;
+    }
+
+    try {
+      logger.debug({ provider: this.name }, 'Authenticating with Routee');
+      
+      // Routee uses Basic Authentication with Base64-encoded credentials
+      // Format: application-id:application-secret -> Base64 -> Basic Auth header
+      const basicAuth = Buffer.from(`${this.clientId}:${this.clientSecret}`).toString('base64');
+      
+      logger.debug({ 
+        provider: this.name,
+        clientId: this.clientId,
+        hasSecret: !!this.clientSecret
+      }, 'Authenticating with Routee using Basic Auth');
+      
+      const response = await fetch('https://auth.routee.net/oauth/token?grant_type=client_credentials', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${basicAuth}`,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Routee authentication failed: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json() as RouteeAuthResponse;
+      this.accessToken = data.access_token;
+      this.tokenExpiry = Date.now() + (data.expires_in * 1000) - 60000; // 1 minute buffer
+
+      logger.info({ provider: this.name }, 'Successfully authenticated with Routee');
+      return this.accessToken;
+    } catch (error) {
+      logger.error({ 
+        provider: this.name, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      }, 'Failed to authenticate with Routee');
+      throw error;
+    }
+  }
+
 
   async send(request: SendProviderRequest): Promise<SendProviderResult> {
     const startTime = Date.now();
     
     try {
+      const accessToken = await this.getAccessToken();
+
       logger.info({
         provider: this.name,
         messageId: request.messageId,
-        to: request.to.map(r => r.email)
+        to: request.to.map(r => r.email),
+        from: request.from.email
       }, 'Sending email via Routee');
 
-      // For now, this is a stub implementation
-      // In a real implementation, you would make an HTTP request to Routee API
-      
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 100 + Math.random() * 200));
+      // Transform our request to Routee Email API v.2 format
+      const routeeRequest: any = {
+        from: {
+          name: request.from.name,
+          address: request.from.email  // Routee uses 'address' not 'email'
+        },
+        to: request.to.map(recipient => ({
+          name: recipient.name,
+          address: recipient.email  // Routee uses 'address' not 'email'
+        })),
+        subject: request.subject,
+        content: {
+          html: request.html
+        },
+        ttl: 4320, // 3 days default (30-4320 minutes) - matching working example
+        maxAttempts: 10, // matching working example
+        label: request.metadata?.tenantId as string || 'waymore-transactional-emails-service'
+      };
 
-      // Simulate occasional failures for testing
-      if (Math.random() < 0.05) { // 5% failure rate
-        throw new Error('Simulated provider failure');
+      // Add optional fields if present
+      if (request.cc && request.cc.length > 0) {
+        routeeRequest.cc = request.cc.map(recipient => ({
+          name: recipient.name,
+          address: recipient.email  // Routee uses 'address' not 'email'
+        }));
       }
 
-      const providerMessageId = `routee_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
-      
-      const result: SendProviderResult = {
-        provider: this.name,
-        providerMessageId,
-        status: 'sent',
-        details: {
-          queuedAt: new Date().toISOString(),
-          estimatedDelivery: new Date(Date.now() + 60000).toISOString() // 1 minute
+      if (request.bcc && request.bcc.length > 0) {
+        routeeRequest.bcc = request.bcc.map(recipient => ({
+          name: recipient.name,
+          address: recipient.email  // Routee uses 'address' not 'email'
+        }));
+      }
+
+      if (request.replyTo) {
+        routeeRequest.replyTo = {
+          name: request.replyTo.name,
+          address: request.replyTo.email  // Routee uses 'address' not 'email'
+        };
+      }
+
+      if (request.attachments && request.attachments.length > 0) {
+        routeeRequest.attachments = request.attachments.map(attachment => ({
+          content: attachment.content.toString('base64'),
+          type: attachment.contentType,
+          filename: attachment.filename
+        }));
+      }
+
+      // Add callback URL for webhook notifications - using the working format
+      const webhookUrl = process.env.WEBHOOK_BASE_URL || process.env.BASE_URL || 'http://localhost:3000';
+      routeeRequest.callback = {
+        statusCallback: {
+          strategy: "OnChange",
+          url: `${webhookUrl}/webhooks/routee`
+        },
+        eventCallback: {
+          onClick: `${webhookUrl}/webhooks/routee`,
+          onOpen: `${webhookUrl}/webhooks/routee`
         }
       };
 
+      // Debug: Log the request being sent
+      console.log('=== ROUTEE API DEBUG ===');
+      console.log('Routee API URL:', `${this.baseUrl}/transactional-email`);
+      console.log('Access Token:', accessToken ? `${accessToken.substring(0, 20)}...` : 'MISSING');
+      console.log('Routee API Request:', JSON.stringify(routeeRequest, null, 2));
+      console.log('========================');
+
+      // Make the API call to Routee Email API (correct endpoint without /v2)
+      const response = await fetch(`${this.baseUrl}/transactional-email`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(routeeRequest)
+      });
+
       const latency = Date.now() - startTime;
+
+      console.log('=== ROUTEE API RESPONSE ===');
+      console.log('Status:', response.status);
+      console.log('Headers:', Object.fromEntries(response.headers.entries()));
+      console.log('==========================');
+
+      if (!response.ok) {
+        let errorMessage = `Routee API error: ${response.status}`;
+        let errorDetails = '';
+        try {
+          const errorText = await response.text();
+          console.log('Routee API Error Response:', errorText);
+          
+          try {
+            const errorData = JSON.parse(errorText);
+            console.log('Parsed Routee Error Data:', JSON.stringify(errorData, null, 2));
+            
+            // Handle different Routee error response formats
+            if (errorData.message) {
+              errorMessage = errorData.message;
+              errorDetails = `Error Code: ${errorData.errorCode || 'N/A'}, Service: ${errorData.service || 'N/A'}`;
+            } else if (errorData.type && errorData.explanation) {
+              errorMessage = `${errorData.type}: ${errorData.explanation}`;
+            } else if (errorData.errorCode && errorData.explanation) {
+              errorMessage = `${errorData.errorCode}: ${errorData.explanation}`;
+            } else {
+              errorMessage = `Routee API error: ${response.status} - ${errorText}`;
+            }
+          } catch (parseError) {
+            console.log('Failed to parse Routee error response as JSON:', parseError);
+            errorMessage = `Routee API error: ${response.status} - ${errorText}`;
+          }
+        } catch (readError) {
+          console.log('Failed to read Routee error response:', readError);
+          errorMessage = `Routee API error: ${response.status} - Failed to read response`;
+        }
+
+        logger.error({
+          provider: this.name,
+          messageId: request.messageId,
+          error: errorMessage,
+          errorDetails,
+          latency,
+          statusCode: response.status
+        }, 'Failed to send email via Routee');
+
+        return {
+          provider: this.name,
+          status: 'failed',
+          error: errorMessage
+        };
+      }
+
+      const responseData = await response.json() as RouteeEmailResponse;
+      
+      console.log('Routee API Success Response:', JSON.stringify(responseData, null, 2));
+      
       logger.info({
         provider: this.name,
         messageId: request.messageId,
-        providerMessageId,
+        providerMessageId: responseData.trackingId,
         latency
       }, 'Email sent successfully via Routee');
 
-      return result;
+      return {
+        provider: this.name,
+        providerMessageId: responseData.trackingId,
+        status: 'sent',
+        details: {
+          queuedAt: new Date().toISOString(),
+          estimatedDelivery: new Date(Date.now() + 60000).toISOString(),
+          routeeTrackingId: responseData.trackingId
+        }
+      };
+
     } catch (error) {
       const latency = Date.now() - startTime;
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -74,12 +313,28 @@ export class RouteeEmailProvider implements EmailProvider {
 
   parseWebhook(payload: unknown, headers: Record<string, string>): WebhookEvent[] {
     try {
-      // This is a stub implementation
-      // In a real implementation, you would parse Routee webhook payload
       logger.info({ provider: this.name }, 'Parsing Routee webhook');
       
-      // For now, return empty array
-      return [];
+      // Routee webhook payload structure - updated to match actual format
+      const routeePayload = payload as any;
+      
+      if (!routeePayload || !routeePayload.trackingId || !routeePayload.status) {
+        return [];
+      }
+
+      return [{
+        messageId: routeePayload.trackingId,
+        eventType: this.mapRouteeEventType(routeePayload.status.name),
+        provider: this.name,
+        timestamp: new Date(routeePayload.status.dateTime * 1000).toISOString(),
+        details: {
+          routeeEventType: routeePayload.status.name,
+          routeeTrackingId: routeePayload.trackingId,
+          statusId: routeePayload.status.id,
+          final: routeePayload.status.final,
+          delivered: routeePayload.status.delivered
+        }
+      }];
     } catch (error) {
       logger.error({ 
         provider: this.name, 
@@ -89,26 +344,33 @@ export class RouteeEmailProvider implements EmailProvider {
     }
   }
 
+  private mapRouteeEventType(routeeEventType: string): 'delivered' | 'bounce' | 'open' | 'click' | 'spam' | 'reject' {
+    const eventTypeMap: Record<string, 'delivered' | 'bounce' | 'open' | 'click' | 'spam' | 'reject'> = {
+      'send': 'delivered', // Send event maps to delivered for tracking
+      'delivered': 'delivered',
+      'opened': 'open',
+      'bounce': 'bounce',
+      'click': 'click',
+      'spam': 'spam',
+      'reject': 'reject',
+      'failed': 'bounce',
+      'dropped': 'reject'
+    };
+
+    return eventTypeMap[routeeEventType] || 'delivered';
+  }
+
+
   async health(): Promise<HealthStatus> {
     const startTime = Date.now();
     
     try {
-      // In a real implementation, you would make a health check request to Routee
       logger.debug({ provider: this.name }, 'Checking Routee health');
       
-      // Simulate health check delay
-      await new Promise(resolve => setTimeout(resolve, 50 + Math.random() * 100));
+      // Test authentication
+      await this.getAccessToken();
       
       const latency = Date.now() - startTime;
-      
-      // Simulate occasional health check failures
-      if (Math.random() < 0.1) { // 10% failure rate
-        return {
-          healthy: false,
-          latency,
-          error: 'Simulated health check failure'
-        };
-      }
 
       return {
         healthy: true,
@@ -118,6 +380,12 @@ export class RouteeEmailProvider implements EmailProvider {
       const latency = Date.now() - startTime;
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       
+      logger.error({
+        provider: this.name,
+        error: errorMessage,
+        latency
+      }, 'Routee health check failed');
+
       return {
         healthy: false,
         latency,

@@ -711,9 +711,8 @@ The build process compiles TypeScript files to the `dist/` directory:
 - `dist/index-api.js` - API server entry point
 - `dist/index.js` - Main application entry point (with worker mode detection)
 - `dist/worker-simple.js` - Standalone worker entry point
-- `dist/worker-standalone.js` - Alternative worker entry point
 - `dist/startup.js` - Production startup script
-- `dist/queue/worker.js` - Worker implementation
+- `dist/queue/worker.js` - Worker implementation (core logic)
 - `dist/api/` - Compiled API controllers and routes
 - `dist/providers/` - Compiled email providers
 - `dist/db/` - Database client and utilities
@@ -818,7 +817,8 @@ JWT_AUDIENCE="waymore-platform"
 
 # Providers
 PROVIDERS_ENABLED="routee,ses"
-ROUTEE_API_KEY="your-routee-key"
+ROUTEE_CLIENT_ID="your-routee-client-id"
+ROUTEE_CLIENT_SECRET="your-routee-client-secret"
 SES_ACCESS_KEY="your-ses-key"
 
 # Rate Limiting
@@ -976,9 +976,9 @@ WORKER_CONCURRENCY=10 npm run worker
 
 For questions and support:
 - **Documentation**: Check this file and README.md
-- **Issues**: Create GitHub issue with reproduction steps
-- **Discussions**: Use GitHub Discussions for questions
-- **Email**: Contact the platform team
+- **Issues**: Create [GitHub issue](https://github.com/cantoniouwaymore/emailgateway/issues) with reproduction steps
+- **Discussions**: Use [GitHub Discussions](https://github.com/cantoniouwaymore/emailgateway/discussions) for questions
+- **Support Email**: cantoniou@waymore.io
 
 ---
 

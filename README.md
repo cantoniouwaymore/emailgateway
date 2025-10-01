@@ -414,9 +414,10 @@ emailgateway/
 ### Provider Configuration
 
 ```bash
-# Routee
-ROUTEE_API_KEY="your-routee-api-key"
-ROUTEE_BASE_URL="https://api.routee.net"
+# Routee (OAuth 2.0)
+ROUTEE_CLIENT_ID="your-routee-client-id"
+ROUTEE_CLIENT_SECRET="your-routee-client-secret"
+ROUTEE_BASE_URL="https://connect.routee.net"
 
 # AWS SES
 SES_ACCESS_KEY="your-ses-access-key"
@@ -606,7 +607,7 @@ npm run start:worker
 
 ### Build Process Details
 The build process compiles TypeScript source files to the `dist/` directory:
-- **Entry Points**: `index-api.js`, `worker-simple.js`, `startup.js`
+- **Entry Points**: `index-api.js` (API server), `worker-simple.js` (Worker), `startup.js` (Production)
 - **API Layer**: Controllers, routes, and schemas
 - **Providers**: Email provider implementations
 - **Queue System**: Worker and producer logic
@@ -669,8 +670,9 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 ## 🆘 Support
 
 - **Documentation**: Check the [docs/](docs/) folder
-- **Issues**: Create a [GitHub issue](https://github.com/your-org/emailgateway/issues)
-- **Discussions**: Use [GitHub Discussions](https://github.com/your-org/emailgateway/discussions)
+- **Issues**: Create a [GitHub issue](https://github.com/cantoniouwaymore/emailgateway/issues)
+- **Discussions**: Use [GitHub Discussions](https://github.com/cantoniouwaymore/emailgateway/discussions)
+- **Support Email**: cantoniou@waymore.io
 
 ---
 
@@ -678,7 +680,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 **Built with ❤️ by the Waymore Platform Team**
 
-[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/your-org/emailgateway)
+[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/cantoniouwaymore/emailgateway)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/company/waymore)
 
 </div>

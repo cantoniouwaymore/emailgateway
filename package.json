@@ -3,6 +3,15 @@
   "version": "1.0.0",
   "description": "Waymore Transactional Emails Service - Stateless HTTP → Email dispatcher with templating, queueing, provider adapters, idempotency, and delivery tracking",
   "main": "dist/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cantoniouwaymore/emailgateway.git"
+  },
+  "bugs": {
+    "url": "https://github.com/cantoniouwaymore/emailgateway/issues",
+    "email": "cantoniou@waymore.io"
+  },
+  "homepage": "https://github.com/cantoniouwaymore/emailgateway#readme",
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "dev:api": "tsx watch src/index.ts",

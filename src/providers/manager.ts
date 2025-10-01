@@ -1,6 +1,5 @@
 import { EmailProvider, SendProviderRequest, SendProviderResult } from './types';
 import { RouteeEmailProvider } from './routee';
-import { RouteeEmailProvider as RouteeEmailProviderReal } from './routee-real';
 import { logger } from '../utils/logger';
 import { providerLatencyMs, emailsSentTotal, emailsFailedTotal } from '../utils/metrics';
 
@@ -19,20 +18,17 @@ export class ProviderManager {
   }
 
   private initializeProviders(): void {
-    // Initialize Routee provider
+    // Initialize Routee provider (OAuth 2.0)
     if (this.enabledProviders.includes('routee')) {
-      // Check if we should use real Routee implementation
-      const useRealRoutee = process.env.ROUTEE_CLIENT_ID && process.env.ROUTEE_CLIENT_SECRET;
-      
-      if (useRealRoutee) {
-        const routeeProvider = new RouteeEmailProviderReal();
-        this.providers.set('routee', routeeProvider);
-        logger.info('Initialized Routee email provider (Real API)');
-      } else {
-        const routeeProvider = new RouteeEmailProvider();
-        this.providers.set('routee', routeeProvider);
-        logger.info('Initialized Routee email provider (Stub/Mock)');
+      // Validate OAuth credentials are present
+      if (!process.env.ROUTEE_CLIENT_ID || !process.env.ROUTEE_CLIENT_SECRET) {
+        logger.warn('Routee provider enabled but ROUTEE_CLIENT_ID or ROUTEE_CLIENT_SECRET not set');
+        throw new Error('Routee provider requires ROUTEE_CLIENT_ID and ROUTEE_CLIENT_SECRET environment variables');
       }
+      
+      const routeeProvider = new RouteeEmailProvider();
+      this.providers.set('routee', routeeProvider);
+      logger.info('Initialized Routee email provider (OAuth 2.0)');
     }
 
     // Add more providers here as needed
