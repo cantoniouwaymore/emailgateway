@@ -1,0 +1,72 @@
+{
+  "name": "@emailgateway/api-server",
+  "version": "1.0.0",
+  "description": "Email Gateway API Server - Main HTTP API and background workers",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "dev:api": "tsx watch src/index.ts",
+    "dev:worker": "PORT=3001 tsx watch src/queue/worker.ts",
+    "dev:cleanup": "tsx watch src/worker-cleanup.ts",
+    "start": "node dist/startup.js",
+    "start:api": "node dist/index-api.js",
+    "start:worker": "PORT=3001 node dist/worker-simple.js",
+    "start:cleanup": "node dist/worker-cleanup.js",
+    "worker": "PORT=3001 tsx src/queue/worker.ts",
+    "cleanup": "tsx src/worker-cleanup.ts",
+    "cleanup:once": "CLEANUP_MODE=once tsx src/worker-cleanup.ts",
+    "cleanup:dry-run": "CLEANUP_MODE=once CLEANUP_DRY_RUN=true tsx src/worker-cleanup.ts",
+    "build": "tsc",
+    "migrate": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy",
+    "generate": "prisma generate",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "email",
+    "api",
+    "server",
+    "fastify",
+    "worker"
+  ],
+  "author": "Waymore Platform",
+  "license": "MIT",
+  "dependencies": {
+    "@emailgateway/shared-types": "workspace:*",
+    "@fastify/cors": "^8.4.0",
+    "@fastify/helmet": "^11.1.1",
+    "@fastify/multipart": "^8.0.0",
+    "@fastify/rate-limit": "^9.1.0",
+    "@fastify/static": "^6.12.0",
+    "@pinecone-database/pinecone": "^6.1.2",
+    "@prisma/client": "^5.7.1",
+    "bullmq": "^4.15.4",
+    "dotenv": "^17.2.2",
+    "fastify": "^4.24.3",
+    "handlebars": "^4.7.8",
+    "ioredis": "^5.3.2",
+    "jsonwebtoken": "^9.0.2",
+    "mjml": "^4.14.1",
+    "pino": "^8.17.2",
+    "pino-pretty": "^10.3.1",
+    "prom-client": "^15.0.0",
+    "uuid": "^9.0.1",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/node": "^20.10.5",
+    "@types/uuid": "^9.0.7",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "eslint": "^8.56.0",
+    "prisma": "^5.7.1",
+    "tsx": "^4.6.2",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

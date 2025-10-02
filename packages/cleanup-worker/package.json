@@ -1,0 +1,43 @@
+{
+  "name": "@emailgateway/cleanup-worker",
+  "version": "1.0.0",
+  "description": "Email Gateway Cleanup Worker - Database maintenance and cleanup service",
+  "main": "dist/worker-cleanup.js",
+  "scripts": {
+    "dev": "tsx watch src/worker-cleanup.ts",
+    "start": "node dist/worker-cleanup.js",
+    "cleanup:once": "CLEANUP_MODE=once tsx src/worker-cleanup.ts",
+    "cleanup:dry-run": "CLEANUP_MODE=once CLEANUP_DRY_RUN=true tsx src/worker-cleanup.ts",
+    "build": "tsc",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "email",
+    "cleanup",
+    "worker",
+    "database",
+    "maintenance"
+  ],
+  "author": "Waymore Platform",
+  "license": "MIT",
+  "dependencies": {
+    "@emailgateway/shared-types": "workspace:*",
+    "@prisma/client": "^5.7.1",
+    "dotenv": "^17.2.2",
+    "pino": "^8.17.2",
+    "pino-pretty": "^10.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "eslint": "^8.56.0",
+    "tsx": "^4.6.2",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

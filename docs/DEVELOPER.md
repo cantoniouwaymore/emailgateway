@@ -15,21 +15,40 @@
 
 ## Architecture Overview
 
-The Waymore Transactional Emails Service is a stateless microservice that provides a standardized interface for sending emails across the Waymore platform. It follows a clean architecture pattern with clear separation of concerns.
+The Waymore Transactional Emails Service is a **monorepo** containing multiple microservices that provide a standardized interface for sending emails across the Waymore platform. It follows a clean architecture pattern with clear separation of concerns and proper service isolation.
 
-### Core Components
+### Monorepo Structure
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   API Layer     │    │   Queue Layer   │    │  Provider Layer │
-│   (Fastify)     │───▶│   (BullMQ)      │───▶│   (Routee/SES)  │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         ▼                       ▼                       ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│  Template Layer │    │   Data Layer    │    │  Observability  │
-│ (MJML/Handlebars│    │  (PostgreSQL)   │    │ (Metrics/Logs)  │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                    MONOREPO SERVICES                        │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  🎨 FRONTEND SERVICES                                       │
+│  ┌─────────────────┐    ┌─────────────────┐                │
+│  │   Admin UI      │    │  Shared Types   │                │
+│  │   (React)       │    │  (TypeScript)   │                │
+│  │   Port: 5173    │    │  (No Port)      │                │
+│  └─────────────────┘    └─────────────────┘                │
+│           │                       │                        │
+│           └───────────────────────┼────────────────────────┘
+│                                   │
+│  📡 BACKEND SERVICES                                      │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌──────────┐│
+│  │   API Server    │    │  Email Worker   │    │ Cleanup  ││
+│  │   (Fastify)     │    │  (BullMQ)       │    │ Worker   ││
+│  │   Port: 3000    │    │  Port: 3001     │    │ (Cron)   ││
+│  └─────────────────┘    └─────────────────┘    └──────────┘│
+│           │                       │                        │
+│           └───────────────────────┼────────────────────────┘
+│                                   │
+│  🗄️ INFRASTRUCTURE SERVICES                               │
+│  ┌─────────────────┐    ┌─────────────────┐                │
+│  │   PostgreSQL    │    │     Redis       │                │
+│  │   Port: 5432    │    │   Port: 6379    │                │
+│  └─────────────────┘    └─────────────────┘                │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ### Key Features
@@ -43,37 +62,66 @@ The Waymore Transactional Emails Service is a stateless microservice that provid
 ## Project Structure
 
 ```
-src/
-├── api/                    # API layer
-│   ├── controllers/       # Business logic controllers
-│   │   ├── email.ts      # Email sending logic
-│   │   └── health.ts     # Health check endpoints
-│   ├── routes/           # Route definitions
-│   │   ├── email.ts      # Email API routes
-│   │   └── health.ts     # Health check routes
-│   └── schemas/          # Request/response schemas
-│       └── email.ts      # Zod validation schemas
-├── db/                    # Database layer
-│   └── client.ts         # Prisma client configuration
-├── providers/             # Email provider implementations
-│   ├── types.ts          # Provider interfaces
-│   ├── routee.ts         # Routee provider implementation
-│   └── manager.ts        # Provider management
-├── queue/                 # Queue system
-│   ├── producer.ts       # Job producer
-│   └── worker.ts         # Background worker
-├── templates/             # Template system
-│   ├── engine.ts         # Template rendering engine
-│   └── notifications/    # Template files
-│       ├── transactional-en.mjml
-│       └── transactional-en.txt
-├── utils/                 # Utility functions
-│   ├── auth.ts          # JWT authentication
-│   ├── idempotency.ts   # Idempotency handling
-│   ├── logger.ts        # Structured logging
-│   └── metrics.ts       # Prometheus metrics
-└── index.ts              # Application entrypoint
-```
+emailgateway/
+├── packages/               # Monorepo packages
+│   ├── api-server/        # Main HTTP API service
+│   │   ├── src/
+│   │   │   ├── api/       # API layer
+│   │   │   │   ├── controllers/  # Business logic controllers
+│   │   │   │   │   ├── email.ts      # Email sending logic
+│   │   │   │   │   ├── health.ts     # Health check endpoints
+│   │   │   │   │   ├── admin.ts      # Admin dashboard logic
+│   │   │   │   │   └── templates/    # Template management
+│   │   │   │   ├── routes/       # API routes
+│   │   │   │   │   ├── email.ts      # Email API routes
+│   │   │   │   │   ├── health.ts     # Health check routes
+│   │   │   │   │   ├── admin.ts      # Admin dashboard routes
+│   │   │   │   │   └── templates.ts  # Template management routes
+│   │   │   │   └── schemas/      # Request/response schemas
+│   │   │   ├── db/        # Database layer
+│   │   │   ├── providers/ # Email providers
+│   │   │   ├── queue/     # Queue system
+│   │   │   ├── templates/ # Email templates
+│   │   │   ├── types/     # TypeScript types
+│   │   │   └── utils/     # Utilities
+│   │   ├── prisma/        # Database schema
+│   │   ├── package.json
+│   │   └── tsconfig.json
+│   │
+│   ├── email-worker/      # Background worker service
+│   │   ├── src/
+│   │   │   ├── worker.ts  # Worker implementation
+│   │   │   └── producer.ts # Job producer
+│   │   ├── package.json
+│   │   └── tsconfig.json
+│   │
+│   ├── cleanup-worker/    # Cleanup service
+│   │   ├── src/
+│   │   │   ├── worker-cleanup.ts
+│   │   │   ├── cleanup.ts
+│   │   │   └── scheduler.ts
+│   │   ├── package.json
+│   │   └── tsconfig.json
+│   │
+│   ├── admin-ui/          # React frontend
+│   │   ├── src/
+│   │   │   ├── components/ # React components
+│   │   │   ├── pages/      # Page components
+│   │   │   ├── lib/        # Utilities
+│   │   │   └── types/      # Frontend types
+│   │   ├── package.json
+│   │   └── vite.config.ts
+│   │
+│   └── shared-types/      # Shared TypeScript types
+│       ├── *.ts           # Type definitions
+│       ├── package.json
+│       └── tsconfig.json
+│
+├── scripts/               # Build and deployment scripts
+├── docs/                  # Documentation
+├── infrastructure/        # Docker and deployment configs
+├── package.json           # Root workspace config
+└── tsconfig.json          # Root TypeScript config
 
 ## Development Setup
 
@@ -105,21 +153,33 @@ src/
 
 4. **Run database migrations:**
    ```bash
-   npm run migrate
+   cd packages/api-server && npm run migrate
    ```
 
-5. **Start development servers:**
+5. **Start all services (recommended):**
    ```bash
-   # Terminal 1 - API Server (handles HTTP requests, queues emails)
-   npm run dev:api
-   
-   # Terminal 2 - Worker Process (processes queued emails, sends via providers)
-   npm run dev:worker
+   npm run dev:all
    ```
 
-   **⚠️ CRITICAL**: Both processes must be running for the email gateway to function:
+6. **Or start services individually:**
+   ```bash
+   # API Server (Terminal 1) - Handles HTTP requests, queues emails
+   cd packages/api-server && npm run dev
+   
+   # Email Worker (Terminal 2) - Processes queued emails, sends via providers
+   cd packages/email-worker && npm run dev
+   
+   # Admin UI (Terminal 3) - React frontend for template management
+   cd packages/admin-ui && npm run dev
+   
+   # Cleanup Worker (Terminal 4) - Database maintenance (optional)
+   cd packages/cleanup-worker && npm run dev
+   ```
+
+   **⚠️ CRITICAL**: The following services must be running for full functionality:
    - **API Server** (port 3000): Receives HTTP requests and queues emails
-   - **Worker Process** (port 3001): Processes queued emails and sends them
+   - **Email Worker** (port 3001): Processes queued emails and sends them
+   - **Admin UI** (port 5173): Template editor and monitoring dashboard
 
 6. **Test the API:**
    ```bash

@@ -1,0 +1,19 @@
+{
+  "name": "@emailgateway/shared-types",
+  "version": "1.0.0",
+  "description": "Shared TypeScript types for Email Gateway frontend and backend",
+  "main": "index.ts",
+  "types": "index.ts",
+  "files": [
+    "*.ts"
+  ],
+  "scripts": {
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  }
+}

@@ -1,0 +1,151 @@
+import 'dotenv/config';
+
+import Fastify from 'fastify';
+import cors from '@fastify/cors';
+import helmet from '@fastify/helmet';
+import rateLimit from '@fastify/rate-limit';
+import { connectDatabase, disconnectDatabase } from './db/client';
+import { logger } from './utils/logger';
+import { setupMetricsEndpoint } from './utils/metrics';
+import { emailRoutes } from './api/routes/email';
+import { healthRoutes } from './api/routes/health';
+import { webhookRoutes } from './api/routes/webhook';
+import { adminRoutes } from './api/routes/admin';
+import { templateRoutes } from './api/routes/templates';
+import { templateRoutesSimple } from './api/routes/templates-simple';
+import { generateTestToken } from './utils/auth';
+
+const PORT = parseInt(process.env['PORT'] || '3000');
+const HOST = process.env['HOST'] || '0.0.0.0';
+const NODE_ENV = process.env['NODE_ENV'] || 'development';
+
+async function buildServer() {
+  const fastify = Fastify({
+    logger: {
+      level: process.env['LOG_LEVEL'] || 'info'
+    },
+    trustProxy: true,
+    disableRequestLogging: NODE_ENV === 'production'
+  });
+
+  // Register plugins
+  await fastify.register(helmet, {
+    contentSecurityPolicy: false // Allow MJML templates
+  });
+
+  await fastify.register(cors, {
+    origin: NODE_ENV === 'development' ? true : false,
+    credentials: true
+  });
+
+  await fastify.register(rateLimit, {
+    max: parseInt(process.env['RATE_GLOBAL_RPS'] || '200'),
+    timeWindow: '1 minute',
+    errorResponseBuilder: (request, context) => ({
+      error: {
+        code: 'RATE_LIMIT_EXCEEDED',
+        message: `Rate limit exceeded, retry in ${context.after}`,
+        traceId: request.id
+      }
+    })
+  });
+
+  // Add request ID and trace ID
+  fastify.addHook('onRequest', async (request, reply) => {
+    const traceId = request.headers['x-trace-id'] as string || 
+                    Math.random().toString(36).substring(2, 15);
+    (request as any).traceId = traceId;
+    reply.header('X-Trace-Id', traceId);
+  });
+
+  // Add response time header
+  fastify.addHook('onResponse', async (request, reply) => {
+    reply.header('X-Response-Time', reply.getResponseTime().toString());
+  });
+
+  // Setup metrics endpoint
+  setupMetricsEndpoint(fastify);
+
+  // Register routes
+  console.log('🔧 Registering routes...');
+  await fastify.register(healthRoutes);
+  console.log('✅ Health routes registered');
+  await fastify.register(webhookRoutes);
+  console.log('✅ Webhook routes registered');
+  await fastify.register(adminRoutes);
+  console.log('✅ Admin routes registered');
+  console.log('🔧 Registering simple template routes...');
+  await fastify.register(templateRoutesSimple);
+  console.log('✅ Simple template routes registered');
+  console.log('🔧 Registering template routes...');
+  await fastify.register(templateRoutes);
+  console.log('✅ Template routes registered');
+  await fastify.register(emailRoutes, { prefix: '/api' });
+  console.log('✅ Email routes registered');
+
+  // Add a test endpoint to generate JWT tokens (development only)
+  if (NODE_ENV === 'development') {
+    fastify.get('/test-token', async (request, reply) => {
+      const token = generateTestToken();
+      return {
+        token,
+        expiresIn: '1 hour',
+        scopes: ['emails:send', 'emails:read']
+      };
+    });
+
+    fastify.get('/', async (request, reply) => {
+      return reply.redirect('/admin');
+    });
+  }
+
+  return fastify;
+}
+
+async function start() {
+  try {
+    // Connect to database
+    await connectDatabase();
+
+    // Build server
+    const server = await buildServer();
+
+    // Start server
+    await server.listen({ port: PORT, host: HOST });
+
+    logger.info({
+      port: PORT,
+      host: HOST,
+      environment: NODE_ENV
+    }, 'Waymore Transactional Emails Service API server started');
+
+    // Graceful shutdown
+    const gracefulShutdown = async (signal: string) => {
+      logger.info({ signal }, 'Received shutdown signal');
+      
+      try {
+        await server.close();
+        await disconnectDatabase();
+        logger.info('API server shut down gracefully');
+        process.exit(0);
+      } catch (error) {
+        logger.error({ error }, 'Error during shutdown');
+        process.exit(1);
+      }
+    };
+
+    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+  } catch (error) {
+    logger.error({ error }, 'Failed to start API server');
+    process.exit(1);
+  }
+}
+
+// Start server if this file is run directly
+if (require.main === module) {
+  start();
+}
+
+export { buildServer };

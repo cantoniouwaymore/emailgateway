@@ -2,7 +2,34 @@
 
 ## System Overview
 
-The Waymore Transactional Emails Service is a stateless microservice designed to provide a standardized, reliable interface for sending emails across the Waymore platform. It follows clean architecture principles with clear separation of concerns and high testability.
+The Waymore Transactional Emails Service is a **monorepo** containing multiple microservices designed to provide a standardized, reliable interface for sending emails across the Waymore platform. It follows clean architecture principles with clear separation of concerns, high testability, and proper service isolation within a unified codebase.
+
+## Monorepo Architecture
+
+The service is organized as a monorepo with the following structure:
+
+```
+emailgateway/
+├── packages/
+│   ├── api-server/           # Main HTTP API service
+│   ├── email-worker/         # Background email processing
+│   ├── cleanup-worker/       # Database maintenance service
+│   ├── admin-ui/             # React admin interface
+│   └── shared-types/         # Shared TypeScript types
+├── scripts/                  # Build and deployment scripts
+├── docs/                     # Documentation
+└── infrastructure/           # Docker and deployment configs
+```
+
+### Service Responsibilities
+
+| Service | Port | Purpose | Dependencies |
+|---------|------|---------|--------------|
+| **API Server** | 3000 | HTTP API, admin dashboard, template management | PostgreSQL, Redis, Shared Types |
+| **Email Worker** | 3001 | Background processing, email sending | Redis, Shared Types |
+| **Admin UI** | 5173 | React frontend, template editor, monitoring | API Server, Shared Types |
+| **Cleanup Worker** | - | Database maintenance, scheduled cleanup | PostgreSQL, Shared Types |
+| **Shared Types** | - | TypeScript definitions | None |
 
 ## Architecture Principles
 
@@ -29,26 +56,41 @@ The Waymore Transactional Emails Service is a stateless microservice designed to
 graph TB
     subgraph "External Systems"
         Client[Client Applications]
+        AdminUser[Admin Users]
         Provider1[Routee API]
         Provider2[AWS SES]
         Provider3[SendGrid]
     end
 
-    subgraph "Email Gateway"
-        subgraph "API Layer"
-            Fastify[Fastify Server]
-            Auth[JWT Auth]
-            RateLimit[Rate Limiting]
-            Validation[Request Validation]
+    subgraph "Email Gateway Monorepo"
+        subgraph "Frontend Services"
+            AdminUI[Admin UI<br/>React App<br/>Port: 5173]
         end
 
-        subgraph "Application Layer"
-            Controller[Email Controller]
-            Idempotency[Idempotency Service]
-            TemplateEngine[Template Engine]
+        subgraph "Backend Services"
+            subgraph "API Server (Port: 3000)"
+                Fastify[Fastify Server]
+                Auth[JWT Auth]
+                RateLimit[Rate Limiting]
+                Validation[Request Validation]
+                Controller[Email Controller]
+                Idempotency[Idempotency Service]
+                TemplateEngine[Template Engine]
+            end
+
+            subgraph "Email Worker (Port: 3001)"
+                Worker[Background Worker]
+                QueueProcessor[Queue Processor]
+            end
+
+            subgraph "Cleanup Worker"
+                CleanupScheduler[Cleanup Scheduler]
+                DatabaseMaintenance[Database Maintenance]
+            end
         end
 
-        subgraph "Domain Layer"
+        subgraph "Shared Services"
+            SharedTypes[Shared Types<br/>TypeScript Definitions]
             Message[Message Aggregate]
             ProviderManager[Provider Manager]
             QueueProducer[Queue Producer]
@@ -57,11 +99,12 @@ graph TB
         subgraph "Infrastructure Layer"
             Queue[BullMQ + Redis]
             Database[(PostgreSQL)]
-            Worker[Background Worker]
         end
     end
 
     Client --> Fastify
+    AdminUser --> AdminUI
+    AdminUI --> Fastify
     Fastify --> Auth
     Auth --> RateLimit
     RateLimit --> Validation
@@ -72,12 +115,14 @@ graph TB
     Message --> ProviderManager
     Message --> QueueProducer
     QueueProducer --> Queue
-    Queue --> Worker
-    Worker --> Provider1
-    Worker --> Provider2
-    Worker --> Provider3
+    Queue --> QueueProcessor
+    QueueProcessor --> Provider1
+    QueueProcessor --> Provider2
+    QueueProcessor --> Provider3
     Message --> Database
     Idempotency --> Database
+    CleanupScheduler --> DatabaseMaintenance
+    DatabaseMaintenance --> Database
 ```
 
 ## Layer Architecture
@@ -93,13 +138,16 @@ graph TB
 
 **Key Files**:
 ```
-src/api/
+packages/api-server/src/api/
 ├── routes/
 │   ├── email.ts      # Email API routes
-│   └── health.ts     # Health check routes
+│   ├── health.ts     # Health check routes
+│   ├── admin.ts      # Admin dashboard routes
+│   └── templates.ts  # Template management routes
 ├── controllers/
 │   ├── email.ts      # Email business logic
-│   └── health.ts     # Health check logic
+│   ├── health.ts     # Health check logic
+│   └── admin.ts      # Admin dashboard logic
 └── schemas/
     └── email.ts      # Request/response schemas
 ```
@@ -115,10 +163,11 @@ src/api/
 
 **Key Files**:
 ```
-src/utils/
+packages/api-server/src/utils/
 ├── auth.ts          # JWT authentication
 ├── idempotency.ts   # Idempotency handling
-└── logger.ts        # Structured logging
+├── logger.ts        # Structured logging
+└── metrics.ts       # Performance metrics
 ```
 
 ### 3. Domain Layer
@@ -132,7 +181,7 @@ src/utils/
 
 **Key Files**:
 ```
-src/providers/
+packages/api-server/src/providers/
 ├── types.ts         # Provider interfaces
 ├── manager.ts       # Provider management
 └── routee.ts        # Routee implementation
@@ -149,13 +198,101 @@ src/providers/
 
 **Key Files**:
 ```
-src/queue/
-├── producer.ts      # Job producer
-└── worker.ts        # Background worker
+packages/api-server/src/queue/
+└── producer.ts      # Job producer
 
-src/db/
+packages/email-worker/src/
+├── worker.ts        # Background worker
+└── producer.ts      # Worker-specific producer
+
+packages/cleanup-worker/src/
+├── worker-cleanup.ts # Cleanup worker
+├── cleanup.ts       # Cleanup logic
+└── scheduler.ts     # Cleanup scheduler
+
+packages/api-server/src/db/
 └── client.ts        # Database client
 ```
+
+## Monorepo Structure
+
+### Package Organization
+
+Each package in the monorepo has a specific responsibility and can be developed, built, and deployed independently:
+
+#### API Server (`packages/api-server/`)
+- **Purpose**: Main HTTP API service
+- **Port**: 3000
+- **Dependencies**: PostgreSQL, Redis, Shared Types
+- **Key Features**:
+  - REST API endpoints
+  - Admin dashboard backend
+  - Template management
+  - Authentication and authorization
+  - Rate limiting and validation
+
+#### Email Worker (`packages/email-worker/`)
+- **Purpose**: Background email processing
+- **Port**: 3001
+- **Dependencies**: Redis, Shared Types, API Server (for templates)
+- **Key Features**:
+  - Queue processing
+  - Email rendering
+  - Provider integration
+  - Retry logic and error handling
+
+#### Admin UI (`packages/admin-ui/`)
+- **Purpose**: React frontend interface
+- **Port**: 5173
+- **Dependencies**: API Server, Shared Types
+- **Key Features**:
+  - Template editor
+  - Message monitoring
+  - Dashboard and analytics
+  - Test email functionality
+
+#### Cleanup Worker (`packages/cleanup-worker/`)
+- **Purpose**: Database maintenance
+- **Dependencies**: PostgreSQL, Shared Types
+- **Key Features**:
+  - Scheduled cleanup tasks
+  - Data retention policies
+  - Performance optimization
+
+#### Shared Types (`packages/shared-types/`)
+- **Purpose**: TypeScript type definitions
+- **Dependencies**: None
+- **Key Features**:
+  - Common interfaces
+  - API contracts
+  - Frontend/backend type consistency
+
+### Shared Types Architecture
+
+The shared types package ensures type safety and consistency across all services:
+
+```typescript
+// packages/shared-types/index.ts
+export * from './template.types';
+export * from './admin.types';
+export * from './api.types';
+export * from './email.types';
+export * from './frontend.types';
+```
+
+**Type Categories**:
+- **Template Types**: Template metadata, locales, variables
+- **Email Types**: Message status, recipients, providers
+- **API Types**: Request/response schemas, pagination
+- **Admin Types**: Dashboard data, health checks
+- **Frontend Types**: Serialized versions for JSON transport
+
+### Development Workflow
+
+1. **Local Development**: `npm run dev:all` starts all services
+2. **Individual Services**: Each package can be run independently
+3. **Type Safety**: Shared types ensure consistency across services
+4. **Hot Reloading**: All services support hot reloading during development
 
 ## Data Flow
 
@@ -378,7 +515,7 @@ interface TemplateRenderOptions {
 
 ### Template Structure
 ```
-src/templates/
+packages/api-server/src/templates/
 ├── notifications/
 │   ├── universal-en.mjml    # English HTML template
 │   ├── universal-en.txt     # English text template

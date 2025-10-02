@@ -2,11 +2,20 @@
 
 ## Overview
 
-The Waymore Transactional Emails Service API provides a standardized interface for sending emails through the Waymore platform. All endpoints require JWT authentication and follow RESTful conventions.
+The Waymore Transactional Emails Service API provides a standardized interface for sending emails through the Waymore platform. The service is part of a **monorepo** containing multiple microservices, with the API server handling all HTTP requests and the email worker processing background jobs.
 
 **Base URL**: `https://api.waymore.io/email-gateway`  
 **Version**: `v1`  
 **Authentication**: Bearer JWT Token
+
+## Monorepo Services
+
+| Service | Port | Purpose | Endpoints |
+|---------|------|---------|-----------|
+| **API Server** | 3000 | HTTP API, admin dashboard, template management | `/api/v1/*`, `/admin/*` |
+| **Email Worker** | 3001 | Background processing, email sending | Health check only |
+| **Admin UI** | 5173 | React frontend, template editor, monitoring | Static files |
+| **Cleanup Worker** | - | Database maintenance, scheduled cleanup | None |
 
 ## Authentication
 

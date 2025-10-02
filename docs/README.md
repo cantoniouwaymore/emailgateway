@@ -1,6 +1,23 @@
 # 📚 Waymore Transactional Emails Service Documentation
 
-Welcome to the Waymore Transactional Emails Service documentation! This guide provides comprehensive information about the email microservice architecture, API usage, and integration guides.
+Welcome to the Waymore Transactional Emails Service documentation! This guide provides comprehensive information about the **monorepo** email microservice architecture, API usage, and integration guides.
+
+## 🏗️ Monorepo Architecture
+
+The service is organized as a monorepo with the following structure:
+
+```
+emailgateway/
+├── packages/
+│   ├── api-server/           # Main HTTP API service (Port: 3000)
+│   ├── email-worker/         # Background email processing (Port: 3001)
+│   ├── cleanup-worker/       # Database maintenance service
+│   ├── admin-ui/             # React frontend (Port: 5173)
+│   └── shared-types/         # Shared TypeScript types
+├── scripts/                  # Build and deployment scripts
+├── docs/                     # Documentation
+└── infrastructure/           # Docker and deployment configs
+```
 
 ## 📖 Documentation Structure
 

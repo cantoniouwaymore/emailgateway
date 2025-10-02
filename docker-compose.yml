@@ -32,7 +32,9 @@ services:
       retries: 5
 
   emailgateway-api:
-    build: .
+    build: 
+      context: .
+      dockerfile: packages/api-server/Dockerfile
     container_name: emailgateway-api
     environment:
       - DATABASE_URL=postgresql://postgres:password@postgres:5432/emailgateway?schema=public
@@ -48,9 +50,12 @@ services:
         condition: service_healthy
     restart: unless-stopped
     command: ["npm", "run", "start:api"]
+    working_dir: /app/packages/api-server
 
   emailgateway-worker:
-    build: .
+    build: 
+      context: .
+      dockerfile: packages/email-worker/Dockerfile
     container_name: emailgateway-worker
     environment:
       - DATABASE_URL=postgresql://postgres:password@postgres:5432/emailgateway?schema=public
@@ -65,7 +70,8 @@ services:
       redis:
         condition: service_healthy
     restart: unless-stopped
-    command: ["npm", "run", "start:worker"]
+    command: ["npm", "run", "start"]
+    working_dir: /app/packages/email-worker
 
 volumes:
   postgres_data:

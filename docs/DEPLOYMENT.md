@@ -2,7 +2,19 @@
 
 ## Overview
 
-This guide covers deploying the Waymore Transactional Emails Service microservice in various environments, from local development to production Kubernetes clusters.
+This guide covers deploying the Waymore Transactional Emails Service **monorepo** containing multiple microservices in various environments, from local development to production Kubernetes clusters.
+
+## Monorepo Services
+
+The deployment includes the following services:
+
+| Service | Port | Purpose | Dependencies |
+|---------|------|---------|--------------|
+| **API Server** | 3000 | HTTP API, admin dashboard, template management | PostgreSQL, Redis, Shared Types |
+| **Email Worker** | 3001 | Background processing, email sending | Redis, Shared Types |
+| **Admin UI** | 5173 | React frontend, template editor, monitoring | API Server, Shared Types |
+| **Cleanup Worker** | - | Database maintenance, scheduled cleanup | PostgreSQL, Shared Types |
+| **Shared Types** | - | TypeScript definitions | None |
 
 ## Prerequisites
 
