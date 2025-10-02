@@ -1,0 +1,17 @@
+{
+  "name": "@emailgateway/docs",
+  "version": "1.0.0",
+  "description": "Email Gateway Documentation",
+  "type": "module",
+  "scripts": {
+    "dev": "vitepress dev",
+    "build": "vitepress build",
+    "preview": "vitepress preview"
+  },
+  "devDependencies": {
+    "vitepress": "^2.0.0"
+  },
+  "keywords": ["email", "documentation", "vitepress"],
+  "author": "Waymore Platform",
+  "license": "MIT"
+}

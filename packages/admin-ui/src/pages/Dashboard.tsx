@@ -8,9 +8,8 @@ import { useQuery } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { healthAPI, messagesAPI } from '@/lib/api';
-import { Activity, FileText, Mail, Webhook, BookOpen } from 'lucide-react';
+import { Activity, FileText, Mail, Webhook, ExternalLink } from 'lucide-react';
 import {
-  DocumentationTab,
   TemplatesTab,
   HealthTab,
   MessagesTab,
@@ -44,7 +43,17 @@ export default function Dashboard() {
                 Waymore Transactional Email Service
               </p>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-4">
+              <a
+                href="http://localhost:5174/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                Documentation
+                <ExternalLink className="w-3 h-3 ml-1" />
+              </a>
               <Badge variant={healthData?.status === 'healthy' ? 'default' : 'destructive'}>
                 <Activity className="w-3 h-3 mr-1" />
                 {healthData?.status || 'Unknown'}
@@ -56,12 +65,8 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Tabs defaultValue="documentation" className="w-full">
+        <Tabs defaultValue="templates" className="w-full">
           <TabsList>
-            <TabsTrigger value="documentation">
-              <BookOpen className="w-4 h-4 mr-2" />
-              Documentation
-            </TabsTrigger>
             <TabsTrigger value="templates">
               <FileText className="w-4 h-4 mr-2" />
               Templates
@@ -79,10 +84,6 @@ export default function Dashboard() {
               Webhooks
             </TabsTrigger>
           </TabsList>
-
-          <TabsContent value="documentation">
-            <DocumentationTab />
-          </TabsContent>
 
           <TabsContent value="templates">
             <TemplatesTab />

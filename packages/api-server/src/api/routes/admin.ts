@@ -5,10 +5,7 @@ import { generateMarkdownViewer } from '../../templates/admin/markdown-viewer';
 export async function adminRoutes(fastify: FastifyInstance) {
   const adminController = new AdminController();
 
-  // Redirect /admin to React dashboard
-  fastify.get('/admin', async (request, reply) => {
-    return reply.redirect('/admin/dashboard');
-  });
+  // Note: /admin route is handled by React admin UI (admin-react.ts)
 
   // Redirect /admin/template-editor to React template editor
   fastify.get('/admin/template-editor', async (request, reply) => {
@@ -52,23 +49,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
 
   
 
-  // Documentation viewer route
-  fastify.get('/docs/:filename', async (request, reply) => {
-    const fs = require('fs');
-    const path = require('path');
-    const { filename } = request.params as { filename: string };
-    
-    try {
-      const filePath = path.join(process.cwd(), 'docs', filename);
-      const content = fs.readFileSync(filePath, 'utf8');
-      
-      // Generate HTML with markdown viewer
-      const html = generateMarkdownViewer(filename, content);
-      return reply.type('text/html').send(html);
-    } catch (error) {
-      return reply.code(404).send('Documentation not found');
-    }
-  });
+  // Note: Documentation is now served as static files from React admin UI
 
   // Postman collection download route
   fastify.get('/Email-Gateway-API.postman_collection.json', async (request, reply) => {

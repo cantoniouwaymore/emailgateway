@@ -1,0 +1,932 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Waymore Transactional Emails Service API",
+    "description": "Complete API collection for the Waymore Transactional Emails Service v2.2. Updated to reflect the actual implemented API endpoints including authentication, email sending, comprehensive template management with fallback syntax validation, admin monitoring, webhook testing, and system health checks.",
+    "version": "2.2.0",
+    "contact": {
+      "name": "Waymore Platform",
+      "email": "support@waymore.io"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.waymore.io/email-gateway",
+      "description": "Production server"
+    },
+    {
+      "url": "http://localhost:3000",
+      "description": "Development server"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/test-token": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "Get JWT Token",
+        "description": "Get a JWT token for API authentication. This is a development endpoint that generates a test token valid for 1 hour.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Successfully generated JWT token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "description": "JWT token for API authentication"
+                    },
+                    "expiresIn": {
+                      "type": "string",
+                      "example": "1 hour"
+                    },
+                    "scopes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "example": ["emails:send", "emails:read"]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/emails": {
+      "post": {
+        "tags": ["Email Operations"],
+        "summary": "Send Email",
+        "description": "Send an email using a database-driven template with dynamic variables. Templates are stored in the database and referenced by their unique key.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendEmailRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Email accepted for processing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendEmailResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - invalid input data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - invalid or missing JWT token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict - duplicate idempotency key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/messages/{messageId}": {
+      "get": {
+        "tags": ["Message Status"],
+        "summary": "Get Message Status",
+        "description": "Retrieve the current status and details of a specific message by its ID.",
+        "parameters": [
+          {
+            "name": "messageId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the message"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Message status retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageStatus"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Message not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": ["System Health"],
+        "summary": "Health Check",
+        "description": "Check the overall health status of the email gateway service.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Service is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/live": {
+      "get": {
+        "tags": ["System Health"],
+        "summary": "Liveness Check",
+        "description": "Check if the service is alive and responding to requests.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Service is alive"
+          }
+        }
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "tags": ["System Health"],
+        "summary": "Readiness Check",
+        "description": "Check if the service is ready to handle requests (database connections, etc.).",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Service is ready"
+          }
+        }
+      }
+    },
+    "/metrics": {
+      "get": {
+        "tags": ["System Health"],
+        "summary": "Get Metrics",
+        "description": "Retrieve system metrics and performance statistics.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Metrics retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "emails_sent": {
+                      "type": "integer",
+                      "description": "Total number of emails sent"
+                    },
+                    "emails_failed": {
+                      "type": "integer",
+                      "description": "Total number of failed emails"
+                    },
+                    "active_templates": {
+                      "type": "integer",
+                      "description": "Number of active templates"
+                    },
+                    "uptime": {
+                      "type": "string",
+                      "description": "Service uptime"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin": {
+      "get": {
+        "tags": ["Admin Dashboard"],
+        "summary": "Admin Dashboard",
+        "description": "Access the admin dashboard interface.",
+        "responses": {
+          "200": {
+            "description": "Admin dashboard loaded successfully"
+          }
+        }
+      }
+    },
+    "/admin/api/data": {
+      "get": {
+        "tags": ["Admin Dashboard"],
+        "summary": "Admin API Data",
+        "description": "Get data for the admin dashboard API endpoints.",
+        "responses": {
+          "200": {
+            "description": "Admin data retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "messages": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/MessageStatus"
+                      }
+                    },
+                    "templates": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Template"
+                      }
+                    },
+                    "webhooks": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/WebhookEvent"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/templates": {
+      "get": {
+        "tags": ["Template Management"],
+        "summary": "List Templates",
+        "description": "Retrieve a list of all available email templates.",
+        "responses": {
+          "200": {
+            "description": "Templates retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Template"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Template Management"],
+        "summary": "Create Template",
+        "description": "Create a new email template.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTemplateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Template created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Template"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/templates/{templateKey}": {
+      "get": {
+        "tags": ["Template Management"],
+        "summary": "Get Template",
+        "description": "Retrieve a specific template by its key.",
+        "parameters": [
+          {
+            "name": "templateKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique key identifier for the template"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Template retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Template"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Template not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Template Management"],
+        "summary": "Update Template",
+        "description": "Update an existing template.",
+        "parameters": [
+          {
+            "name": "templateKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique key identifier for the template"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTemplateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Template updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Template"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Template Management"],
+        "summary": "Delete Template",
+        "description": "Delete a template by its key.",
+        "parameters": [
+          {
+            "name": "templateKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique key identifier for the template"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Template deleted successfully"
+          },
+          "404": {
+            "description": "Template not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/templates/{templateKey}/validate": {
+      "post": {
+        "tags": ["Template Management"],
+        "summary": "Validate Template Structure",
+        "description": "Validate the structure and syntax of a template.",
+        "parameters": [
+          {
+            "name": "templateKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique key identifier for the template"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ValidateTemplateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Template validation completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT token for API authentication. Include 'Bearer ' prefix."
+      }
+    },
+    "schemas": {
+      "SendEmailRequest": {
+        "type": "object",
+        "required": ["to", "from", "template"],
+        "properties": {
+          "messageId": {
+            "type": "string",
+            "description": "Unique identifier for the message (optional, auto-generated if not provided)"
+          },
+          "to": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EmailRecipient"
+            },
+            "description": "Primary recipients"
+          },
+          "cc": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EmailRecipient"
+            },
+            "description": "CC recipients"
+          },
+          "bcc": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EmailRecipient"
+            },
+            "description": "BCC recipients"
+          },
+          "from": {
+            "$ref": "#/components/schemas/EmailSender"
+          },
+          "subject": {
+            "type": "string",
+            "description": "Email subject line"
+          },
+          "template": {
+            "$ref": "#/components/schemas/TemplateReference"
+          },
+          "variables": {
+            "type": "object",
+            "description": "Dynamic variables to be merged into the template",
+            "additionalProperties": true
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Additional metadata for tracking and analytics",
+            "properties": {
+              "tenantId": {
+                "type": "string"
+              },
+              "eventId": {
+                "type": "string"
+              },
+              "notificationType": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "EmailRecipient": {
+        "type": "object",
+        "required": ["email"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Recipient email address"
+          },
+          "name": {
+            "type": "string",
+            "description": "Recipient display name"
+          }
+        }
+      },
+      "EmailSender": {
+        "type": "object",
+        "required": ["email"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Sender email address"
+          },
+          "name": {
+            "type": "string",
+            "description": "Sender display name"
+          }
+        }
+      },
+      "TemplateReference": {
+        "type": "object",
+        "required": ["key"],
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Template key identifier"
+          },
+          "locale": {
+            "type": "string",
+            "description": "Template locale (e.g., 'en', 'es')",
+            "default": "en"
+          }
+        }
+      },
+      "SendEmailResponse": {
+        "type": "object",
+        "properties": {
+          "messageId": {
+            "type": "string",
+            "description": "Unique identifier for the message"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["accepted", "processing", "sent", "failed"],
+            "description": "Current status of the message"
+          },
+          "queuedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the message was queued"
+          },
+          "estimatedDelivery": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Estimated delivery time"
+          }
+        }
+      },
+      "MessageStatus": {
+        "type": "object",
+        "properties": {
+          "messageId": {
+            "type": "string",
+            "description": "Unique identifier for the message"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["accepted", "processing", "sent", "delivered", "opened", "clicked", "bounced", "failed"],
+            "description": "Current status of the message"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Message creation timestamp"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last update timestamp"
+          },
+          "deliveredAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Delivery timestamp"
+          },
+          "openedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Open timestamp"
+          },
+          "clickedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Click timestamp"
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message if status is failed"
+          },
+          "recipient": {
+            "$ref": "#/components/schemas/EmailRecipient"
+          },
+          "template": {
+            "$ref": "#/components/schemas/TemplateReference"
+          }
+        }
+      },
+      "Template": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Unique template key"
+          },
+          "name": {
+            "type": "string",
+            "description": "Template display name"
+          },
+          "description": {
+            "type": "string",
+            "description": "Template description"
+          },
+          "locales": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/TemplateLocale"
+            },
+            "description": "Template content by locale"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "TemplateLocale": {
+        "type": "object",
+        "properties": {
+          "subject": {
+            "type": "string",
+            "description": "Email subject template"
+          },
+          "html": {
+            "type": "string",
+            "description": "HTML email template"
+          },
+          "text": {
+            "type": "string",
+            "description": "Plain text email template"
+          },
+          "fallback": {
+            "type": "string",
+            "description": "Fallback locale key"
+          }
+        }
+      },
+      "CreateTemplateRequest": {
+        "type": "object",
+        "required": ["key", "name"],
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Unique template key"
+          },
+          "name": {
+            "type": "string",
+            "description": "Template display name"
+          },
+          "description": {
+            "type": "string",
+            "description": "Template description"
+          },
+          "locales": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/TemplateLocale"
+            }
+          }
+        }
+      },
+      "UpdateTemplateRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Template display name"
+          },
+          "description": {
+            "type": "string",
+            "description": "Template description"
+          },
+          "locales": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/TemplateLocale"
+            }
+          }
+        }
+      },
+      "ValidateTemplateRequest": {
+        "type": "object",
+        "required": ["template"],
+        "properties": {
+          "template": {
+            "$ref": "#/components/schemas/TemplateLocale"
+          }
+        }
+      },
+      "ValidationResponse": {
+        "type": "object",
+        "properties": {
+          "valid": {
+            "type": "boolean",
+            "description": "Whether the template is valid"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of validation errors"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of validation warnings"
+          },
+          "detectedVariables": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Variables detected in the template"
+          }
+        }
+      },
+      "WebhookEvent": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique event identifier"
+          },
+          "messageId": {
+            "type": "string",
+            "description": "Associated message ID"
+          },
+          "eventType": {
+            "type": "string",
+            "enum": ["delivered", "opened", "clicked", "bounced", "failed"],
+            "description": "Type of webhook event"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Event timestamp"
+          },
+          "data": {
+            "type": "object",
+            "description": "Event-specific data",
+            "additionalProperties": true
+          }
+        }
+      },
+      "HealthStatus": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["healthy", "degraded", "unhealthy"],
+            "description": "Overall health status"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Health check timestamp"
+          },
+          "services": {
+            "type": "object",
+            "properties": {
+              "database": {
+                "type": "string",
+                "enum": ["up", "down"]
+              },
+              "queue": {
+                "type": "string",
+                "enum": ["up", "down"]
+              },
+              "emailProvider": {
+                "type": "string",
+                "enum": ["up", "down"]
+              }
+            }
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Error message"
+          },
+          "code": {
+            "type": "string",
+            "description": "Error code"
+          },
+          "details": {
+            "type": "object",
+            "description": "Additional error details",
+            "additionalProperties": true
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Authentication",
+      "description": "Authentication and token management"
+    },
+    {
+      "name": "Email Operations",
+      "description": "Email sending and management operations"
+    },
+    {
+      "name": "Message Status",
+      "description": "Message status tracking and retrieval"
+    },
+    {
+      "name": "Template Management",
+      "description": "Email template management and validation"
+    },
+    {
+      "name": "Admin Dashboard",
+      "description": "Administrative interface and monitoring"
+    },
+    {
+      "name": "System Health",
+      "description": "Health checks and system monitoring"
+    },
+    {
+      "name": "Webhooks",
+      "description": "Webhook event handling and processing"
+    }
+  ]
+}

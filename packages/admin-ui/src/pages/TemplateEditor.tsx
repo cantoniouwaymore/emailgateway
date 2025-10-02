@@ -514,6 +514,16 @@ export default function TemplateEditor() {
               </p>
             </div>
             <div className="flex items-center space-x-2">
+              <a
+                href="http://localhost:5174/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                Documentation
+                <ExternalLink className="w-3 h-3 ml-1" />
+              </a>
               <Button variant="outline" onClick={() => navigate('/dashboard')}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back

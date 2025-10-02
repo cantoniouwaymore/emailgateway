@@ -1,0 +1,25 @@
+{
+  "name": "@waymore-email-notification/docs",
+  "version": "1.0.0",
+  "description": "Internal Waymore Email Notification System Documentation",
+  "type": "module",
+  "scripts": {
+    "dev": "vitepress dev --port 5174",
+    "build": "vitepress build",
+    "preview": "vitepress preview"
+  },
+  "devDependencies": {
+    "vitepress": "^1.6.4"
+  },
+  "keywords": [
+    "email",
+    "documentation",
+    "vitepress"
+  ],
+  "author": "Waymore Platform",
+  "license": "MIT",
+  "dependencies": {
+    "mermaid": "^11.12.0",
+    "vitepress-openapi": "^0.1.9"
+  }
+}

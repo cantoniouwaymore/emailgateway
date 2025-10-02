@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { messagesAPI } from '@/lib/api';
-import { Loader2, Mail, Search, RefreshCw, Eye } from 'lucide-react';
+import { Loader2, Mail, Search, RefreshCw, Eye, FileText, ExternalLink } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -81,16 +81,41 @@ export default function Messages() {
   const messages = data?.recentMessages || [];
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-          <Mail className="h-8 w-8 text-primary" />
-          Recent Messages
-        </h1>
-        <p className="text-lg text-muted-foreground">
-          View and manage your recent email messages with delivery status and details
-        </p>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                <Mail className="h-6 w-6 text-primary" />
+                Recent Messages
+              </h1>
+              <p className="text-sm text-gray-500">
+                View and manage your recent email messages with delivery status and details
+              </p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <a
+                href="http://localhost:5174/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                Documentation
+                <ExternalLink className="w-3 h-3 ml-1" />
+              </a>
+              <Button variant="outline" onClick={() => navigate('/dashboard')}>
+                Back to Dashboard
+              </Button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
       {/* Search Bar */}
       <Card className="mb-6">
@@ -190,6 +215,7 @@ export default function Messages() {
           )}
         </CardContent>
       </Card>
+      </main>
     </div>
   );
 }

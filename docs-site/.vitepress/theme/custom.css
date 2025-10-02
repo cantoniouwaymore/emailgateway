@@ -1,0 +1,252 @@
+/* Custom styles for Email Gateway documentation */
+
+/* Main page title */
+h1 {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--vp-c-text-1);
+  margin-bottom: 8px;
+}
+
+/* Card styles */
+.card {
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+  padding: 24px;
+  background: var(--vp-c-bg);
+  transition: border-color 0.2s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.card:hover {
+  border-color: var(--vp-c-brand-1);
+}
+
+.card-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  height: 100%;
+}
+
+.card-icon {
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.card-icon .icon {
+  font-size: 24px;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.card-content h3 {
+  margin: 0 !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: var(--vp-c-text-1) !important;
+}
+
+/* More specific selectors to override VitePress defaults */
+.card .card-content h3 {
+  font-size: 14px !important;
+}
+
+.card-link .card .card-content h3 {
+  font-size: 14px !important;
+}
+
+.card-content p {
+  margin: 0;
+  color: var(--vp-c-text-2);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* Grid layouts */
+.grid {
+  display: grid;
+  gap: 12px;
+}
+
+.grid-cols-1 {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (min-width: 768px) {
+  .grid-cols-1.md\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  
+  .grid-cols-1.md\:grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid-cols-1.lg\:grid-cols-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* Spacing utilities */
+.my-8 {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+.my-12 {
+  margin-top: 3rem;
+  margin-bottom: 3rem;
+}
+
+.gap-6 {
+  gap: 1.5rem;
+}
+
+.gap-8 {
+  gap: 2rem;
+}
+
+/* Text utilities */
+.text-center {
+  text-align: center;
+}
+
+.list-none {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.list-none li {
+  margin-bottom: 8px;
+}
+
+.list-none li:last-child {
+  margin-bottom: 0;
+}
+
+/* Link styles */
+a {
+  color: var(--vp-c-brand-1);
+  text-decoration: none !important;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--vp-c-brand-2);
+  text-decoration: none !important;
+}
+
+/* Override VitePress default link styles */
+.card-link {
+  text-decoration: none !important;
+}
+
+.card-link:hover {
+  text-decoration: none !important;
+}
+
+.card-link h3 {
+  text-decoration: none !important;
+}
+
+.card-link p {
+  text-decoration: none !important;
+}
+
+/* Global override for all text in cards */
+.card * {
+  text-decoration: none !important;
+}
+
+.card-link * {
+  text-decoration: none !important;
+}
+
+/* Override any VitePress default styles */
+.VPContent .card * {
+  text-decoration: none !important;
+}
+
+/* Nuclear option - remove all underlines from the page */
+#app a,
+#app a:hover,
+#app a:visited,
+#app a:active {
+  text-decoration: none !important;
+}
+
+/* Specifically target the main content area */
+.VPContent a,
+.VPContent a:hover,
+.VPContent a:visited,
+.VPContent a:active {
+  text-decoration: none !important;
+}
+
+/* Feature sections */
+h2 {
+  margin-top: 0;
+  margin-bottom: 24px;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--vp-c-text-1);
+}
+
+h3 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--vp-c-text-1);
+}
+
+h4 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--vp-c-text-1);
+}
+
+ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+li {
+  margin-bottom: 8px;
+  color: var(--vp-c-text-2);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .card {
+    padding: 20px;
+  }
+  
+  .card-content h3 {
+    font-size: 16px;
+  }
+  
+  .card-content p {
+    font-size: 13px;
+  }
+}

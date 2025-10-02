@@ -9,7 +9,7 @@ import { join } from 'path';
 import { readFileSync, existsSync } from 'fs';
 
 export async function adminReactRoutes(fastify: FastifyInstance) {
-  const distPath = join(process.cwd(), 'admin-ui', 'dist');
+  const distPath = join(process.cwd(), '..', 'admin-ui', 'dist');
   const indexPath = join(distPath, 'index.html');
 
   // Check if React app is built
@@ -40,6 +40,8 @@ export async function adminReactRoutes(fastify: FastifyInstance) {
   };
 
   // Register all SPA routes
+  fastify.get('/admin', spaHandler);
+  fastify.get('/admin/', spaHandler);
   fastify.get('/admin/dashboard', spaHandler);
   fastify.get('/admin/templates', spaHandler);
   fastify.get('/admin/templates/editor', spaHandler);
