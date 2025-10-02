@@ -40,7 +40,8 @@ export default defineConfig({
       {
         text: 'API',
         items: [
-          { text: 'API Reference', link: '/api/' }
+          { text: 'API Reference', link: '/api/' },
+          { text: 'Interactive Docs (Swagger)', link: '/api/swagger' }
         ]
       },
       {

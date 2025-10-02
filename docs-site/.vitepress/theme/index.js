@@ -9,4 +9,7 @@ export default {
       'nav-bar-title-after': () => h(Breadcrumb),
     })
   },
+  enhanceApp({ app }) {
+    // Clean theme without vitepress-openapi for now
+  },
 }

@@ -9,52 +9,6 @@ A modern, scalable email service with RESTful API, template management, and admi
 
 ---
 
-## Popular
-
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6 my-8">
-
-<div class="card">
-  <div class="card-header">
-    <h3>Quick Start</h3>
-    <p>Get up and running in minutes with our step-by-step setup guide</p>
-  </div>
-  <div class="card-footer">
-    <a href="/quick-start" class="btn btn-primary">Start Here</a>
-  </div>
-</div>
-
-<div class="card">
-  <div class="card-header">
-    <h3>API Reference</h3>
-    <p>Complete API documentation with examples and authentication details</p>
-  </div>
-  <div class="card-footer">
-    <a href="/api/" class="btn btn-primary">View API Docs</a>
-  </div>
-</div>
-
-<div class="card">
-  <div class="card-header">
-    <h3>Templates</h3>
-    <p>Create and manage email templates with Handlebars support</p>
-  </div>
-  <div class="card-footer">
-    <a href="/guides/templates" class="btn btn-primary">Explore Templates</a>
-  </div>
-</div>
-
-<div class="card">
-  <div class="card-header">
-    <h3>Admin Dashboard</h3>
-    <p>Manage templates, monitor messages, and configure your email notification system</p>
-  </div>
-  <div class="card-footer">
-    <a href="/admin/" class="btn btn-primary">Open Dashboard</a>
-  </div>
-</div>
-
-</div>
-
 ## Features
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 my-12">

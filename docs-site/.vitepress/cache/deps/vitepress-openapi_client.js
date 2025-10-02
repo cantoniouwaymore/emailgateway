@@ -66,6 +66,7 @@ import {
   withKeys,
   withModifiers
 } from "./chunk-XV6CE6JT.js";
+import "./chunk-5IKWDFCZ.js";
 
 // node_modules/vitepress-openapi/dist/OpenApi-B2KHkeoz.js
 var zo = Object.defineProperty;
@@ -52893,7 +52894,7 @@ function Gpe(t, e) {
   var n = O(e, "color", 8), r = O(e, "onChange", 8), a = O(e, "showOnTop", 8), i = ie2(), o = () => {
   };
   mi2(Qt(function* () {
-    var l, u = new ((l = yield import("./vanilla-picker-BAEwS4Fy-G72AZM47.js")) === null || l === void 0 ? void 0 : l.default)({ parent: f(i), color: n(), popup: a() ? "top" : "bottom", onDone(c) {
+    var l, u = new ((l = yield import("./vanilla-picker-BAEwS4Fy-GPYMZAZ2.js")) === null || l === void 0 ? void 0 : l.default)({ parent: f(i), color: n(), popup: a() ? "top" : "bottom", onDone(c) {
       var d = c.rgba[3] === 1 ? c.hex.substring(0, 7) : c.hex;
       r()(d);
     } });

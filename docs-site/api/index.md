@@ -10,8 +10,13 @@ next: '/quick-start'
 The Waymore Transactional Emails Service API provides a standardized interface for sending emails through the Waymore platform. The service is part of a **monorepo** containing multiple microservices, with the API server handling all HTTP requests and the email worker processing background jobs.
 
 **Base URL**: `https://api.waymore.io/email-gateway`  
-**Version**: `v1`  
+**Version**: `v2.0.0`  
 **Authentication**: Bearer JWT Token
+
+## Interactive Documentation
+
+For an interactive API documentation experience with testing capabilities, visit our [Swagger UI page](/api/swagger).
+
 
 ## Monorepo Services
 

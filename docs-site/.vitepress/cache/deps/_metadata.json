@@ -1,31 +1,43 @@
 {
-  "hash": "b7b3a56c",
+  "hash": "9ee76447",
   "configHash": "3b86c849",
-  "lockfileHash": "68c6f6c8",
-  "browserHash": "ed45e201",
+  "lockfileHash": "8b275e3a",
+  "browserHash": "f2499708",
   "optimized": {
     "vue": {
       "src": "../../../node_modules/vue/dist/vue.runtime.esm-bundler.js",
       "file": "vue.js",
-      "fileHash": "9d2998ef",
+      "fileHash": "2fb0a4b3",
       "needsInterop": false
     },
     "vitepress > @vue/devtools-api": {
       "src": "../../../node_modules/@vue/devtools-api/dist/index.js",
       "file": "vitepress___@vue_devtools-api.js",
-      "fileHash": "465f6b42",
+      "fileHash": "1b10bec0",
       "needsInterop": false
     },
     "vitepress > @vueuse/core": {
       "src": "../../../node_modules/@vueuse/core/index.mjs",
       "file": "vitepress___@vueuse_core.js",
-      "fileHash": "6b67a1a0",
+      "fileHash": "d5b2f8ce",
       "needsInterop": false
+    },
+    "redoc": {
+      "src": "../../../node_modules/redoc/bundles/redoc.browser.lib.js",
+      "file": "redoc.js",
+      "fileHash": "0193b92b",
+      "needsInterop": true
+    },
+    "swagger-ui-dist/swagger-ui-bundle.js": {
+      "src": "../../../node_modules/swagger-ui-dist/swagger-ui-bundle.js",
+      "file": "swagger-ui-dist_swagger-ui-bundle__js.js",
+      "fileHash": "325b597b",
+      "needsInterop": true
     },
     "vitepress-openapi/client": {
       "src": "../../../node_modules/vitepress-openapi/dist/vitepress-openapi.client.es.js",
       "file": "vitepress-openapi_client.js",
-      "fileHash": "d3fe6063",
+      "fileHash": "f54c5dab",
       "needsInterop": false
     }
   },
@@ -33,8 +45,11 @@
     "chunk-XV6CE6JT": {
       "file": "chunk-XV6CE6JT.js"
     },
-    "vanilla-picker-BAEwS4Fy-G72AZM47": {
-      "file": "vanilla-picker-BAEwS4Fy-G72AZM47.js"
+    "vanilla-picker-BAEwS4Fy-GPYMZAZ2": {
+      "file": "vanilla-picker-BAEwS4Fy-GPYMZAZ2.js"
+    },
+    "chunk-5IKWDFCZ": {
+      "file": "chunk-5IKWDFCZ.js"
     }
   }
 }
