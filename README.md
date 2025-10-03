@@ -16,10 +16,12 @@ This monorepo contains multiple services working together to provide a complete 
 
 | Package | Description | Port | Purpose |
 |---------|-------------|------|---------|
-| **`@emailgateway/api-server`** | Main HTTP API server | 3000 | REST API, admin dashboard, template management |
+| **`@emailgateway/api-server`** | Main HTTP API server | 3000 | REST API, webhooks (admin UI served separately) |
 | **`@emailgateway/email-worker`** | Background job processor | 3001 | Email sending, queue processing |
 | **`@emailgateway/cleanup-worker`** | Database maintenance | - | Data cleanup, scheduled tasks |
-| **`@emailgateway/admin-ui`** | React admin interface | 5173 | Template editor, monitoring dashboard |
+| **`@emailgateway/admin-ui`** | React admin interface (dev) | 5173 | Template editor, monitoring dashboard (dev mode) |
+| **`@emailgateway/admin-server`** | Admin UI server | 5175 | Serves built React admin UI |
+| **`@emailgateway/docs`** | VitePress documentation | 5174 | API docs, guides, architecture |
 | **`@emailgateway/shared-types`** | TypeScript definitions | - | Shared types across all packages |
 
 ### 🎯 **Service Overview**
@@ -30,11 +32,11 @@ This monorepo contains multiple services working together to provide a complete 
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
 │  🎨 FRONTEND SERVICES                                       │
-│  ┌─────────────────┐    ┌─────────────────┐                │
-│  │   Admin UI      │    │  Shared Types   │                │
-│  │   (React)       │    │  (TypeScript)   │                │
-│  │   Port: 5173    │    │  (No Port)      │                │
-│  └─────────────────┘    └─────────────────┘                │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌──────────┐ │
+│  │   Admin UI      │    │  Admin Server   │    │  Docs    │ │
+│  │   (React Dev)   │    │  (Production)    │    │  Site    │ │
+│  │   Port: 5173    │    │   Port: 5175     │    │ Port:5174│ │
+│  └─────────────────┘    └─────────────────┘    └──────────┘ │
 │           │                       │                        │
 │           └───────────────────────┼────────────────────────┘
 │                                   │
@@ -85,7 +87,9 @@ npm run dev:all
 # Option B: Start services separately
 cd packages/api-server && npm run dev      # Terminal 1 (API on port 3000)
 cd packages/email-worker && npm run dev    # Terminal 2 (Worker on port 3001)
-cd packages/admin-ui && npm run dev        # Terminal 3 (Admin UI on port 5173)
+cd packages/admin-ui && npm run dev        # Terminal 3 (Admin UI dev on port 5173)
+cd packages/admin-server && npm run dev    # Terminal 4 (Admin server on port 5175)
+cd docs-site && npm run dev                # Terminal 5 (Docs on port 5174)
 ```
 
 ### 🐳 Docker Setup (Alternative)
@@ -137,7 +141,7 @@ emailgateway/
 │   │   ├── package.json
 │   │   └── tsconfig.json
 │   │
-│   ├── admin-ui/            # Frontend service
+│   ├── admin-ui/            # Frontend service (dev)
 │   │   ├── src/
 │   │   │   ├── components/   # React components
 │   │   │   ├── pages/        # Page components
@@ -146,6 +150,12 @@ emailgateway/
 │   │   ├── package.json
 │   │   ├── tsconfig.json
 │   │   └── vite.config.ts
+│   │
+│   ├── admin-server/        # Admin UI server (prod)
+│   │   ├── src/
+│   │   │   └── index.ts      # Admin server implementation
+│   │   ├── package.json
+│   │   └── tsconfig.json
 │   │
 │   └── shared-types/        # Shared package
 │       ├── *.ts             # Type definitions
@@ -160,8 +170,11 @@ emailgateway/
 ├── infrastructure/          # Infrastructure configs
 │   └── docker-compose.yml
 │
-├── docs/                   # Documentation
-│   └── *.md
+├── docs-site/              # VitePress documentation
+│   ├── src/                # VitePress source files
+│   ├── public/             # Static assets
+│   ├── package.json
+│   └── vite.config.ts
 │
 ├── package.json            # Root workspace config
 ├── tsconfig.json           # Root TypeScript config
@@ -181,6 +194,7 @@ npm run dev:all
 cd packages/api-server && npm run dev      # API Server (port 3000)
 cd packages/email-worker && npm run dev    # Email Worker (port 3001)
 cd packages/admin-ui && npm run dev        # Admin UI (port 5173)
+cd docs-site && npm run dev                # Docs Site (port 5174)
 cd packages/cleanup-worker && npm run dev  # Cleanup Worker (scheduled)
 ```
 
@@ -193,6 +207,7 @@ npm run start:all
 # Start individual services
 cd packages/api-server && npm run start:api    # API Server (port 3000)
 cd packages/email-worker && npm run start      # Email Worker (port 3001)
+cd packages/admin-server && npm start          # Admin Server (port 5175)
 cd packages/cleanup-worker && npm run start    # Cleanup Worker (scheduled)
 ```
 
@@ -206,6 +221,8 @@ npm run build:all
 cd packages/api-server && npm run build
 cd packages/email-worker && npm run build
 cd packages/admin-ui && npm run build
+cd packages/admin-server && npm run build
+cd docs-site && npm run build
 ```
 
 ## 🔧 Development
@@ -236,7 +253,9 @@ All packages use the shared types package to ensure consistency:
 
 - **API Server**: http://localhost:3000/healthz
 - **Email Worker**: http://localhost:3001/healthz
-- **Admin UI**: http://localhost:5173
+- **Admin UI (Dev)**: http://localhost:5173
+- **Admin Server**: http://localhost:5175/health
+- **Docs Site**: http://localhost:5174
 - **Metrics**: http://localhost:3000/metrics
 
 ### Logs
@@ -267,14 +286,15 @@ Each package can be deployed independently:
 - API Server: Main HTTP service
 - Email Worker: Background processing
 - Admin UI: Static frontend (builds to static files)
+- Docs Site: Static documentation (builds to static files)
 - Cleanup Worker: Scheduled maintenance
 
 ## 📚 Documentation
 
-- **[API Reference](docs/API.md)** - Complete API documentation
-- **[Architecture](docs/ARCHITECTURE.md)** - System design and patterns
-- **[Developer Guide](docs/DEVELOPER.md)** - Development documentation
-- **[Deployment Guide](docs/DEPLOYMENT.md)** - Production deployment
+- **[API Reference](http://localhost:5174/api/complete)** - Complete API documentation
+- **[Architecture](http://localhost:5174/guides/architecture)** - System design and patterns
+- **[Developer Guide](http://localhost:5174/guides/developer)** - Development documentation
+- **[Deployment Guide](http://localhost:5174/guides/deployment)** - Production deployment
 
 ## 🤝 Contributing
 
@@ -298,7 +318,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ## 🆘 Support
 
-- **Documentation**: Check the [docs/](docs/) folder
+- **Documentation**: Visit the [VitePress docs site](http://localhost:5174) (run `npm run dev:docs`)
 - **Issues**: Create a [GitHub issue](https://github.com/cantoniouwaymore/emailgateway/issues)
 - **Discussions**: Use [GitHub Discussions](https://github.com/cantoniouwaymore/emailgateway/discussions)
 - **Support Email**: cantoniou@waymore.io

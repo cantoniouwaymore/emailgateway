@@ -684,9 +684,9 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/docs/API.md",
+              "raw": "{{base_url}}/api/complete",
               "host": ["{{base_url}}"],
-              "path": ["docs", "API.md"]
+              "path": ["api", "complete"]
             },
             "description": "View documentation files in the browser."
           }

@@ -15,9 +15,11 @@ The deployment includes the following services:
 
 | Service | Port | Purpose | Dependencies |
 |---------|------|---------|--------------|
-| **API Server** | 3000 | HTTP API, admin dashboard, template management | PostgreSQL, Redis, Shared Types |
+| **API Server** | 3000 | HTTP API, webhooks (admin UI served separately) | PostgreSQL, Redis, Shared Types |
 | **Email Worker** | 3001 | Background processing, email sending | Redis, Shared Types |
-| **Admin UI** | 5173 | React frontend, template editor, monitoring | API Server, Shared Types |
+| **Admin UI** | 5173 | React frontend (dev mode), template editor, monitoring | API Server, Shared Types |
+| **Admin Server** | 5175 | Serves built React admin UI | None (static serving) |
+| **Docs Site** | 5174 | VitePress documentation, API docs, guides | None (static site) |
 | **Cleanup Worker** | - | Database maintenance, scheduled cleanup | PostgreSQL, Shared Types |
 | **Shared Types** | - | TypeScript definitions | None |
 
@@ -165,12 +167,24 @@ cp env.example .env
 # Run database migrations
 npm run migrate
 
-# Start development servers (REQUIRED: Both processes must run)
+# Start all services (recommended)
+npm run dev:all
+
+# Or start services individually:
 # Terminal 1 - API Server (handles HTTP requests, queues emails)
 npm run dev:api
 
 # Terminal 2 - Worker Process (processes queued emails, sends via providers)
 npm run dev:worker
+
+# Terminal 3 - Admin UI (React dev server)
+npm run dev:ui
+
+# Terminal 4 - Admin Server (serves built admin UI)
+npm run dev:admin-server
+
+# Terminal 5 - Docs Site (VitePress documentation)
+npm run dev:docs
 ```
 
 **⚠️ IMPORTANT**: The Internal Waymore Email Notification System requires **TWO processes** to function:

@@ -12,7 +12,8 @@ The Internal Waymore Email Notification System is organized as a monorepo contai
 emailgateway/
 ├── packages/
 │   ├── api-server/          # Main API server
-│   ├── admin-ui/            # React admin interface
+│   ├── admin-ui/            # React admin interface (dev)
+│   ├── admin-server/        # Admin UI server (production)
 │   ├── email-worker/        # Email processing worker
 │   ├── cleanup-worker/      # Data cleanup worker
 │   └── shared-types/        # Shared TypeScript types
@@ -171,12 +172,16 @@ npm run dev:all
 npm run dev:all              # Start all services
 npm run dev:api              # Start API server only
 npm run dev:ui               # Start admin UI only
+npm run dev:admin-server     # Start admin server only
+npm run dev:docs             # Start docs site only
 npm run dev:worker           # Start email worker only
 
 # Building
 npm run build:all            # Build all packages
 npm run build:api            # Build API server
 npm run build:ui             # Build admin UI
+npm run build:admin-server   # Build admin server
+npm run build:docs           # Build docs site
 
 # Testing
 npm run test:all             # Run all tests
@@ -230,6 +235,8 @@ npm run dev:all
 This starts:
 - API server on port 3000
 - Admin UI on port 5173
+- Admin server on port 5175
+- Docs site on port 5174
 - Email worker
 - Cleanup worker
 

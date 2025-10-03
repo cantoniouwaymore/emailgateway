@@ -105,8 +105,11 @@ async function buildServer() {
   console.log('✅ Webhook routes registered');
   await fastify.register(adminRoutes);
   console.log('✅ Admin routes registered');
-  await fastify.register(adminReactRoutes);
-  console.log('✅ React admin routes registered');
+  
+  // Admin UI is always served by separate admin-server
+  // This ensures consistent behavior across all environments
+  console.log('ℹ️  Admin UI served by separate admin-server');
+  
   await fastify.register(templateRoutes);
   console.log('✅ Template routes registered');
   await fastify.register(emailRoutes, { prefix: '/api' });

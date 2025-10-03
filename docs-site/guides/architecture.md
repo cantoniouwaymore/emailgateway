@@ -19,8 +19,10 @@ emailgateway/
 │   ├── api-server/           # Main HTTP API service
 │   ├── email-worker/         # Background email processing
 │   ├── cleanup-worker/       # Database maintenance service
-│   ├── admin-ui/             # React admin interface
+│   ├── admin-ui/             # React admin interface (dev)
+│   ├── admin-server/         # Admin UI server (production)
 │   └── shared-types/         # Shared TypeScript types
+├── docs-site/                # VitePress documentation
 ├── scripts/                  # Build and deployment scripts
 ├── docs/                     # Documentation
 └── infrastructure/           # Docker and deployment configs
@@ -30,9 +32,11 @@ emailgateway/
 
 | Service | Port | Purpose | Dependencies |
 |---------|------|---------|--------------|
-| **API Server** | 3000 | HTTP API, admin dashboard, template management | PostgreSQL, Redis, Shared Types |
+| **API Server** | 3000 | HTTP API, webhooks (admin UI served separately) | PostgreSQL, Redis, Shared Types |
 | **Email Worker** | 3001 | Background processing, email sending | Redis, Shared Types |
-| **Admin UI** | 5173 | React frontend, template editor, monitoring | API Server, Shared Types |
+| **Admin UI** | 5173 | React frontend (dev mode), template editor, monitoring | API Server, Shared Types |
+| **Admin Server** | 5175 | Serves built React admin UI | None (static serving) |
+| **Docs Site** | 5174 | VitePress documentation, API docs, guides | None (static site) |
 | **Cleanup Worker** | - | Database maintenance, scheduled cleanup | PostgreSQL, Shared Types |
 | **Shared Types** | - | TypeScript definitions | None |
 

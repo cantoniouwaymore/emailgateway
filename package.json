@@ -19,7 +19,13 @@
     "lint:all": "npm run lint --workspaces",
     "type-check:all": "npm run type-check --workspaces",
     "clean:all": "npm run clean --workspaces",
-    "install:all": "npm install --workspaces"
+    "install:all": "npm install --workspaces",
+    "dev:docs": "cd docs-site && npm run dev",
+    "build:docs": "cd docs-site && npm run build",
+    "preview:docs": "cd docs-site && npm run preview",
+    "dev:admin-server": "cd packages/admin-server && npm run dev",
+    "build:admin-server": "cd packages/admin-server && npm run build",
+    "start:admin-server": "cd packages/admin-server && npm start"
   },
   "keywords": [
     "email",
@@ -39,6 +45,7 @@
     "node": ">=20.0.0"
   },
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "docs-site"
   ]
 }

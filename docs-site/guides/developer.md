@@ -18,11 +18,11 @@ The Waymore Transactional Emails Service is a **monorepo** containing multiple m
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
 │  🎨 FRONTEND SERVICES                                       │
-│  ┌─────────────────┐    ┌─────────────────┐                │
-│  │   Admin UI      │    │  Shared Types   │                │
-│  │   (React)       │    │  (TypeScript)   │                │
-│  │   Port: 5173    │    │  (No Port)      │                │
-│  └─────────────────┘    └─────────────────┘                │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌──────────┐ │
+│  │   Admin UI      │    │  Admin Server   │    │  Docs    │ │
+│  │   (React Dev)   │    │  (Production)    │    │  Site    │ │
+│  │   Port: 5173    │    │   Port: 5175     │    │ Port:5174│ │
+│  └─────────────────┘    └─────────────────┘    └──────────┘ │
 │           │                       │                        │
 │           └───────────────────────┼────────────────────────┘
 │                                   │
@@ -162,17 +162,25 @@ emailgateway/
    # Email Worker (Terminal 2) - Processes queued emails, sends via providers
    cd packages/email-worker && npm run dev
    
-   # Admin UI (Terminal 3) - React frontend for template management
+   # Admin UI (Terminal 3) - React frontend for template management (dev mode)
    cd packages/admin-ui && npm run dev
    
-   # Cleanup Worker (Terminal 4) - Database maintenance (optional)
+   # Admin Server (Terminal 4) - Serves built admin UI
+   cd packages/admin-server && npm run dev
+   
+   # Docs Site (Terminal 5) - VitePress documentation
+   cd docs-site && npm run dev
+   
+   # Cleanup Worker (Terminal 6) - Database maintenance (optional)
    cd packages/cleanup-worker && npm run dev
    ```
 
    **⚠️ CRITICAL**: The following services must be running for full functionality:
    - **API Server** (port 3000): Receives HTTP requests and queues emails
    - **Email Worker** (port 3001): Processes queued emails and sends them
-   - **Admin UI** (port 5173): Template editor and monitoring dashboard
+   - **Admin UI** (port 5173): Template editor and monitoring dashboard (dev mode)
+   - **Admin Server** (port 5175): Serves built admin UI
+   - **Docs Site** (port 5174): VitePress documentation (optional for development)
 
 6. **Test the API:**
    ```bash

@@ -26,12 +26,18 @@ echo "⚙️  Starting email worker on port 3001..."
 cd packages/email-worker && PORT=3001 npm run start &
 WORKER_PID=$!
 
+# Start admin server in background
+echo "🎨 Starting admin server on port 5175..."
+cd packages/admin-server && npm start &
+ADMIN_SERVER_PID=$!
+
 # Function to handle cleanup on exit
 cleanup() {
     echo ""
     echo "🛑 Shutting down services..."
     kill $API_PID 2>/dev/null
     kill $WORKER_PID 2>/dev/null
+    kill $ADMIN_SERVER_PID 2>/dev/null
     echo "✅ Services stopped"
     exit 0
 }
@@ -43,6 +49,7 @@ echo ""
 echo "🎉 Services started successfully!"
 echo "   📡 API Server: http://localhost:3000"
 echo "   ⚙️  Worker Health: http://localhost:3001/healthz"
+echo "   🎨 Admin Server: http://localhost:5175"
 echo "   📊 Metrics: http://localhost:3000/metrics"
 echo ""
 echo "Press Ctrl+C to stop all services"

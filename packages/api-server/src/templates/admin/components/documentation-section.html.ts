@@ -23,7 +23,7 @@ export function generateDocumentationSection(data: any): string {
                   <span>5 minutes to complete</span>
                 </div>
               </div>
-              <a href="/docs/API.md" class="ml-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              <a href="http://localhost:5174/api/complete" class="ml-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                 View Full Guide
                 <i class="fas fa-arrow-right ml-2"></i>
               </a>
@@ -71,13 +71,13 @@ console.log('Message ID:', result.messageId);</code></pre>
         <div class="mb-12">
           <div class="flex items-center justify-between mb-6">
             <h2 class="text-2xl font-semibold text-gray-900">Browse Documentation</h2>
-            <a href="/docs/API.md" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+            <a href="http://localhost:5174" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
               View all guides <i class="fas fa-arrow-right ml-1"></i>
             </a>
           </div>
           
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <a href="/docs/API.md" class="group bg-white rounded-lg border border-gray-200 p-6 hover:border-blue-300 hover:shadow-md transition-all duration-200">
+            <a href="http://localhost:5174/api/complete" class="group bg-white rounded-lg border border-gray-200 p-6 hover:border-blue-300 hover:shadow-md transition-all duration-200">
               <div class="flex items-start justify-between mb-4">
                 <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                   <i class="fas fa-code text-blue-600 text-lg"></i>
@@ -88,7 +88,7 @@ console.log('Message ID:', result.messageId);</code></pre>
               <p class="text-gray-600 text-sm">Complete API documentation with examples, endpoints, and authentication details.</p>
             </a>
             
-            <a href="/docs/DEVELOPER.md" class="group bg-white rounded-lg border border-gray-200 p-6 hover:border-blue-300 hover:shadow-md transition-all duration-200">
+            <a href="http://localhost:5174/guides/developer" class="group bg-white rounded-lg border border-gray-200 p-6 hover:border-blue-300 hover:shadow-md transition-all duration-200">
               <div class="flex items-start justify-between mb-4">
                 <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                   <i class="fas fa-cog text-green-600 text-lg"></i>
@@ -99,7 +99,7 @@ console.log('Message ID:', result.messageId);</code></pre>
               <p class="text-gray-600 text-sm">Setup, configuration, and development best practices for integrating with our platform.</p>
             </a>
             
-            <a href="/docs/TRANSACTIONAL_TEMPLATE_GUIDE.md" class="group bg-white rounded-lg border border-gray-200 p-6 hover:border-blue-300 hover:shadow-md transition-all duration-200">
+            <a href="http://localhost:5174/guides/templates" class="group bg-white rounded-lg border border-gray-200 p-6 hover:border-blue-300 hover:shadow-md transition-all duration-200">
               <div class="flex items-start justify-between mb-4">
                 <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
                   <i class="fas fa-envelope text-purple-600 text-lg"></i>
@@ -127,7 +127,7 @@ console.log('Message ID:', result.messageId);</code></pre>
               <div class="bg-gray-50 rounded p-3 mb-4">
                 <code class="text-sm text-gray-800">Authorization: Bearer YOUR_JWT_TOKEN</code>
               </div>
-              <a href="/docs/API.md#authentication" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+              <a href="http://localhost:5174/api/complete#authentication" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
                 Learn more <i class="fas fa-arrow-right ml-1"></i>
               </a>
             </div>
@@ -143,7 +143,7 @@ console.log('Message ID:', result.messageId);</code></pre>
               <div class="bg-gray-50 rounded p-3 mb-4">
                 <code class="text-sm text-gray-800">POST /api/v1/templates/validate</code>
               </div>
-              <a href="/docs/API.md#template-validation" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+              <a href="http://localhost:5174/api/complete#template-validation" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
                 Learn more <i class="fas fa-arrow-right ml-1"></i>
               </a>
             </div>
@@ -204,7 +204,7 @@ console.log('Message ID:', result.messageId);</code></pre>
         <div class="mb-12">
           <h2 class="text-2xl font-semibold text-gray-900 mb-6">Additional Resources</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <a href="/docs/ARCHITECTURE.md" class="text-center p-6 bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200">
+            <a href="http://localhost:5174/guides/architecture" class="text-center p-6 bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200">
               <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mx-auto mb-4">
                 <i class="fas fa-sitemap text-indigo-600 text-lg"></i>
               </div>
@@ -212,7 +212,7 @@ console.log('Message ID:', result.messageId);</code></pre>
               <p class="text-sm text-gray-600">System architecture and design principles</p>
             </a>
             
-            <a href="/docs/DEPLOYMENT.md" class="text-center p-6 bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200">
+            <a href="http://localhost:5174/guides/deployment" class="text-center p-6 bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200">
               <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mx-auto mb-4">
                 <i class="fas fa-server text-yellow-600 text-lg"></i>
               </div>
@@ -220,7 +220,7 @@ console.log('Message ID:', result.messageId);</code></pre>
               <p class="text-sm text-gray-600">Deployment guides and best practices</p>
             </a>
             
-            <a href="/docs/CLEANUP.md" class="text-center p-6 bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200">
+            <a href="http://localhost:5174/guides/cleanup" class="text-center p-6 bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200">
               <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mx-auto mb-4">
                 <i class="fas fa-broom text-red-600 text-lg"></i>
               </div>
@@ -228,7 +228,7 @@ console.log('Message ID:', result.messageId);</code></pre>
               <p class="text-sm text-gray-600">Data cleanup and maintenance procedures</p>
             </a>
             
-            <a href="/docs/ROUTEE_INTEGRATION.md" class="text-center p-6 bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200">
+            <a href="http://localhost:5174/guides/routee" class="text-center p-6 bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200">
               <div class="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center mx-auto mb-4">
                 <i class="fas fa-plug text-teal-600 text-lg"></i>
               </div>
@@ -249,7 +249,7 @@ console.log('Message ID:', result.messageId);</code></pre>
               <a href="https://github.com/cantoniouwaymore/emailgateway" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
                 <i class="fab fa-github mr-2"></i>GitHub
               </a>
-              <a href="/docs/README.md" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+              <a href="http://localhost:5174" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
                 <i class="fas fa-book mr-2"></i>Full Documentation
               </a>
             </div>

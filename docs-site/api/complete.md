@@ -15,6 +15,7 @@ The Waymore Transactional Emails Service API provides a standardized interface f
 | **API Server** | 3000 | HTTP API, admin dashboard, template management | `/api/v1/*`, `/admin/*` |
 | **Email Worker** | 3001 | Background processing, email sending | Health check only |
 | **Admin UI** | 5173 | React frontend, template editor, monitoring | Static files |
+| **Docs Site** | 5174 | VitePress documentation, API docs, guides | Static files |
 | **Cleanup Worker** | - | Database maintenance, scheduled cleanup | None |
 
 ## Authentication

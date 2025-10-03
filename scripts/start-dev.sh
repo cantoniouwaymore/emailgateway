@@ -32,10 +32,20 @@ echo "⚙️  Starting email worker on port 3001..."
 cd packages/email-worker && PORT=3001 npm run dev &
 WORKER_PID=$!
 
-# Start admin UI in background
-echo "🎨 Starting admin UI on port 5173..."
+# Start admin UI dev server in background
+echo "🎨 Starting admin UI dev server on port 5173..."
 cd packages/admin-ui && npm run dev &
 ADMIN_PID=$!
+
+# Start admin server in background (serves built admin UI)
+echo "🎨 Starting admin server on port 5175..."
+cd packages/admin-server && npm run dev &
+ADMIN_SERVER_PID=$!
+
+# Start docs site in background
+echo "📚 Starting docs site on port 5174..."
+cd docs-site && npm run dev &
+DOCS_PID=$!
 
 # Start ngrok tunnel for webhook development
 echo "🌐 Starting ngrok tunnel for webhook development..."
@@ -55,6 +65,8 @@ cleanup() {
     kill $API_PID 2>/dev/null
     kill $WORKER_PID 2>/dev/null
     kill $ADMIN_PID 2>/dev/null
+    kill $ADMIN_SERVER_PID 2>/dev/null
+    kill $DOCS_PID 2>/dev/null
     kill $NGROK_PID 2>/dev/null
     echo "✅ Services stopped"
     exit 0
@@ -67,7 +79,9 @@ echo ""
 echo "🎉 Services started successfully!"
 echo "   📡 API Server: http://localhost:3000"
 echo "   ⚙️  Worker Health: http://localhost:3001/healthz"
-echo "   🎨 Admin UI: http://localhost:5173"
+echo "   🎨 Admin UI (Dev): http://localhost:5173"
+echo "   🎨 Admin Server: http://localhost:5175"
+echo "   📚 Docs Site: http://localhost:5174"
 echo "   📊 Metrics: http://localhost:3000/metrics"
 echo "   🌐 ngrok Dashboard: http://localhost:4040"
 echo "   🔗 Public Webhook URL: $NGROK_URL/webhooks/routee"
